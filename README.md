@@ -45,3 +45,27 @@ In order to start the application simply run
 
 #### Alternative With Pycharm
 If you are in pycharm it should have configured your ide to start the sever  by clicking on the play/debug buttons in the top right
+
+### LocalStack S3 setup
+We added a localstack file using docker compose this will help us emulate S3 buckets on our local environments.
+
+#### Prerequesites
+You will need to install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
+Localstack provides a wrapper around AWS services we can use the AWS CLI to invoke localstack instead of AWS as shown below
+
+Copying file
+
+    aws s3 cp ss-poc-test.txt s3://ss-poc-test --endpoint-url http://localhost:4566
+
+This command will copy the file from the project root directory into the S3 bucket, if this works the bucket is setup correctly.
+
+#### Other useful S3 commands
+
+Listing buckets
+
+    aws --endpoint-url="http://localhost:4566" s3 ls 
+
+Listing objects inside buckets
+
+    aws --endpoint-url="http://localhost:4566" s3 ls s3://ss-poc-test
