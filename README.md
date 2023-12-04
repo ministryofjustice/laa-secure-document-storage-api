@@ -49,7 +49,7 @@ If you are in pycharm it should have configured your ide to start the sever  by 
 ### LocalStack S3 setup
 We added a localstack file using docker compose this will help us emulate S3 buckets on our local environments.
 
-#### Prerequesites
+#### Prerequisites
 You will need to install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 Localstack provides a wrapper around AWS services we can use the AWS CLI to invoke localstack instead of AWS as shown below
