@@ -69,3 +69,8 @@ Listing buckets
 Listing objects inside buckets
 
     aws --endpoint-url="http://localhost:4566" s3 ls s3://ss-poc-test
+
+#### Instructions for docker install
+Ensure that you have the Docker engine running. Then run the following command from the root of the project to create and start up the docker container
+
+    docker compose up
