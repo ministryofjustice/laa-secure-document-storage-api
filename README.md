@@ -63,7 +63,7 @@ This command will copy the file from the project root directory into the S3 buck
 #### Starting LocalStack S3
 To run docker locally run the following the command. 
 
-    run docker compose up
+    docker compose up
 
 #### Testing LocalStack S3
     Please use the existing lines on copying a file to the bucket and the list bucket or bucket contents command
