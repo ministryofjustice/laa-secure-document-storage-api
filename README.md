@@ -1,5 +1,5 @@
 # laa-secure-document-storage-api
-A repository containing the API for the LAA shared component for secure document storage
+A repository containing the API for the LAA shared component for secure document storage.
 
 
 ## Prerequisites
@@ -44,7 +44,7 @@ In order to start the application simply run
     uvicorn main:app
 
 #### Alternative With Pycharm
-If you are in pycharm it should have configured your ide to start the sever  by clicking on the play/debug buttons in the top right
+If you are in pycharm it should have configured your ide to start the sever  by clicking on the play/debug buttons in the top right.
 
 ### LocalStack S3 setup
 We added a localstack file using docker compose this will help us emulate S3 buckets on our local environments.
@@ -52,7 +52,7 @@ We added a localstack file using docker compose this will help us emulate S3 buc
 #### Prerequisites
 You will need to install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
-Localstack provides a wrapper around AWS services we can use the AWS CLI to invoke localstack instead of AWS as shown below
+Localstack provides a wrapper around AWS services we can use the AWS CLI to invoke localstack instead of AWS as shown below.
 
 Copying file
 
@@ -60,8 +60,21 @@ Copying file
 
 This command will copy the file from the project root directory into the S3 bucket, if this works the bucket is setup correctly.
 
+#### Starting LocalStack S3
+To run docker locally run the following the command. 
+
+    run docker compose up
+
+#### Testing LocalStack S3
+    Please use the existing lines on copying a file to the bucket and the list bucket or bucket contents command
+
 #### Instructions for docker install
-Ensure that you have the Docker engine running. Then run the following command from the root of the project to create and start up the docker container
+
+You will need to install Docker from the following link [Docker](https://docs.docker.com/engine/install/)
+
+Start the docker application on your local machine.
+
+Then run the following command from the root of the project to create and start up the docker container.
 
     docker compose up
 
