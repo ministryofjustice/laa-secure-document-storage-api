@@ -4,8 +4,22 @@ A repository containing the API for the LAA shared component for secure document
 
 ## Prerequisites
 
-To run this project, you need to have Python 3.10 or above and Pipenv installed on your system. a good tool to manage python versions on your macbook is [pyenv](https://github.com/pyenv/pyenv). Below are the steps to install these prerequisites:
+#### Install AWS CLI
+You will need to install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
+Localstack provides a wrapper around AWS services we can use the AWS CLI to invoke localstack instead of AWS as shown below.
+
+Copying file
+
+    aws s3 cp ss-poc-test.txt s3://ss-poc-test --endpoint-url http://localhost:4566
+
+This command will copy the file from the project root directory into the S3 bucket, if this works the bucket is setup correctly.
+
+#### Installing Docker
+You will need to install Docker from the following link [Docker](https://docs.docker.com/engine/install/)
+
+#### Python setup
+To run this project, you need to have Python 3.9 or above and Pipenv installed on your system. a good tool to manage python versions on your macbook is [pyenv](https://github.com/pyenv/pyenv). Below are the steps to install these prerequisites:
 
 Install Pipenv:
 
@@ -47,38 +61,19 @@ In order to start the application simply run
 If you are in pycharm it should have configured your ide to start the sever  by clicking on the play/debug buttons in the top right.
 
 ### LocalStack S3 setup
-We added a localstack file using docker compose this will help us emulate S3 buckets on our local environments.
+This project uses LocalStack via Docker compose. This will help us emulate S3 buckets on our local environments.
 
-#### Prerequisites
-You will need to install the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+#### Starting Docker services
+Before running the services make sure Docker is started. Then proceed to run the following command from the root of the project.
 
-Localstack provides a wrapper around AWS services we can use the AWS CLI to invoke localstack instead of AWS as shown below.
+    docker compose up
 
-Copying file
+#### Useful S3 commands with LocalStack
+We have put a sample file in the root directory called ss-poc-test.txt to help verify that LocalStack has been setup correctly. Please use the following commands to verify this.
+
+Adding to bucket
 
     aws s3 cp ss-poc-test.txt s3://ss-poc-test --endpoint-url http://localhost:4566
-
-This command will copy the file from the project root directory into the S3 bucket, if this works the bucket is setup correctly.
-
-#### Starting LocalStack S3
-To run docker locally run the following the command. 
-
-    docker compose up
-
-#### Testing LocalStack S3
-    Please use the existing lines on copying a file to the bucket and the list bucket or bucket contents command
-
-#### Instructions for docker install
-
-You will need to install Docker from the following link [Docker](https://docs.docker.com/engine/install/)
-
-Start the docker application on your local machine.
-
-Then run the following command from the root of the project to create and start up the docker container.
-
-    docker compose up
-
-#### Other useful S3 commands
 
 Listing buckets
 
