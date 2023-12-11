@@ -8,6 +8,7 @@ fastapi = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 python-multipart = "*"
 pydantic = "*"
+boto3 = "*"
 
 [dev-packages]
 
