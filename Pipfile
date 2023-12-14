@@ -9,6 +9,7 @@ uvicorn = {extras = ["standard"], version = "*"}
 python-multipart = "*"
 pydantic = "*"
 boto3 = "*"
+testcontainers = "*"
 
 [dev-packages]
 

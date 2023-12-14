@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Form, UploadFile, File, Depends
 from pydantic import BaseModel, Field
+from src.services.s3_service import S3Service
 from typing import Optional
-import boto3 
-from botocore.exceptions import NoCredentialsError
+import boto3
 
 router = APIRouter()
-s3_client = boto3.client('s3', region_name='us-east-1', 
-                         aws_access_key_id="test", 
-                         aws_secret_access_key="test", 
-                         endpoint_url="http://localhost:4566")
+def get_s3_service():
+    service = S3Service.getInstance()  # returns the singleton instance
+    return service()
             
 BUCKET = 'ss-poc-test'            
 class Metadata(BaseModel):
@@ -22,9 +21,8 @@ async def parse_upload_form(file: UploadFile = File(...), reference: Optional[st
     return upload_form
 
 @router.post("/files", status_code=201)
-async def saveFile(uploadForm: Metadata = Depends(parse_upload_form)):
-    if uploadForm.name is None:
-        return JSONResponse(status_code=400, content={"message": "Name is required"})
+async def saveFile(uploadForm: Metadata = Depends(parse_upload_form),
+                   s3_client: boto3.client = Depends(get_s3_service)):
 
     file_content = await uploadForm.file.read()
     response = s3_client.put_object(Bucket='ss-poc-test',Key=uploadForm.name, Body=file_content)
