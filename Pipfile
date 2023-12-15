@@ -10,6 +10,7 @@ python-multipart = "*"
 pydantic = "*"
 boto3 = "*"
 testcontainers = "*"
+testcontainers-localstack = "*"
 
 [dev-packages]
 
