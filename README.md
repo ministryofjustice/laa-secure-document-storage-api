@@ -66,8 +66,8 @@ Copying a file to the bucket
 
 Listing buckets
     
-    aws --endpoint-url=“http://localhost:4566” s3 ls
+    aws --endpoint-url=http://localhost:4566 s3 ls
 
 Listing objects inside buckets
     
-    aws --endpoint-url=“http://localhost:4566” s3 ls s3://ss-poc-test
+    aws --endpoint-url=http://localhost:4566 s3 ls s3://ss-poc-test
