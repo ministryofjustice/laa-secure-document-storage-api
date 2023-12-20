@@ -25,7 +25,7 @@ def test_save_failure_responds_with_false(boto3Mock, get_file):
     # TypeError: __init__() missing 2 required positional arguments: 'error_response' and 'operation_name'
 
     # Previous code when running 'pytest' won't pass
-    # s3_client_mock.upload_fileobj.side_effect = ClientError(
+    # s3_client_mock.upload_fileobj.side_effect = ClientError
 
     # Current code when running 'pytest' test will pass
     s3_client_mock.upload_fileobj.side_effect = ClientError(
