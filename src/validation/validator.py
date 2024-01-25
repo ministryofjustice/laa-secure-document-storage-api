@@ -1,6 +1,6 @@
 import logging
 from fastapi import Header, UploadFile
-from models.validation_response import ValidationRespone
+from models.validation_response import ValidationResponse
 
 def validate_request(headers: Header, file: UploadFile):
     messages = []
@@ -17,7 +17,7 @@ def validate_request(headers: Header, file: UploadFile):
                 status_code = code
     if not status_code:
         status_code = 200    
-    return ValidationRespone(status_code=status_code,  message=messages)
+    return ValidationResponse(status_code=status_code,  message=messages)
             
 def content_length_is_present(headers: Header, file: UploadFile):
     if headers.get('content-length') is not None:
