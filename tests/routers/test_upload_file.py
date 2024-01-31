@@ -1,12 +1,9 @@
 from fastapi.testclient import TestClient
 from main import app
 from unittest.mock import patch
-import httpx
-from json.decoder import JSONDecodeError
 import pytest
-from unittest.mock import patch, call
+from unittest.mock import patch
 from models.validation_response import ValidationResponse
-from fastapi.encoders import jsonable_encoder
 
 testClient = TestClient(app)
 
