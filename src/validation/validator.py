@@ -1,4 +1,3 @@
-import logging
 from fastapi import Header, UploadFile
 from models.validation_response import ValidationResponse
 
