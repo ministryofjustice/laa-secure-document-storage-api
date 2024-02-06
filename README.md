@@ -54,6 +54,7 @@ You will need to install Docker from the following link [Docker](https://docs.do
 
 #### Starting Docker services
 Before running the services make sure Docker is started. Then proceed to run the following command from the root of the project.
+This should start up localstack and clamav
     
     docker compose up
 
