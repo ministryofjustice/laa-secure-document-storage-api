@@ -30,7 +30,8 @@ def test_with_save_failure_throws_exception(s3SaveMock, get_upload_file_request)
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status_code,message", [(411, ["content-length header not found"]),
                                                  (400, ["Content length does not exceed file size"]),
-                                                 (413, ["File size suspiciously large (over 2000000 bytes)"])
+                                                 (413, ["File size suspiciously large (over 2000000 bytes)"]),
+                                                 (415, ["File extension is not PDF, DOC or TXT"])
                                                  ])
 async def test_file_upload_fail_validation_response(status_code, message, get_upload_file_request):
     with patch("routers.upload_file.validate_request", return_value=ValidationResponse(status_code=status_code,

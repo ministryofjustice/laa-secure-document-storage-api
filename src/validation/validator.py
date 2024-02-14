@@ -44,3 +44,9 @@ def content_expected_fail_for_no_file_received(headers: Header, file: UploadFile
         return 400, "No file received"
     else:
         return 200, ""
+
+def file_has_right_extension(headers: Header, file: UploadFile):
+    if file.filename.endswith('PDF, DOC or TXT'):
+        return 200, ""
+    else:
+        return 415, "File extension is not PDF, DOC or TXT"
