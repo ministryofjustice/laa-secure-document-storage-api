@@ -60,10 +60,12 @@ def test_file_has_right_content_type_success(s3SaveMock, get_upload_file_request
 @patch("routers.upload_file.saveToS3")
 def test_file_has_wrong_content_type_failure(s3SaveMock, get_upload_file_request):
     # Mock the file content type as "image/jpeg" (not PDF)
-    get_upload_file_request['file'] = ("test.jpg", b"dummy", "image/jpeg")
+    with patch("routers.upload_file.validate_request", return_value=ValidationResponse(status_code=415,
+                                                                                       message="File is of wrong content type")):
+        get_upload_file_request['file'] = ("test.jpg", b"dummy", "image/jpeg")
 
-    # action
-    response = testClient.post('/uploadFile', files=get_upload_file_request)
+        # action
+        response = testClient.post('/uploadFile', files=get_upload_file_request)
 
     # assert
     assert response.status_code == 415
