@@ -3,12 +3,13 @@ from fastapi.responses import JSONResponse
 from services.s3_service import save as saveToS3
 from validation.validator import validate_request
 
+
 router = APIRouter()
 
 
 @router.post("/uploadFile")
 async def uploadFile(file: UploadFile, request: Request) -> JSONResponse:
-    validation_result = validate_request(request.headers, file)
+    validation_result = await validate_request(request.headers, file)
     if validation_result.status_code != 200:
         raise HTTPException(status_code=validation_result.status_code, detail=validation_result.message)
     else:
