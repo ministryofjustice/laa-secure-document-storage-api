@@ -1,0 +1,166 @@
+{
+	"info": {
+		"_postman_id": "1166f862-ff95-414b-aa91-30b138229330",
+		"name": "SecureDocStoreAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20091732"
+	},
+	"item": [
+		{
+			"name": "WithMockInfectedFile",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response code is 400\", function() {",
+							"    pm.response.to.have.status(400)",
+							"})",
+							"",
+							"pm.test(\"response body shows Virus Found\", function() {",
+							"    pm.response.to.have.jsonBody('detail[0]', 'Virus Found')",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "SecureDocStorage/testclamavvirusfile.txt"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/uploadFile",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"uploadFile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "WithNormalFile",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response code is 200\", function() {",
+							"    pm.response.to.have.status(200)",
+							"})",
+							"",
+							"pm.test(\"response body shows success\", function() {",
+							"    pm.response.to.have.jsonBody('success', true)",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "SecureDocStorage/validFile.txt"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/uploadFile",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"uploadFile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "WithInvalidFileType",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response code is 415\", function() {",
+							"    pm.response.to.have.status(415)",
+							"})",
+							"",
+							"pm.test(\"response body shows Virus Found\", function() {",
+							"    pm.response.to.have.jsonBody('detail[0]', 'File extension is not PDF, DOC or TXT')",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "SecureDocStorage/invalidFile.bat"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/uploadFile",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"uploadFile"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

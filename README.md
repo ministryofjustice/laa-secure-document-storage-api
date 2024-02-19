@@ -72,3 +72,39 @@ Listing buckets
 Listing objects inside buckets
     
     aws --endpoint-url=http://localhost:4566 s3 ls s3://ss-poc-test
+
+## Postman
+
+This repository impliments Postman for its API testing. There is some setup required to enable the Postman collection to view the files required for the requests
+
+### Microsoft Defender
+
+If you have Microsoft Defender on your machine, you will need to configure exceptions to prevent the automatic deletion of the test virus file.
+
+1. Open Microsoft Defender
+2. Click 'Manage Settings' to the right of the Virus & threat protection settings
+3. Click 'Add or Remove Exlusion...' in the Exclusions block
+4. In the bottom left, click 'Add New...'
+5. Create exceptions for the required files/folders
+
+You will need to create an exception for:
+This repository at /Postman/TestFiles
+Your Postman working directory (see below)
+
+### Postman Working Directory
+
+Postman will need a working directory configured to access files for the requests
+
+1. Open Postman settings
+2. Configure a Location under the General > Working directory
+3. In your new working directory, create a folder called 'SecureDocStorage'
+4. Copy the 3 files from this repository at /Postman/TestFiles
+5. Paste the 3 files to your postman working directory in the folder SecureDocStorage
+
+### Running Postman Tests
+
+1. Open the Postman desktop application
+2. In the top left click import
+3. Drag and drop 'SecureDocStoreAPI.postman_collection.json' from this repository in the /Postman folder
+4. Start the application and docker containers
+5. Send individual requests with the 'send button' or run the collection using the three dots to the right of the collection name
