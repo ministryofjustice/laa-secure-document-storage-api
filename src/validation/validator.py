@@ -4,9 +4,10 @@ import io
 from fastapi import Header, UploadFile
 from models.validation_response import ValidationResponse
 from services.av_check_service import virus_check
-from config.config_resolver import getAcceptedFileTypeConfig
+from config.config_resolver import get_accepted_file_type_config
 
-acceptedFileTypeConfig = getAcceptedFileTypeConfig()
+acceptedFileTypeConfig = get_accepted_file_type_config()
+
 
 async def validate_request(headers: Header, file: UploadFile):
     messages = []
@@ -21,7 +22,7 @@ async def validate_request(headers: Header, file: UploadFile):
 
     for validator in validator_sequence:
         if inspect.iscoroutinefunction(validator):
-            code, message =  await validator(headers, file)
+            code, message = await validator(headers, file)
         else:
             code, message = validator(headers, file)
 
@@ -63,17 +64,20 @@ def content_expected_fail_for_no_file_received(headers: Header, file: UploadFile
     else:
         return 200, ""
 
+
 def file_has_right_extension(headers: Header, file: UploadFile):
     for fileType in acceptedFileTypeConfig.acceptedExtensions:
         if file.filename.endswith(fileType):
             return 200, ""
     return 415, "File extension is not PDF, DOC or TXT"
 
+
 def file_has_right_content_type(headers: Header, file: UploadFile):
     for contentType in acceptedFileTypeConfig.acceptedContentTypes:
         if file.content_type == contentType:
             return 200, ""
     return 415, "File is of wrong content type"
+
 
 async def check_antivirus(headers: Header, file: UploadFile):
     file_content = await file.read()
