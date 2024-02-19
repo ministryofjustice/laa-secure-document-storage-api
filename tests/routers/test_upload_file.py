@@ -1,8 +1,6 @@
 from fastapi.testclient import TestClient
 
-import validation.validator
 from main import app
-from unittest.mock import patch
 import pytest
 from unittest.mock import patch
 from models.validation_response import ValidationResponse
