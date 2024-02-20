@@ -1,4 +1,0 @@
-aws s3 cp ss-poc-test.txt s3://ss-poc-test \
---endpoint-url http://localhost:4566
-
- aws --endpoint-url="http://localhost:4566" s3 ls
