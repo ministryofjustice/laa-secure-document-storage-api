@@ -124,7 +124,7 @@
 							"    pm.response.to.have.status(415)",
 							"})",
 							"",
-							"pm.test(\"response body shows Virus Found\", function() {",
+							"pm.test(\"response body shows file extension error\", function() {",
 							"    pm.response.to.have.jsonBody('detail[0]', 'File extension is not PDF, DOC or TXT')",
 							"})"
 						],
