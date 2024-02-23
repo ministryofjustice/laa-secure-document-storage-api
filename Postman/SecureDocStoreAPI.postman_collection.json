@@ -1,0 +1,18 @@
+			"name": "WithNormalFile",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"response code is 200\", function() {",
+							"    pm.response.to.have.status(200)",
+							"})",
+							"",
+							"pm.test(\"response body shows success\", function() {",
+							"    pm.response.to.have.jsonBody('Hello': 'World')",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
