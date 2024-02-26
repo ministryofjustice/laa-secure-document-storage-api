@@ -17,4 +17,9 @@ services:
       - "3310:3310"
     volumes:
       - ./data/clamav/definitions:/var/lib/clamav
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb_local
+    ports:
+      - "8000:8000"
 

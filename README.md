@@ -54,7 +54,7 @@ You will need to install Docker from the following link [Docker](https://docs.do
 
 #### Starting Docker services
 Before running the services make sure Docker is started. Then proceed to run the following command from the root of the project.
-This should start up localstack and clamav
+This should start up localstack  clamav and dynamodb
     
     docker compose up
 
@@ -73,9 +73,22 @@ Listing objects inside buckets
     
     aws --endpoint-url=http://localhost:4566 s3 ls s3://ss-poc-test
 
+## DynamoDb
+By starting docker services using docker compose you get a blank canvas  and you will need to add a
+configuration to the db in order to play around with the api.
+
+The simplest way to add a config for now is to run the  ```./dynamo-script.sh``` in the route directory.
+In general we will manage this config some other way in production but for local environment its handy having this.
+
+### What is configurable
+1. Fle Extension
+2. File Content type
+
+We will extend this to include file size at some point
+
 ## Postman
 
-This repository impliments Postman for its API testing. There is some setup required to enable the Postman collection to view the files required for the requests
+This repository implements Postman for its API testing. There is some setup required to enable the Postman collection to view the files required for the requests
 
 ### Microsoft Defender
 
