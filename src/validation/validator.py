@@ -2,19 +2,17 @@ import inspect
 import io
 
 from fastapi import Header, UploadFile
+from models.validation_response import ValidationResponse
 
 from models.config.file_types_config import AcceptedFileTypes
-from models.validation_response import ValidationResponse
 from services.av_check_service import virus_check
 from services.config_service import get_accepted_file_type_config
-
-
 
 
 async def validate_request(headers: Header, file: UploadFile):
     messages = []
     status_code = None
-    acceptedFileTypeConfig = await get_accepted_file_type_config("service-team-1")
+    acceptedFileTypeConfig = await get_accepted_file_type_config("1234")
     validator_sequence = [content_length_is_present,
                           content_expected_fail_for_no_file_received,
                           content_length_is_more_than_file_size,

@@ -1,5 +1,7 @@
 import os
+
 import boto3
+
 from models.config.file_types_config import AcceptedFileTypes
 
 
@@ -25,7 +27,7 @@ class DynamoDBService:
         is_local = os.getenv('IS_LOCAL', False)
 
         if is_local:
-            self._dynamodb = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
+            self._dynamodb = boto3.resource('dynamodb', endpoint_url='http://localhost:8100')
         else:
             region_name = os.getenv('AWS_REGION', 'us-east-1')
             self._dynamodb = boto3.resource('dynamodb', region_name=region_name)

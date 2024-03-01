@@ -1,6 +1,7 @@
 import os
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
 from models.config.file_types_config import AcceptedFileTypes
 from services.config_service import DynamoDBService, get_accepted_file_type_config
 

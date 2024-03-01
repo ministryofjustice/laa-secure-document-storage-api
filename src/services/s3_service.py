@@ -1,7 +1,8 @@
 import os
+from io import BytesIO
+
 import boto3
 from botocore.exceptions import ClientError
-from io import BytesIO
 from dotenv import load_dotenv
 
 bucket = 'ss-poc-test'

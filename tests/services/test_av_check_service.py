@@ -1,7 +1,7 @@
-import asyncio
-import pytest
-from unittest.mock import AsyncMock, patch
 from io import BytesIO
+from unittest.mock import patch
+
+import pytest
 from services.av_check_service import AvCheckService
 
 

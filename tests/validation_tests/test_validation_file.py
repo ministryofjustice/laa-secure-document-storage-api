@@ -1,10 +1,8 @@
-import pytest
-
-from services.config_service import get_accepted_file_type_config
-from validation.validator import validate_request
 from unittest.mock import patch
-from models.config.file_types_config import AcceptedFileTypes
 
+import pytest
+from models.config.file_types_config import AcceptedFileTypes
+from validation.validator import validate_request
 
 
 @pytest.mark.asyncio

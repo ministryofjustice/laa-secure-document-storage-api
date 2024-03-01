@@ -7,8 +7,13 @@ name = "pypi"
 fastapi = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 clamd = "*"
+boto3 = "*"
+python-multipart = "*"
+httpx = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.9"
