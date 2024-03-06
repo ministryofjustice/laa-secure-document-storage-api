@@ -1,8 +1,8 @@
-from fastapi.testclient import TestClient
-
-from main import app
-import pytest
 from unittest.mock import patch
+
+import pytest
+from fastapi.testclient import TestClient
+from main import app
 from models.validation_response import ValidationResponse
 
 testClient = TestClient(app)

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, UploadFile, Request, HTTPException
 from fastapi.responses import JSONResponse
+
 from services.s3_service import save as saveToS3
 from validation.validator import validate_request
-
 
 router = APIRouter()
 

@@ -1,4 +1,3 @@
-from fastapi.testclient import TestClient
 from services.s3_service import save
 from unittest.mock import patch, Mock
 from botocore.exceptions import ClientError

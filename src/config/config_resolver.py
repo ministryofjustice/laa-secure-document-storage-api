@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from models.config.file_types_config import AcceptedFileTypes
 
 
