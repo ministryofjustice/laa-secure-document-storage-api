@@ -28,15 +28,6 @@ jobs:
     - name: Install test dependencies
       run: |
         pipenv run pipenv install --dev
-    - name: Oracle Client Config
-      run: |
-        cd instantclient/instantclient_12_2_linux
-        ln -s ./libclntsh.so.12.1 ./libclntsh.so
-        sudo bash -c "echo /home/runner/work/laa-secure-document-storage/laa-secure-document-storage/instantclient/instantclient_12_2_linux > /etc/ld.so.conf.d/oracle-instantclient.conf"
-        sudo ldconfig -v
-    - name: Create .env file
-      run: |
-        cp template.env .env
     - name: Lint with flake8
       run: |
         pipenv run python -m flake8 . -v
