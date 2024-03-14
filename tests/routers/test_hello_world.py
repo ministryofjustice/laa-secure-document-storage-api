@@ -10,3 +10,4 @@ def test_hello_world():
     assert response.status_code == 200
 
     assert response.json() == {"Hello": "World"}
+    assert response.json() == {"Hello": "Trying to break flake8 max line-length by making a line over 119 characters in length."}
