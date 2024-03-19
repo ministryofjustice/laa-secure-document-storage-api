@@ -1,0 +1,79 @@
+name: CI
+
+on: 
+  push:
+
+jobs:
+  build:
+    name: Run Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+  deploy_dev:
+    environment: dev
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read  # This is required for actions/checkout
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: |
+        docker build -t laa-sds-api:latest .
+
+    - name: Assume AWS Role
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
+        aws-region: ${{ vars.DEV_ECR_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr-dev
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: push dev ecr
+      run: |
+        docker tag laa-sds-api:latest $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+      env:
+        REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
+        REPOSITORY: ${{ vars.DEV_ECR_REPOSITORY }}
+        IMAGE_TAG: ${{ github.sha }}
+  deploy_test:
+    environment: test
+    needs: deploy_dev
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read  # This is required for actions/checkout
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: |
+        docker build -t laa-sds-api:latest .
+
+    - name: Assume AWS Role
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.TEST_ECR_ROLE_TO_ASSUME }}
+        aws-region: ${{ vars.TEST_ECR_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr-dev
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: push dev ecr
+      run: |
+        docker tag laa-sds-api:latest $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+      env:
+        REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
+        REPOSITORY: ${{ vars.TEST_ECR_REPOSITORY }}
+        IMAGE_TAG: ${{ github.sha }}
