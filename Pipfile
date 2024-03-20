@@ -4,14 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "*"
-uvicorn = "*"
-
-[dev-packages]
-flake8 = "*"
-pytest = "*"
-httpx = "*"
-
 fastapi = "==0.110.0"
 uvicorn = "==0.28.1"
 
