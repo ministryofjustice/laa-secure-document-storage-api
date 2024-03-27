@@ -9,4 +9,4 @@ def test_health():
 
     assert response.status_code == 200
 
-    assert response.json() == {"Hello": "World"}
+    assert response.json() == {"Health": "OK"}
