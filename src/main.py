@@ -1,8 +1,8 @@
 # main.py
 from fastapi import FastAPI
-from src.routers import hello_world
+from src.routers import health
 
 
 app = FastAPI()
 
-app.include_router(hello_world.router)
+app.include_router(health.router)
