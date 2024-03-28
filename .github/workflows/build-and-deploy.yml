@@ -1,30 +1,24 @@
 name: CI
 
-on: 
+on:
   push:
+    branches-ignore: ['main']
 
 jobs:
-  build:
-    name: Run Test
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
   deploy_dev:
     environment: dev
-    needs: build
     runs-on: ubuntu-latest
+
     permissions:
       id-token: write # This is required for requesting the JWT
       contents: read  # This is required for actions/checkout
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Build Docker Image
       run: |
-        docker build -t laa-sds-api:latest .
+        docker build -t laa-sds-api .
 
     - name: Assume AWS Role
       uses: aws-actions/configure-aws-credentials@v4
@@ -36,44 +30,25 @@ jobs:
       id: login-ecr-dev
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: push dev ecr
-      run: |
-        docker tag laa-sds-api:latest $REGISTRY/$REPOSITORY:$IMAGE_TAG
-        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+    - name: Store ECR endpoint as output
+      id: ecr-url-output
+      run: echo "::set-output name=ecr_url::${{ steps.login-ecr-dev.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}"
+
+    - name: Push to ECR
+      id: ecr
       env:
-        REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
-        REPOSITORY: ${{ vars.DEV_ECR_REPOSITORY }}
-        IMAGE_TAG: ${{ github.sha }}
-  deploy_test:
-    environment: test
-    needs: deploy_dev
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write # This is required for requesting the JWT
-      contents: read  # This is required for actions/checkout
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Build Docker Image
+        ECR_URL: ${{ steps.ecr-url-output.outputs.ecr_url }}
       run: |
-        docker build -t laa-sds-api:latest .
+        docker tag laa-sds-api $ECR_URL:${{ github.sha }}
+        docker tag laa-sds-api $ECR_URL:dev.latest
+        docker push $ECR_URL:${{ github.sha }}
+        docker push $ECR_URL:dev.latest
 
-    - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@v4
+    - name: Deploy DEV
+      uses: ./.github/actions/deploy
       with:
-        role-to-assume: ${{ secrets.TEST_ECR_ROLE_TO_ASSUME }}
-        aws-region: ${{ vars.TEST_ECR_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr-dev
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: push dev ecr
-      run: |
-        docker tag laa-sds-api:latest $REGISTRY/$REPOSITORY:$IMAGE_TAG
-        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-      env:
-        REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
-        REPOSITORY: ${{ vars.TEST_ECR_REPOSITORY }}
-        IMAGE_TAG: ${{ github.sha }}
+        ecr-url: ${{ steps.ecr-url-output.outputs.ecr_url }}
+        kube-cert: ${{ secrets.DEV_KUBE_CERT }}
+        kube-token: ${{ secrets.DEV_KUBE_TOKEN }}
+        kube-cluster: ${{ secrets.DEV_KUBE_CLUSTER }}
+        kube-namespace: ${{ secrets.DEV_KUBE_NAMESPACE }}

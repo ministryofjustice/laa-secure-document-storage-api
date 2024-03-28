@@ -1,0 +1,55 @@
+name: Deploy
+description: Deploy built docker image to a kubernetes namespace
+inputs:
+  ecr-url:
+    description: ECR endpoint url
+    required: true
+  kube-cert:
+    description: Kubernetes service account ca.crt
+    required: true
+  kube-token:
+    description: Kubernetes service account token
+    required: true
+  kube-cluster:
+    description: Kubernetes service account cluster
+    required: true
+  kube-namespace:
+    description: Kubernetes cluster namespace
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Authenticate to the cluster
+      env:
+        KUBE_CERT: ${{ inputs.kube-cert }}
+        KUBE_TOKEN: ${{ inputs.kube-token }}
+        KUBE_CLUSTER: ${{ inputs.kube-cluster }}
+        KUBE_NAMESPACE: ${{ inputs.kube-namespace }}
+      shell: bash
+      run: |
+        echo "${KUBE_CERT}" > ca.crt
+        kubectl config set-cluster ${KUBE_CLUSTER} --certificate-authority=./ca.crt --server=https://${KUBE_CLUSTER}
+        kubectl config set-credentials deploy-user --token=${KUBE_TOKEN}
+        kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${KUBE_NAMESPACE}
+        kubectl config use-context ${KUBE_CLUSTER}
+
+    - name: Update deployment image
+      env:
+        ECR_URL: ${{ inputs.ecr-url }}
+        IMAGE_TAG: ${{ github.sha }}
+        KUBE_NAMESPACE: ${{ inputs.kube-namespace }}
+
+      shell: bash
+      run: |
+        mkdir -p deployments/kubernetes/envsubst
+        for f in deployments/kubernetes/*.yml; do 
+          envsubst < "$f" > "deployments/kubernetes/envsubst/${f##*/}"
+        done
+
+
+    - name: Apply manifest files
+      env:
+        KUBE_NAMESPACE: ${{ inputs.kube-namespace }}
+      shell: bash
+      run:  kubectl -n ${KUBE_NAMESPACE} apply -f deployments/kubernetes/envsubst/

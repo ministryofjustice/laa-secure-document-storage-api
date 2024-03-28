@@ -2,11 +2,13 @@ import logging
 import logging.config
 import structlog
 from fastapi import FastAPI
+
 from structlog.stdlib import LoggerFactory
 from asgi_correlation_id.context import correlation_id
 from src.config import logging_config
 from src.routers import health
 from typing import Any
+from src.routers import health as health_router
 
 
 def add_correlation(
@@ -15,6 +17,7 @@ def add_correlation(
     if request_id := correlation_id.get():
         event_dict["request_id"] = request_id
     return event_dict
+
 
 
 app = FastAPI()
@@ -35,3 +38,4 @@ structlog.configure(logger_factory=LoggerFactory(), processors=[
                     cache_logger_on_first_use=True
                     )
 logging.config.dictConfig(logging_config.config)
+app.include_router(health_router.router)

@@ -1,0 +1,57 @@
+name: CI-MAIN
+
+on:
+  push:
+    branches: ['main']
+
+env:
+  IMAGE_NAME: laa-sds-api
+
+jobs:
+
+  deploy_test:
+    environment: test
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Build Docker Image
+      run:
+        docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+    - name: Assume AWS Role
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.TEST_ECR_ROLE_TO_ASSUME }}
+        aws-region: ${{ vars.TEST_ECR_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr-dev
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Store ECR endpoint as output
+      id: ecr-url-output
+      run: echo "::set-output name=ecr_url::${{ steps.login-ecr-dev.outputs.registry }}/${{ vars.TEST_ECR_REPOSITORY }}"
+
+    - name: Push to ECR
+      id: ecr
+      env:
+        ECR_URL: ${{ steps.ecr-url-output.outputs.ecr_url }}
+      run: |
+        docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} $ECR_URL:${{ github.sha }}
+        docker push $ECR_URL:${{ github.sha }}
+
+    - name: Deploy TEST
+      uses: ./.github/actions/deploy
+      with:
+        ecr-url: ${{ steps.ecr-url-output.outputs.ecr_url }}
+        kube-cert: ${{ secrets.TEST_KUBE_CERT }}
+        kube-token: ${{ secrets.TEST_KUBE_TOKEN }}
+        kube-cluster: ${{ secrets.TEST_KUBE_CLUSTER }}
+        kube-namespace: ${{ secrets.TEST_KUBE_NAMESPACE }}
+
