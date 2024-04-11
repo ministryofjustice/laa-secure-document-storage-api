@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 fastapi = "==0.110.0"
 uvicorn = "==0.28.1"
+structlog = "==24.1.0"
 
 [dev-packages]
 flake8 = "*"
