@@ -1,3 +1,4 @@
+import logging
 import logging.config
 import structlog
 from fastapi import FastAPI
