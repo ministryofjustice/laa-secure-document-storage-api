@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laa-sds-deployment
+  labels:
+    app: laa-sds-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: laa-sds-api
+  template:
+    metadata:
+      labels:
+        app: laa-sds-api
+    spec:
+      containers:
+        - name: laa-sds-container
+          image: ${ECR_URL}:${IMAGE_TAG}
+          ports:
+            - containerPort: 8000

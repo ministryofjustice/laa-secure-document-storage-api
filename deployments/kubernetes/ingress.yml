@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: laa-sds-ingress
+  annotations:
+    external-dns.alpha.kubernetes.io/set-identifier: laa-sds-ingress-${KUBE_NAMESPACE}-green
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
+spec:
+  ingressClassName: default
+  tls:
+    - hosts:
+        - ${KUBE_NAMESPACE}.apps.live.cloud-platform.service.justice.gov.uk
+  rules:
+    - host: ${KUBE_NAMESPACE}.apps.live.cloud-platform.service.justice.gov.uk
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: laa-sds-service # this should match the metadata.name in service.yml
+                port:
+                  number:
