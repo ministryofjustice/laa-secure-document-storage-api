@@ -1,6 +1,7 @@
 version: '3.8'
 services:
-  web:
+  sds-api:
+#  web:
     build: .
     volumes:
       - .:/app
