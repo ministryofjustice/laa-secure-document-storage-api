@@ -54,6 +54,7 @@ def retrieveFile(fileName: str):
     s3_service = S3Service.getInstance()
     return s3_service.read_file_from_s3_bucket(os.getenv('BUCKET_NAME'), fileName)
 
+
 def retrieveFileUrl(fileName: str):
     s3_service = S3Service.getInstance()
-    return s3_service.generate_file_url(os.getenv('BUCKET_NAME'),fileName)
+    return s3_service.generate_file_url(os.getenv('BUCKET_NAME'), fileName)
