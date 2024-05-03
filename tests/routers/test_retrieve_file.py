@@ -1,10 +1,8 @@
 import pytest
 from src.routers.retrieve_file import app
 
-
 class TestRetrieveFileEndpoint:
-    @pytest.mark.usefixtures("mocker")
-    def test_retrieve_file_success(self, mocker):
+    def test_retrieve_file_success(self, mocker):  # Use mocker as a parameter
         mocker.patch('src.routers.retrieve_file.retrieveFileUrl', return_value='https://example.com/test_file')
         response = app.test_client().get('/retrieve_file?file_name=test_file')
         data = response.get_json()
@@ -19,8 +17,7 @@ class TestRetrieveFileEndpoint:
         assert 'error' in data
         assert data['error'] == 'File key is missing'
 
-    @pytest.mark.usefixtures("mocker")
-    def test_retrieve_file_error(self, mocker):
+    def test_retrieve_file_error(self, mocker):  # Use mocker as a parameter
         mocker.patch('src.routers.retrieve_file.retrieveFileUrl', side_effect=Exception('Test error'))
         response = app.test_client().get('/retrieve_file?file_name=test_file')
         data = response.get_json()
