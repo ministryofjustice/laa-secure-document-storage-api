@@ -1,5 +1,5 @@
-import pytest
 from src.routers.retrieve_file import app
+
 
 class TestRetrieveFileEndpoint:
     def test_retrieve_file_success(self, mocker):  # Use mocker as a parameter
