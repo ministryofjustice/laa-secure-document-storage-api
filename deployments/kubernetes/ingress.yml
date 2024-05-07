@@ -20,4 +20,4 @@ spec:
               service:
                 name: laa-sds-service # this should match the metadata.name in service.yml
                 port:
-                  number:
+                  number: 8000

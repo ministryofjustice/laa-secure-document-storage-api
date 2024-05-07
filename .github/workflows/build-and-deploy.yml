@@ -52,4 +52,5 @@ jobs:
         kube-token: ${{ secrets.DEV_KUBE_TOKEN }}
         kube-cluster: ${{ secrets.DEV_KUBE_CLUSTER }}
         kube-namespace: ${{ secrets.DEV_KUBE_NAMESPACE }}
+        irsa-sa-environment: 'development'
 

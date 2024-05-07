@@ -2,8 +2,19 @@ version: '3.8'
 services:
   web:
     build: .
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
     volumes:
       - .:/app
     ports:
       - 8000:8000
+    environment:
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
+      - AWS_REGION:eu-west-1
+      - AUDIT_TABLE:AUDIT_SDS
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - ENV:local
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb_local
+    ports:
+      - "8100:8000"

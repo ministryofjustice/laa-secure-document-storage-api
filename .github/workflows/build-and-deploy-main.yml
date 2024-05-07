@@ -54,3 +54,4 @@ jobs:
         kube-token: ${{ secrets.TEST_KUBE_TOKEN }}
         kube-cluster: ${{ secrets.TEST_KUBE_CLUSTER }}
         kube-namespace: ${{ secrets.TEST_KUBE_NAMESPACE }}
+        irsa-sa-environment: 'test'

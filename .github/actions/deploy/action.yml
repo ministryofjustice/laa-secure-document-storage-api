@@ -16,6 +16,9 @@ inputs:
   kube-namespace:
     description: Kubernetes cluster namespace
     required: true
+  irsa-sa-environment:
+    description: Environment
+    required: true
 
 runs:
   using: "composite"
@@ -39,6 +42,7 @@ runs:
         ECR_URL: ${{ inputs.ecr-url }}
         IMAGE_TAG: ${{ github.sha }}
         KUBE_NAMESPACE: ${{ inputs.kube-namespace }}
+        ENVIRONMENT: ${{ inputs.irsa-sa-environment }}
 
       shell: bash
       run: |
