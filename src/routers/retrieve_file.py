@@ -1,30 +1,19 @@
-from flask import Flask, request, jsonify
+from fastapi import APIRouter, HTTPException
 from src.services.s3_service import retrieveFileUrl
+from src.services.Audit_Service import  put_item
+from src.utils.operation_types import OperationType
 
-# Initialize Flask app
-app = Flask(__name__)
+router = APIRouter()
 
 
-# Route for retrieving files
-@app.route('/retrieve_file', methods=['GET'])
-def retrieve_file():
-    # Get file key from request parameters
-    file_key = request.args.get('file_name')
-
+@router.get('/retrieve_file/{file_key}')
+async def retrieve_file(file_key: str):
     if not file_key:
-        return jsonify({'error': 'File key is missing'}), 400
+        raise HTTPException(status_code=400, detail="File key is missing")
 
     try:
-        # Retrieve file from S3 bucket
+        put_item("equiniti-service-id",file_key,OperationType.READ)
         response = retrieveFileUrl(file_key)
-
-        # Get file URL
-        return jsonify({'fileURL': response}), 200
-
+        return {'fileURL': response}
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-if __name__ == '__main__':
-    # Run Flask app
-    app.run(debug=True)
+        raise HTTPException(status_code=500, detail=str(e))

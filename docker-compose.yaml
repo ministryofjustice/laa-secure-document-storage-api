@@ -14,8 +14,19 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
       - ENV:local
+      - BUCKET_NAME=sds-local
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb_local
     ports:
       - "8100:8000"
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - '4566:4566' # LocalStack endpoint
+      - '4510-4559:4510-4559' # external services port range
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./localstack-script.sh:/etc/localstack/init/ready.d/script.sh
+      - '/var/run/docker.sock:/var/run/docker.sock'
