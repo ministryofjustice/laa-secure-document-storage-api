@@ -35,3 +35,8 @@ spec:
               value: "cloud"
             - name: AWS_REGION
               value: "eu-west-2"
+            - name: BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: laa-sds-s3-bucket-output
+                  key: bucket_name
