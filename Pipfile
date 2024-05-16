@@ -12,6 +12,8 @@ python-dotenv = "==1.0.1"
 boto3 = "==1.34.97"
 flask = "==3.0.3"
 pytest-mock = "==3.14.0"
+responses = "*"
+aiohttp = "*"
 
 [dev-packages]
 flake8 = "==7.0.0"
