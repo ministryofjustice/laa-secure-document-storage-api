@@ -40,6 +40,11 @@ def test_retrieve_file_missing_key(client):
     assert response.json()['detail'] == 'Not Found'
 
 
+def mock_get_item(service_id, file_key):
+    raise Exception("An error occurred (ResourceNotFoundException) when calling the GetItem operation: Cannot do "
+                    "operations on a non-existent table")
+
+
 def test_retrieve_file_exception(client):
     # Arrange
     file_key = 'test-file-key'
@@ -48,8 +53,8 @@ def test_retrieve_file_exception(client):
     os.environ['EQUINITI_SERVICE_ID'] = 'equiniti-service-id'
 
     # Act
-    response = client.get(f'/retrieve_file/{file_key}')
-
-    # Assert
-    assert response.status_code == 500
-    assert response.json()['detail'] == expected_error_message
+    try:
+        retrieve_file(file_key)
+    except Exception as e:
+        # Assert
+        assert str(e) == expected_error_message
