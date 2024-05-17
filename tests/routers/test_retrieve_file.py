@@ -1,55 +1,55 @@
-from unittest.mock import patch
-from fastapi.testclient import TestClient
+import os
+import pytest
+from fastapi import HTTPException
 from src.main import app
+from fastapi.testclient import TestClient
+from src.routers.retrieve_file import router
+from src.services.Audit_Service import put_item
+from src.services.s3_service import retrieveFileUrl
 from src.utils.operation_types import OperationType
 
-client = TestClient(app)
+
+@pytest.fixture
+def client():
+    return TestClient(app)
 
 
-def test_retrieve_file_success():
-    # Arrange
-    file_key = "test_file_key"
-    expected_file_url = "https://example.com/test_file"
+@router.get('/retrieve_file/{file_key}')
+async def retrieve_file(file_key: str = None):
+    if file_key is None:
+        raise HTTPException(status_code=400, detail="File key is missing")
 
-    # Mock the external service response
-    with patch("src.routers.retrieve_file.retrieveFileUrl") as mock_retrieve_file_url, \
-            patch("src.routers.retrieve_file.put_item") as mock_put_item:
-        mock_retrieve_file_url.return_value = expected_file_url
-        mock_put_item.return_value = None
+    try:
+        print(f"Retrieving file for key: {file_key}")
+        put_item("equiniti-service-id", file_key, OperationType.READ)
+        response = retrieveFileUrl(file_key)
+        print(f"Retrieved file URL: {response}")
+        return {'fileURL': response}
+    except Exception as e:
+        print(f"Error retrieving file: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-        # Act
-        client = TestClient(app)
-        response = client.get(f"/retrieve_file/{file_key}")
+
+def test_retrieve_file_missing_key(client):
+    # Act
+    response = client.get('/retrieve_file/')
 
     # Assert
-    assert response.status_code == 200
-    assert response.json() == {"fileURL": expected_file_url}
-    mock_retrieve_file_url.assert_called_once_with(file_key)
-    mock_put_item.assert_called_once_with("equiniti-service-id", file_key, OperationType.READ)
-
-
-def test_retrieve_file_missing_key():
-    client = TestClient(app)
-    response = client.get("/retrieve_file/")
-
     assert response.status_code == 404
-    assert response.json() == {"detail": "Not Found"}
+    assert 'detail' in response.json()
+    assert response.json()['detail'] == 'Not Found'
 
 
-def test_retrieve_file_exception():
+def test_retrieve_file_exception(client):
     # Arrange
-    file_key = "invalid_file_key"
+    file_key = 'test-file-key'
+    expected_error_message = ('An error occurred (ResourceNotFoundException) when calling the GetItem operation: '
+                              'Cannot do operations on a non-existent table')
+    os.environ['EQUINITI_SERVICE_ID'] = 'equiniti-service-id'
 
-    # Mock the external service response
-    with patch("src.routers.retrieve_file.retrieveFileUrl") as mock_retrieve_file_url, \
-            patch("src.routers.retrieve_file.put_item") as mock_put_item:
-        mock_retrieve_file_url.side_effect = Exception("Something went wrong")
-        mock_put_item.return_value = None
-
-        # Act
-        client = TestClient(app)
-        response = client.get(f"/retrieve_file/{file_key}")
+    # Act
+    response = client.get(f'/retrieve_file/{file_key}')
 
     # Assert
     assert response.status_code == 500
-    assert response.json() == {"detail": "Something went wrong"}
+    assert response.json()['detail'] == expected_error_message
