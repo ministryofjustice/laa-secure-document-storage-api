@@ -1,12 +1,9 @@
 import os
 import pytest
-from fastapi import HTTPException
-from src.main import app
 from fastapi.testclient import TestClient
-from src.routers.retrieve_file import router, retrieve_file
-from src.services.Audit_Service import put_item
-from src.services.s3_service import retrieveFileUrl
-from src.utils.operation_types import OperationType
+
+from src.main import app
+from src.routers.retrieve_file import retrieve_file
 
 
 @pytest.fixture
