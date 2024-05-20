@@ -3,7 +3,7 @@ import pytest
 from fastapi import HTTPException
 from src.main import app
 from fastapi.testclient import TestClient
-from src.routers.retrieve_file import router
+from src.routers.retrieve_file import router, retrieve_file
 from src.services.Audit_Service import put_item
 from src.services.s3_service import retrieveFileUrl
 from src.utils.operation_types import OperationType
@@ -12,22 +12,6 @@ from src.utils.operation_types import OperationType
 @pytest.fixture
 def client():
     return TestClient(app)
-
-
-@router.get('/retrieve_file/{file_key}')
-async def retrieve_file(file_key: str = None):
-    if file_key is None:
-        raise HTTPException(status_code=400, detail="File key is missing")
-
-    try:
-        print(f"Retrieving file for key: {file_key}")
-        put_item("equiniti-service-id", file_key, OperationType.READ)
-        response = retrieveFileUrl(file_key)
-        print(f"Retrieved file URL: {response}")
-        return {'fileURL': response}
-    except Exception as e:
-        print(f"Error retrieving file: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 def test_retrieve_file_missing_key(client):
