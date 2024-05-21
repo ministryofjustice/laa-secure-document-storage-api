@@ -41,7 +41,6 @@ class S3Service:
             # Check if the file exists by trying to get its metadata
             self.s3_client.head_object(Bucket=bucket_name, Key=key)
 
-
             response = self.s3_client.generate_presigned_url(
                 'get_object',
                 Params={'Bucket': bucket_name, 'Key': key},

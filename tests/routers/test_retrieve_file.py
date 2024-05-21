@@ -1,6 +1,4 @@
-import os
 from unittest.mock import patch
-import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from src.main import app
@@ -48,5 +46,3 @@ def test_retrieve_unknown_exception(retrieveFileUrl_mock):
     except HTTPException as e:
         assert str(e.detail) == 'An error occurred while retrieving the file'
         assert str(e.status_code) == '500'
-
-
