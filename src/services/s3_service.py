@@ -1,6 +1,8 @@
 import boto3
 import os
 
+from botocore.exceptions import ClientError
+
 
 class S3Service:
     _instance = None
@@ -34,11 +36,21 @@ class S3Service:
 
     def generate_file_url(self, bucket_name, key, expiration=60):
         try:
+            # Check if the file exists by trying to get its metadata
+            self.s3_client.head_object(Bucket=bucket_name, Key=key)
+
+
             response = self.s3_client.generate_presigned_url(
                 'get_object',
                 Params={'Bucket': bucket_name, 'Key': key},
                 ExpiresIn=expiration)
             return response
+        except ClientError as e:
+            if e.response['Error']['Code'] == '404':
+                raise Exception(f'The file {key} could not be found.')
+            else:
+                # If it was a different kind of error, re-raise the original exception
+                raise
         except Exception as e:
             print(f"Error generating file URL from S3: {str(e)}")
 
