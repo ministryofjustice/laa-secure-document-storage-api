@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.params import Query
+
 from src.services.s3_service import retrieveFileUrl
 from src.services.Audit_Service import put_item
 from src.utils.operation_types import OperationType
@@ -6,8 +8,8 @@ from src.utils.operation_types import OperationType
 router = APIRouter()
 
 
-@router.get('/retrieve_file/{file_key}')
-async def retrieve_file(file_key: str):
+@router.get('/retrieve_file')
+async def retrieve_file(file_key: str = Query(None, min_length=1)):
     if not file_key:
         raise HTTPException(status_code=400, detail="File key is missing")
 

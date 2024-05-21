@@ -15,9 +15,9 @@ def test_retrieve_file_missing_key(client):
     response = client.get('/retrieve_file/')
 
     # Assert
-    assert response.status_code == 404
+    assert response.status_code == 400
     assert 'detail' in response.json()
-    assert response.json()['detail'] == 'Not Found'
+    assert response.json()['detail'] == 'File key is missing'
 
 
 def mock_get_item(service_id, file_key):
