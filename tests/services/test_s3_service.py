@@ -3,6 +3,7 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 
+from src.models.execeptions.file_not_found import FileNotFoundException
 from src.services.s3_service import S3Service
 
 
@@ -30,7 +31,7 @@ def test_get_s3_client_local(s3_service, mocker):
 
 def test_generate_file_url(s3_service, mocker):
     mock_generate_presigned_url = mocker.patch.object(s3_service.s3_client, 'generate_presigned_url')
-    mocker.patch.object(s3_service.s3_client,'head_object').return_value = {'anything other than exception'}
+    mocker.patch.object(s3_service.s3_client, 'head_object').return_value = {'anything other than exception'}
     s3_service.generate_file_url('test_bucket', 'test_key')
     mock_generate_presigned_url.assert_called_once_with(
         'get_object',
@@ -38,13 +39,14 @@ def test_generate_file_url(s3_service, mocker):
         ExpiresIn=60
     )
 
+
 def test_generate_file_url_missing_file(s3_service, mocker):
-    mocker.patch.object(s3_service.s3_client,'head_object').side_effect = ClientError(error_response={'Error': {'Code': '404', 'Message': 'Not Found'}},operation_name='head')
+    mocker.patch.object(s3_service.s3_client, 'head_object').side_effect = ClientError(
+        error_response={'Error': {'Code': '404', 'Message': 'Not Found'}}, operation_name='head')
     try:
         s3_service.generate_file_url('test_bucket', 'test_key')
 
-    except Exception as e:
+    except FileNotFoundException as e:
         # Assert
-        assert str(e) == 'The file test_key could not be found.'
-
-
+        assert str(e.message) == 'The file test_key could not be found.'
+        assert str(e.filename) == 'test_key'

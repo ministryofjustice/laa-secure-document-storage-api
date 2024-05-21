@@ -3,6 +3,8 @@ import os
 
 from botocore.exceptions import ClientError
 
+from src.models.execeptions.file_not_found import FileNotFoundException
+
 
 class S3Service:
     _instance = None
@@ -47,7 +49,7 @@ class S3Service:
             return response
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
-                raise Exception(f'The file {key} could not be found.')
+                raise FileNotFoundException(f'The file {key} could not be found.', key)
             else:
                 # If it was a different kind of error, re-raise the original exception
                 raise
