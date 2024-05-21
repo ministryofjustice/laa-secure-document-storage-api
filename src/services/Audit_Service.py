@@ -49,8 +49,8 @@ class AuditService:
 
 def put_item(service_id: str, file_id: str, operation: OperationType):
     auditDb = AuditService.getInstance()
-    dynamodb_resource = auditDb.dynamodb_client  # this retrieves the DynamoDB resource
-    table = dynamodb_resource.Table(os.getenv('AUDIT_TABLE'))  # use the resource to get the Table
+    dynamodb_resource = auditDb.dynamodb_client
+    table = dynamodb_resource.Table(os.getenv('AUDIT_TABLE'))
 
     identifier = {
         'service_id': service_id,
@@ -65,7 +65,7 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
         operation_history = [
             {
                 'OPERATION_TYPE': operation.name,
-                'OPERATION_TIME': datetime.now().isoformat()  # replace with your way of getting time
+                'OPERATION_TIME': datetime.now().isoformat()
             }
         ]
 
@@ -78,7 +78,6 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
 
         table.put_item(Item=item)
 
-    # If the item does exist, update the item and append the operation to operation_history
     else:
         print(f'Item with service_id={service_id}, file_id={file_id} found. Updating operation_history.')
         item = response.get("Item")
@@ -89,11 +88,3 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
 
         table.put_item(Item=item)
 
-
-def get_all_items():
-    tbl = os.getenv('AUDIT_TABLE')
-    logger.info("Table name is {}".format(tbl))
-    auditDb = AuditService.getInstance()
-    table = auditDb.dynamodb_client.Table(tbl)
-    response = table.scan()
-    return response['Items']

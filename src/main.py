@@ -1,12 +1,13 @@
 import logging.config
 from typing import Any
+
 import structlog
 from asgi_correlation_id.context import correlation_id
 from fastapi import FastAPI
 from structlog.stdlib import LoggerFactory
+
 from src.config import logging_config
 from src.routers import health as health_router
-from src.routers import audit
 from src.routers import retrieve_file as retrieve_router
 
 
@@ -36,5 +37,4 @@ structlog.configure(logger_factory=LoggerFactory(), processors=[
 
 logging.config.dictConfig(logging_config.config)
 app.include_router(health_router.router)
-app.include_router(audit.router)
 app.include_router(retrieve_router.router)
