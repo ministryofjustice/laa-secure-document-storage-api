@@ -87,4 +87,3 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
         item["last_updated_on"] = datetime.now().isoformat()
 
         table.put_item(Item=item)
-
