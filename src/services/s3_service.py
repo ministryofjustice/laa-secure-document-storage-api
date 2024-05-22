@@ -1,10 +1,11 @@
 import boto3
 import os
 
+import structlog
 from botocore.exceptions import ClientError
 
 from src.models.execeptions.file_not_found import FileNotFoundException
-
+logger = structlog.get_logger()
 
 class S3Service:
     _instance = None
@@ -53,14 +54,14 @@ class S3Service:
                 # If it was a different kind of error, re-raise the original exception
                 raise
         except Exception as e:
-            print(f"Error generating file URL from S3: {str(e)}")
+            logger.debug(f"Error generating file URL from S3: {str(e)}")
 
     def read_file_from_s3_bucket(self, bucket_name, key):
         try:
             file_object = self.s3_client.get_object(Bucket=bucket_name, Key=key)
             return file_object["Body"].read().decode('utf-8')
         except Exception as e:
-            print(f"Error reading file from S3: {str(e)}")
+            logger.debug(f"Error reading file from S3: {str(e)}")
 
 
 def retrieveFile(fileName: str):
