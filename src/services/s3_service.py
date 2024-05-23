@@ -5,7 +5,9 @@ import structlog
 from botocore.exceptions import ClientError
 
 from src.models.execeptions.file_not_found import FileNotFoundException
+
 logger = structlog.get_logger()
+
 
 class S3Service:
     _instance = None
