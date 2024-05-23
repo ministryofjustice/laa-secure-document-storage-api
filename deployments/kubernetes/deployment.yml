@@ -14,8 +14,29 @@ spec:
       labels:
         app: laa-sds-api
     spec:
+      serviceAccountName: laa-sds-serviceaccount-${ENVIRONMENT}
       containers:
         - name: laa-sds-container
           image: ${ECR_URL}:${IMAGE_TAG}
           ports:
             - containerPort: 8000
+          env:
+            - name: AUDIT_TABLE
+              valueFrom:
+                secretKeyRef:
+                  name: laa-sds-audit-dynamodb-output
+                  key: table_name
+            - name: TABLE_ARN
+              valueFrom:
+                secretKeyRef:
+                  name: laa-sds-audit-dynamodb-output
+                  key: table_arn
+            - name: ENV
+              value: "cloud"
+            - name: AWS_REGION
+              value: "eu-west-2"
+            - name: BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: laa-sds-s3-bucket-output
+                  key: bucket_name
