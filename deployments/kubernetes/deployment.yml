@@ -38,5 +38,5 @@ spec:
             - name: BUCKET_NAME
               valueFrom:
                 secretKeyRef:
-                  name: laa-sds-s3-bucket-output
+                  name: ${BUCKET_SECRET_REF}
                   key: bucket_name
