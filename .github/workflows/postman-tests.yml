@@ -25,4 +25,4 @@ jobs:
         run: npm install -g newman
 
       - name: Run Postman Tests
-        run: newman run path/to/SecureDocStoreAPI.postman_collection.json -e path/to/Environment.json
+        run: newman run SecureDocStoreAPI.postman_collection.json -e Environment.json
