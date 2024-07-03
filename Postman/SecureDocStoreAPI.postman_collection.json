@@ -81,10 +81,7 @@
 					]
 				}
 			},
-			"response": [],
-			"item": [
-				
-			]
+			"response": []
 		},
 		{
 			"name": "Requesting a File in the CRM14 Folder",
@@ -134,10 +131,7 @@
 				},
 				"url": "http://127.0.0.1:8000/"
 			},
-			"response": [],
-			"item": [
-				
-			]
+			"response": []
 		},
 		{
 			"name": "Requesting a File Not in the CRM14 Folder",
@@ -186,10 +180,7 @@
 				},
 				"url": "http://127.0.0.1:8000/"
 			},
-			"response": [],
-			"item": [
-				
-			]
+			"response": []
 		},
 		{
 			"name": "Requesting a Non-Existent File",
@@ -277,10 +268,7 @@
 					]
 				}
 			},
-			"response": [],
-			"item": [
-				
-			]
+			"response": []
 		},
 		{
 			"name": "Trigger tests on new commit to PRs",
@@ -360,10 +348,7 @@
 				},
 				"url": "http://127.0.0.1:8000/"
 			},
-			"response": [],
-			"item": [
-				
-			]
+			"response": []
 		}
 	]
 }
