@@ -25,5 +25,5 @@ jobs:
         run: npm install -g newman
 
       - name: Run Postman Tests
-        run: newman run ../laa-secure-document-storage/Postman/SecureDocStoreAPI.postman_collection.json -e ../laa-secure-document-storage/Postman/Environment.json
+        run: newman run ../laa-secure-document-storage/Postman/SecureDocStoreAPI.postman_collection.json -e
 
