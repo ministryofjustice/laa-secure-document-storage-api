@@ -24,8 +24,17 @@ jobs:
       - name: Install Newman
         run: npm install -g newman
 
-      - name: Run ls
-        run: ls .
+      - name: Setup Containers
+        run: docker-compose up dynamodb localstack
+
+      - name: Setup S3 Bucket
+        run: ./s3-bucket-create.sh
+
+      - name: Setup AuditDB
+        run: ./auditdb.sh
+
+      - name: Upload Test File To S3
+        run: awslocal s3 cp README.md s3://sds-local/README
 
       - name: Run Postman Tests
         run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json
