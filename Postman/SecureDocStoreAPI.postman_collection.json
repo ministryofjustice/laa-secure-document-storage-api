@@ -84,14 +84,6 @@
 			"response": []
 		},
 		{
-			"name": "Audit",
-			"request": {
-				"method": "GET",
-				"header": []
-			},
-			"response": []
-		},
-		{
 			"name": "Requesting a File in the CRM14 Folder",
 			"event": [
 				{
