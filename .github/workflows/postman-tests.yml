@@ -28,5 +28,5 @@ jobs:
         run: ls .
 
       - name: Run Postman Tests
-        run: newman run ../Postman/SecureDocStoreAPI.postman_collection.json
+        run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json
 
