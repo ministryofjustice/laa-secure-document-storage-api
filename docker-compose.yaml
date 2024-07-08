@@ -1,65 +1,46 @@
-name: Postman Tests
-
-on:
-  push:
-    branches:
-      - main  # Run on main branch push
-  pull_request:
-    branches:
-      - main  # Run on pull requests to main branch
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-
-      - name: Install Newman
-        run: npm install -g newman
-
-      - name: Install AWS CLI
-        run: sudo apt-get install -y awscli
-
-      - name: Setup Containers
-        run: docker-compose up -d
-
-      - name: Wait for DynamoDB to be healthy
-        run: |
-          for i in {1..24}; do
-            if [ "$(docker inspect -f {{.State.Health.Status}} dynamodb_local)" = "healthy" ]; then
-              echo "DynamoDB is healthy"
-              break
-            fi
-            echo "Waiting for DynamoDB to be healthy..."
-            sleep 5
-          done
-
-      - name: Wait for LocalStack to be healthy
-        run: |
-          for i in {1..24}; do
-            if [ "$(docker inspect -f {{.State.Health.Status}} laa-secure-document-storage-api_localstack_1)" = "healthy" ]; then
-              echo "LocalStack is healthy"
-              break
-            fi
-            echo "Waiting for LocalStack to be healthy..."
-            sleep 5
-          done
-
-      - name: Setup S3 Bucket
-        run: ./s3-bucket-create.sh
-
-      - name: Setup AuditDB
-        run: ./auditdb.sh
-
-      - name: Upload Test File To S3
-        run: aws --endpoint-url=http://localhost:4566 s3 cp README.md s3://sds-local/README
-
-      - name: Run Postman Tests
-        run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json
+version: '3.8'
+services:
+  sds-api:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    environment:
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
+      - AWS_REGION=eu-west-1
+      - AUDIT_TABLE=AUDIT_SDS
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - ENV=local
+      - BUCKET_NAME=sds-local
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb_local
+    ports:
+      - "8100:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - '4566:4566' # LocalStack endpoint
+      - '4510-4559:4510-4559' # external services port range
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./localstack-script.sh:/etc/localstack/init/ready.d/script.sh
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
