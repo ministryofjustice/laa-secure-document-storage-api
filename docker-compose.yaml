@@ -9,17 +9,24 @@ services:
       - 8000:8000
     environment:
       - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
-      - AWS_REGION:eu-west-1
-      - AUDIT_TABLE:AUDIT_SDS
+      - AWS_REGION=eu-west-1
+      - AUDIT_TABLE=AUDIT_SDS
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
-      - ENV:local
+      - ENV=local
       - BUCKET_NAME=sds-local
+
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb_local
     ports:
       - "8100:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   localstack:
     image: localstack/localstack:3.0
     ports:
@@ -30,3 +37,8 @@ services:
     volumes:
       - ./localstack-script.sh:/etc/localstack/init/ready.d/script.sh
       - '/var/run/docker.sock:/var/run/docker.sock'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5

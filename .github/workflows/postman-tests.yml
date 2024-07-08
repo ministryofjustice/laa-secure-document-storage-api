@@ -26,12 +26,31 @@ jobs:
           npm install -g newman wait-on
 
       - name: Setup Containers
-        run: docker-compose up -d dynamodb localstack
+        run: docker-compose up -d
 
-      - name: Wait for DynamoDB and LocalStack
+      - name: Wait for DynamoDB
         run: |
-          wait-on http://localhost:8000
-          wait-on http://localhost:4566
+          for i in {1..10}; do
+            if docker inspect --format='{{json .State.Health.Status}}' $(docker-compose ps -q dynamodb) | grep -q '"healthy"'; then
+              echo "DynamoDB is healthy"
+              break
+            else
+              echo "Waiting for DynamoDB to be healthy..."
+              sleep 30
+            fi
+          done
+
+      - name: Wait for LocalStack
+        run: |
+          for i in {1..10}; do
+            if docker inspect --format='{{json .State.Health.Status}}' $(docker-compose ps -q localstack) | grep -q '"healthy"'; then
+              echo "LocalStack is healthy"
+              break
+            else
+              echo "Waiting for LocalStack to be healthy..."
+              sleep 30
+            fi
+          done
 
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
