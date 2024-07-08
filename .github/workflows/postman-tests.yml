@@ -21,11 +21,17 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Install Newman
-        run: npm install -g newman
+      - name: Install Dependencies
+        run: |
+          npm install -g newman wait-on
 
       - name: Setup Containers
-        run: docker-compose up dynamodb localstack
+        run: docker-compose up -d dynamodb localstack
+
+      - name: Wait for DynamoDB and LocalStack
+        run: |
+          wait-on http://localhost:8000
+          wait-on http://localhost:4566
 
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
@@ -38,4 +44,3 @@ jobs:
 
       - name: Run Postman Tests
         run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json
-
