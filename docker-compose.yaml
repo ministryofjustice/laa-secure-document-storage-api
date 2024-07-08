@@ -1,39 +1,32 @@
 version: '3.8'
-
 services:
-  dynamodb_local:
-    image: amazon/dynamodb-local
-    ports:
-      - "8000:8000"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  localstack:
-    image: localstack/localstack:latest
-    ports:
-      - "4566:4566"
-    environment:
-      - SERVICES=s3
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:4566/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   sds-api:
+#  web:
     build: .
+    volumes:
+      - .:/app
     ports:
-      - "5000:5000"
+      - 8000:8000
     environment:
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
+      - AWS_REGION:eu-west-1
+      - AUDIT_TABLE:AUDIT_SDS
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - ENV:local
+      - BUCKET_NAME=sds-local
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb_local
+    ports:
+      - "8100:8000"
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - '4566:4566' # LocalStack endpoint
+      - '4510-4559:4510-4559' # external services port range
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./localstack-script.sh:/etc/localstack/init/ready.d/script.sh
+      - '/var/run/docker.sock:/var/run/docker.sock'
