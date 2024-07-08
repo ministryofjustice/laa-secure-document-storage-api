@@ -75,6 +75,10 @@ jobs:
             sleep 5
           done
 
+      - name: Output sds-api container logs on failure
+        if: failure()
+        run: docker logs laa-secure-document-storage-api_sds-api_1
+
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
 
