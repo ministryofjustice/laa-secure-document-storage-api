@@ -30,6 +30,9 @@ jobs:
       - name: Install AWS CLI
         run: sudo apt-get install -y awscli
 
+      - name: Setup AWS Credentials Directory
+        run: mkdir -p ~/.aws
+
       - name: Setup AWS Credentials
         run: |
           echo "[default]" > ~/.aws/credentials
