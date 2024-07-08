@@ -30,6 +30,12 @@ jobs:
       - name: Install AWS CLI
         run: sudo apt-get install -y awscli
 
+      - name: Setup AWS Credentials
+        run: |
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+
       - name: Setup Containers
         run: docker-compose up -d
 
@@ -52,6 +58,17 @@ jobs:
               break
             fi
             echo "Waiting for LocalStack to be healthy..."
+            sleep 5
+          done
+
+      - name: Wait for sds-api to be healthy
+        run: |
+          for i in {1..24}; do
+            if [ "$(docker inspect -f {{.State.Health.Status}} laa-secure-document-storage-api_sds-api_1)" = "healthy" ]; then
+              echo "sds-api is healthy"
+              break
+            fi
+            echo "Waiting for sds-api to be healthy..."
             sleep 5
           done
 
