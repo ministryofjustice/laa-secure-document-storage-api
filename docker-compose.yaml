@@ -1,7 +1,6 @@
 version: '3.8'
 services:
   sds-api:
-#  web:
     build: .
     volumes:
       - .:/app
@@ -22,16 +21,16 @@ services:
     ports:
       - "8100:8000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]  # Check that DynamoDB responds
+      interval: 10s
+      timeout: 5s
+      retries: 12  # Allow a total of 2 minutes for DynamoDB to start
 
   localstack:
     image: localstack/localstack:3.0
     ports:
-      - '4566:4566' # LocalStack endpoint
-      - '4510-4559:4510-4559' # external services port range
+      - '4566:4566'  # LocalStack endpoint
+      - '4510-4559:4510-4559'  # external services port range
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
@@ -39,6 +38,6 @@ services:
       - '/var/run/docker.sock:/var/run/docker.sock'
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      interval: 10s
+      timeout: 5s
+      retries: 12  # Allow a total of 2 minutes for LocalStack to start
