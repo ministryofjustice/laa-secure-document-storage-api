@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: '16'
 
+      - name: Install AWS Local
+        run: pip install awscli-local
+
       - name: Install Newman
         run: npm install -g newman
 
