@@ -83,7 +83,7 @@ jobs:
         run: docker logs laa-secure-document-storage-api_sds-api_1
 
       - name: run ls command
-        run: ls ~/.aws
+        run: cat ~/.aws/credentials
 
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
