@@ -82,6 +82,9 @@ jobs:
         if: failure()
         run: docker logs laa-secure-document-storage-api_sds-api_1
 
+      - name: run ls
+        run: ls -a
+
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
 
