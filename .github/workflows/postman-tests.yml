@@ -36,54 +36,19 @@ jobs:
       - name: Setup AWS Credentials Directory
         run: mkdir -p ~/.aws
 
-      - name: Setup AWS Credentials
-        run: |
-          echo "[default]" > ~/.aws/credentials
-          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+      - name: aws configure command
+        run: aws configure set aws_access_key_id test
+          aws configure set aws_secret_access_key test
+
+      - name: run ls command
+        run: cat ~/.aws/credentials
 
       - name: Setup Containers
         run: docker-compose up -d
 
-      - name: Wait for DynamoDB to be healthy
-        run: |
-          for i in {1..24}; do
-            if [ "$(docker inspect -f {{.State.Health.Status}} dynamodb_local)" = "healthy" ]; then
-              echo "DynamoDB is healthy"
-              break
-            fi
-            echo "Waiting for DynamoDB to be healthy..."
-            sleep 5
-          done
-
-      - name: Wait for LocalStack to be healthy
-        run: |
-          for i in {1..24}; do
-            if [ "$(docker inspect -f {{.State.Health.Status}} laa-secure-document-storage-api_localstack_1)" = "healthy" ]; then
-              echo "LocalStack is healthy"
-              break
-            fi
-            echo "Waiting for LocalStack to be healthy..."
-            sleep 5
-          done
-
-      - name: Wait for sds-api to be healthy
-        run: |
-          for i in {1..24}; do
-            if [ "$(docker inspect -f {{.State.Health.Status}} laa-secure-document-storage-api_sds-api_1)" = "healthy" ]; then
-              echo "sds-api is healthy"
-              break
-            fi
-            echo "Waiting for sds-api to be healthy..."
-            sleep 5
-          done
-
       - name: Output sds-api container logs on failure
         if: failure()
         run: docker logs laa-secure-document-storage-api_sds-api_1
-
-      - name: run ls command
-        run: cat ~/.aws/credentials
 
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
