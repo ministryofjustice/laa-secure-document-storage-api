@@ -58,7 +58,7 @@ jobs:
         run: ./auditdb.sh
 
       - name: Upload Test File To S3
-        run: aws --endpoint-url=http://localhost:4566 s3 cp README.md s3://sds-local/README
+        run: aws --endpoint-url=http://localstack:4566 s3 cp README.md s3://sds-local/README
 
       - name: Run Postman Tests
         run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json
