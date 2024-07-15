@@ -57,6 +57,13 @@ jobs:
       - name: Setup AuditDB
         run: ./auditdb.sh
 
+      # Upload the file to the S3 bucket in LocalStack
+      - name: Upload the file to the S3 bucket in LocalStack
+        run: aws --endpoint-url=http://localhost:4566 s3 cp README.md s3://sds-local/README.md
+
+      - name: Checking if file has been uploaded to LocalStack
+        run: echo "File uploaded to LocalStack S3 bucket successfully."
+
       - name: Upload Test File To S3
         run: aws --endpoint-url=http://localstack:4566 s3 cp README.md s3://sds-local/README
 
