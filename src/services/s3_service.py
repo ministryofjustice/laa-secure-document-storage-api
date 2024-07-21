@@ -36,14 +36,14 @@ class S3Service:
                 aws_access_key_id=os.getenv('AWS_KEY_ID'),
                 aws_secret_access_key=os.getenv('AWS_KEY'),
                 region_name=os.getenv('AWS_REGION'),
-                endpoint_url='http://localhost:4566')  # change this to actual localstack s3 endpoint
+                endpoint_url=os.getenv('AWS_ENDPOINT_URL'))  # change this to actual localstack s3 endpoint
         return s3_client
 
     def generate_file_url(self, bucket_name, key, expiration=60):
         try:
             # Check if the file exists by trying to get its metadata
             self.s3_client.head_object(Bucket=bucket_name, Key=key)
-
+            logger.info(f"attempting download of file {key} to bucket {bucket_name}")
             response = self.s3_client.generate_presigned_url(
                 'get_object',
                 Params={'Bucket': bucket_name, 'Key': key},
@@ -56,7 +56,7 @@ class S3Service:
                 # If it was a different kind of error, re-raise the original exception
                 raise
         except Exception as e:
-            logger.debug(f"Error generating file URL from S3: {str(e)}")
+            logger.error(f"Error generating file URL from S3: {str(e)}")
 
     def read_file_from_s3_bucket(self, bucket_name, key):
         try:
@@ -73,4 +73,5 @@ def retrieveFile(fileName: str):
 
 def retrieveFileUrl(fileName: str):
     s3_service = S3Service.getInstance()
+    logger.info(f"bucket name is {os.getenv('BUCKET_NAME')}")
     return s3_service.generate_file_url(os.getenv('BUCKET_NAME'), fileName)

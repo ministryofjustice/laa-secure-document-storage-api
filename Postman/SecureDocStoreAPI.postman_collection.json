@@ -61,7 +61,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README",
+					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README.md",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -76,7 +76,7 @@
 					"query": [
 						{
 							"key": "file_key",
-							"value": "README"
+							"value": "README.md"
 						}
 					]
 				}

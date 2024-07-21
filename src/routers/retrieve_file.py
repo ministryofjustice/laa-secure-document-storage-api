@@ -1,3 +1,4 @@
+import structlog
 from fastapi import APIRouter, HTTPException
 from fastapi.params import Query
 
@@ -7,6 +8,7 @@ from src.services.Audit_Service import put_item
 from src.utils.operation_types import OperationType
 
 router = APIRouter()
+logger = structlog.get_logger()
 
 
 @router.get('/retrieve_file')
@@ -15,8 +17,12 @@ async def retrieve_file(file_key: str = Query(None, min_length=1)):
         raise HTTPException(status_code=400, detail="File key is missing")
 
     try:
+        logger.info("retreiving file")
+
         put_item("equiniti-service-id", file_key, OperationType.READ)
+        logger.info("calling reteieve file operation")
         response = retrieveFileUrl(file_key)
+        logger.info(f"file retrieved successfully: {response}")
         return {'fileURL': response}
     except FileNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))

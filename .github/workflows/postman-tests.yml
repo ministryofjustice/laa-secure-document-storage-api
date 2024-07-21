@@ -31,7 +31,9 @@ jobs:
         run: pip install localstack
 
       - name: Install AWS CLI
-        run: sudo apt-get install -y awscli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
 
       - name: Setup AWS Credentials Directory
         run: mkdir -p ~/.aws
@@ -40,16 +42,17 @@ jobs:
         run: |
           aws configure set aws_access_key_id test
           aws configure set aws_secret_access_key test
+       
 
       - name: run ls command
         run: cat ~/.aws/credentials
 
       - name: Setup Containers
-        run: docker-compose up -d
+        run: |
+          export AWS_ACCESS_KEY_ID=test
+          export AWS_ACCESS_KEY=test
+          docker-compose up --build -d
 
-      - name: Output sds-api container logs on failure
-        if: failure()
-        run: docker logs laa-secure-document-storage-api_sds-api_1
 
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
@@ -57,15 +60,15 @@ jobs:
       - name: Setup AuditDB
         run: ./auditdb.sh
 
-      # Upload the file to the S3 bucket in LocalStack
-      - name: Upload the file to the S3 bucket in LocalStack
-        run: aws --endpoint-url=http://localhost:4566 s3 cp README.md s3://sds-local/README.md
-
-      - name: Checking if file has been uploaded to LocalStack
-        run: echo "File uploaded to LocalStack S3 bucket successfully."
-
-      - name: Upload Test File To S3
-        run: aws --endpoint-url=http://localstack:4566 s3 cp README.md s3://sds-local/README
 
       - name: Run Postman Tests
         run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json
+
+      - name: SDS API logs
+        if: always()
+        run: |
+          docker container ls --format "{{.Names}}" | while read -r container
+          do
+            echo "Fetching logs for $container"
+            docker logs "$container"
+          done

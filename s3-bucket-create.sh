@@ -2,20 +2,20 @@
 
 MAX_RETRIES=20
 WAIT_SECONDS=5
+FILE_TO_UPLOAD="README.md"  # Set your filename here
 
-for ((i=1; i<=MAX_RETRIES; i++)); do
-    echo "Attempt $i: Creating S3 bucket..."
-    awslocal s3api create-bucket --bucket sds-local --region us-east-1 && break
-    echo "LocalStack S3 not yet available, retrying in $WAIT_SECONDS seconds..."
-    sleep $WAIT_SECONDS
-done
 
-# Create S3 bucket
-echo "Creating S3 bucket..."
-awslocal --endpoint-url=http://localhost:4566 s3api create-bucket --bucket sds-local --region us-east-1
+awslocal s3api create-bucket --bucket sds-local --region us-east-1 && break
+
 
 # Verify bucket creation
 echo "Listing S3 buckets..."
 awslocal --endpoint-url=http://localhost:4566 s3 ls
 
-echo "S3 bucket creation script completed."
+# Upload the file to the bucket
+echo "Uploading file to S3 bucket..."
+awslocal --endpoint-url=http://localhost:4566 s3 cp $FILE_TO_UPLOAD s3://sds-local/$FILE_TO_UPLOAD
+awslocal --endpoint-url=http://localhost:4566 s3 cp $FILE_TO_UPLOAD s3://sds-local/CRM14/$FILE_TO_UPLOAD
+
+
+echo "S3 bucket creation and file uploading script completed."
