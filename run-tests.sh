@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Path to the Postman collection
-COLLECTION_PATH="/Users/mohammed.latif/Postman/files/laa-secure-document-storage/SecureDocStoreAPI.postman_collection.json"
+COLLECTION_PATH="$HOME/Postman/files/laa-secure-document-storage/SecureDocStoreAPI.postman_collection.json"
 
 # Path to the Postman environment
-ENVIRONMENT_PATH="/Users/mohammed.latif/Postman/files/laa-secure-document-storage/Environment.json"
+ENVIRONMENT_PATH="$HOME/Postman/files/laa-secure-document-storage/Environment.json"
 
 # Check if the collection file exists
 if [ ! -f "$COLLECTION_PATH" ]; then
