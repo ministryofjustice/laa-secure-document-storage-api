@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "5509461b-191e-40b7-b23f-0a5d4a3b50c0",
+		"_postman_id": "14021d34-82ac-4aa0-9bd6-ab9e090212b2",
 		"name": "SecureDocStoreAPI",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "28356037"
@@ -14,25 +14,19 @@
 					"script": {
 						"exec": [
 							"// Test retrieve file",
-							"",
-							"",
 							"pm.test(\"response code is 200\", function() {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"pm.test(\"response body shows success\", function() {",
+							"pm.test(\"response contains fileURL key\", function() {",
 							"    const responseJson = pm.response.json();",
 							"    pm.expect(responseJson).to.have.property('fileURL');",
 							"});",
 							"",
-							"pm.test(\"The response has all properties\", function() {",
-							"    // Parse the response JSON",
+							"pm.test(\"fileURL is a string\", function() {",
 							"    const responseJson = pm.response.json();",
-							"    ",
-							"    // Check if 'fileURL' property is a string",
 							"    pm.expect(responseJson).to.have.property('fileURL').that.is.a('string');",
-							"});",
-							""
+							"});"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -84,24 +78,21 @@
 			"response": []
 		},
 		{
-			"name": "Requesting a File in the CRM14 Folder",
+			"name": "Retrieve File from CRM14 Folder",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test to verify getting a URL for a file in the CRM14 folder",
-							"",
+							"// Test to verify retrieving a file from the CRM14 folder",
 							"pm.test(\"response code is 200\", function() {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"pm.test(\"response body has url property\", function() {",
+							"pm.test(\"response contains fileURL key\", function() {",
 							"    const responseBody = pm.response.json();",
-							"    pm.expect(responseBody).to.have.property('Health', 'OK');",
-							"});",
-							"",
-							""
+							"    pm.expect(responseBody).to.have.property('fileURL');",
+							"});"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -129,28 +120,45 @@
 						}
 					}
 				},
-				"url": "http://127.0.0.1:8000/"
+				"url": {
+					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=CRM14/README.md",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"retrieve_file"
+					],
+					"query": [
+						{
+							"key": "file_key",
+							"value": "CRM14/README.md"
+						}
+					]
+				}
 			},
 			"response": []
 		},
 		{
-			"name": "Requesting a File Not in the CRM14 Folder",
+			"name": "Retrieve File not in CRM14 Folder",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test to verify getting a URL for a file not in the CRM14 folder",
-							"",
+							"// Test to verify retrieving a file not in the CRM14 folder",
 							"pm.test(\"response code is 200\", function() {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"pm.test(\"response body has url property\", function() {",
+							"pm.test(\"response contains fileURL key\", function() {",
 							"    const responseBody = pm.response.json();",
-							"    pm.expect(responseBody).to.have.property('Health', 'OK');",
-							"});",
-							""
+							"    pm.expect(responseBody).to.have.property('fileURL');",
+							"});"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -178,48 +186,40 @@
 						}
 					}
 				},
-				"url": "http://127.0.0.1:8000/"
+				"url": {
+					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README.md",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"retrieve_file"
+					],
+					"query": [
+						{
+							"key": "file_key",
+							"value": "README.md"
+						}
+					]
+				}
 			},
 			"response": []
 		},
 		{
-			"name": "Requesting a Non-Existent File",
+			"name": "Retrieve Non-Existent File",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
 							"// Test to verify getting a 404 response for a non-existent file",
-							"",
-							"pm.test(\"Print response details\", function () {",
-							"    console.log(\"Response status code:\", pm.response.code);",
-							"    console.log(\"Response body:\", pm.response.text());",
-							"});",
-							"",
-							"// Test to verify that the status code is 404",
 							"pm.test(\"Status code is 404\", function () {",
 							"    pm.response.to.have.status(404);",
-							"});",
-							"",
-							"// Test to check response properties, only if status code is 404",
-							"pm.test(\"The response has all properties\", function () {",
-							"    if (pm.response.code === 404) {",
-							"        const responseJson = pm.response.json();",
-							"        ",
-							"        // Check if responseJson exists and has the expected properties",
-							"        if (responseJson && typeof responseJson.name === 'string') {",
-							"            pm.expect(responseJson.name).to.be.a('string');",
-							"            // Add more checks for other properties if necessary",
-							"        } else {",
-							"            console.log(\"Response body does not have expected JSON format or properties\");",
-							"        }",
-							"    } else if (pm.response.code === 200) {",
-							"        console.log(\"Actual status code: \" + pm.response.code);",
-							"        console.log(\"Actual response body: \" + pm.response.text());",
-							"        console.log(\"Skipping property checks as the status code is not 404\");",
-							"    }",
-							"});",
-							""
+							"});"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -271,52 +271,21 @@
 			"response": []
 		},
 		{
-			"name": "Trigger tests on new commit to PRs",
+			"name": "Health Check",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test to check if Postman tests run on new commits to PRs",
-							"",
+							"// Test to check the health of the API",
 							"pm.test(\"Response code is 200\", function() {",
 							"    pm.response.to.have.status(200);",
 							"});",
 							"",
-							"pm.test(\"Response body shows success\", function() {",
+							"pm.test(\"Response body shows health status\", function() {",
 							"    var responseBody = pm.response.json();",
 							"    pm.expect(responseBody).to.be.an('object');",
-							"    pm.expect(responseBody).to.have.property('Health', 'OK').that.is.a('string');",
-							"});",
-							"",
-							"pm.test(\"Response time is within acceptable range\", function() {",
-							"    pm.expect(pm.response.responseTime).to.be.below(500);",
-							"});",
-							"",
-							"pm.test(\"Print response JSON\", function() {",
-							"    console.log(pm.response.json());",
-							"});",
-							"",
-							"pm.test(\"The response has all properties\", () => {",
-							"    // Parse the response JSON and test three properties",
-							"    const responseJson = pm.response.json();",
-							"",
-							"    // Adjust the checks based on the actual response structure",
-							"    pm.expect(responseJson).to.have.property('Health').that.is.a('string');",
-							"    ",
-							"    // Only check for 'type' property if it exists in the response",
-							"    if (responseJson.hasOwnProperty('type')) {",
-							"        pm.expect(responseJson.type).to.eql('vip'); // Adjust this if 'type' might have different values",
-							"    }",
-							"",
-							"    // Assuming 'name' and 'id' properties might not exist",
-							"    if (responseJson.hasOwnProperty('name')) {",
-							"        pm.expect(responseJson.name).to.be.a('string');",
-							"    }",
-							"",
-							"    if (responseJson.hasOwnProperty('id')) {",
-							"        pm.expect(responseJson.id).to.have.lengthOf(1);",
-							"    }",
+							"    pm.expect(responseBody).to.have.property('Health', 'OK');",
 							"});",
 							""
 						],
@@ -325,28 +294,10 @@
 					}
 				}
 			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": {
-						"token": ""
-					}
-				},
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": "http://127.0.0.1:8000/"
+				"url": "http://127.0.0.1:8000/health"
 			},
 			"response": []
 		}
