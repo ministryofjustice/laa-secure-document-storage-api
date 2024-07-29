@@ -92,6 +92,11 @@
 							"pm.test(\"response contains fileURL key\", function() {",
 							"    const responseBody = pm.response.json();",
 							"    pm.expect(responseBody).to.have.property('fileURL');",
+							"});",
+							"",
+							"pm.test(\"fileURL is a string\", function() {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('fileURL').that.is.a('string');",
 							"});"
 						],
 						"type": "text/javascript",
