@@ -1,18 +1,244 @@
-			"name": "WithNormalFile",
+{
+	"info": {
+		"_postman_id": "c291341b-8bf5-429c-83ff-30e3fca43b27",
+		"name": "SecureDocStoreAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "28356037"
+	},
+	"item": [
+		{
+			"name": "Retrieve File",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
+							"// Test retrieve file",
 							"pm.test(\"response code is 200\", function() {",
-							"    pm.response.to.have.status(200)",
-							"})",
+							"    pm.response.to.have.status(200);",
+							"});",
 							"",
-							"pm.test(\"response body shows success\", function() {",
-							"    pm.response.to.have.jsonBody('Hello': 'World')",
-							"})"
+							"pm.test(\"response contains fileURL key\", function() {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('fileURL');",
+							"});",
+							"",
+							"pm.test(\"fileURL is a string\", function() {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('fileURL').that.is.a('string');",
+							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": ""
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README.md",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"retrieve_file"
+					],
+					"query": [
+						{
+							"key": "file_key",
+							"value": "README.md"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve File from CRM14 Folder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test to verify retrieving a file from the CRM14 folder",
+							"pm.test(\"response code is 200\", function() {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"response contains fileURL key\", function() {",
+							"    const responseBody = pm.response.json();",
+							"    pm.expect(responseBody).to.have.property('fileURL');",
+							"});",
+							"",
+							"pm.test(\"fileURL is a string\", function() {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('fileURL').that.is.a('string');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": ""
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=CRM14/README.md",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"retrieve_file"
+					],
+					"query": [
+						{
+							"key": "file_key",
+							"value": "CRM14/README.md"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve Non-Existent File",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test to verify getting a 404 response for a non-existent file",
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": ""
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=non_existent",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"retrieve_file"
+					],
+					"query": [
+						{
+							"key": "file_key",
+							"value": "non_existent"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test to check the health of the API",
+							"pm.test(\"Response code is 200\", function() {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response body shows health status\", function() {",
+							"    var responseBody = pm.response.json();",
+							"    pm.expect(responseBody).to.be.an('object');",
+							"    pm.expect(responseBody).to.have.property('Health', 'OK');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://127.0.0.1:8000/health"
+			},
+			"response": []
+		}
+	]
+}
