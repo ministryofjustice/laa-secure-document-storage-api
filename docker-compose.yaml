@@ -16,6 +16,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
       - ENV=local
       - BUCKET_NAME=sds-local
+      - TENANT_ID=$TENANT_ID
+      - AUDIENCE=$AUDIENCE_ID
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb_local

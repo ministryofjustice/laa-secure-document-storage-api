@@ -51,7 +51,11 @@ jobs:
         run: |
           export AWS_ACCESS_KEY_ID=test
           export AWS_ACCESS_KEY=test
-          docker-compose up --build -d
+          docker compose up --build -d
+        env:
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          AUDIENCE_ID: ${{ secrets.AUDIENCE_ID }}
+
 
 
       - name: Setup S3 Bucket
@@ -60,9 +64,15 @@ jobs:
       - name: Setup AuditDB
         run: ./auditdb.sh
 
+      - name: Delay for 30 seconds
+        run: sleep 30
 
       - name: Run Postman Tests
-        run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json
+        run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json --env-var client_id=$CLIENT_ID --env-var client_secret=$CLIENT_SECRET
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+
 
       - name: SDS API logs
         if: always()

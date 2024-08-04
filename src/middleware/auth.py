@@ -1,6 +1,5 @@
 import os
 from typing import Tuple
-
 import requests
 import structlog
 from cachetools import cached, TTLCache
@@ -30,9 +29,8 @@ async def bearer_token_middleware(request: Request, call_next):
     except HTTPException as http_exc:
         return JSONResponse({"detail": http_exc.detail}, http_exc.status_code)
     except Exception as e:
+        logger.error(f"Error processing bearer token: {str(e)}")
         return JSONResponse({"detail": "Something went wrong"}, 500)  # Replace this with proper logging
-
-
 
 
 @cached(TTLCache(maxsize=100, ttl=3600))
@@ -81,11 +79,3 @@ def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
             logger.debug(f'The token is invalid: {error}')
 
     return is_valid, payload
-
-
-
-
-
-
-
-
