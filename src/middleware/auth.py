@@ -14,6 +14,9 @@ logger = structlog.get_logger()
 
 
 async def bearer_token_middleware(request: Request, call_next):
+    # ignore these routes
+    if request.url.path in ["/", "/health"]:
+        return await call_next(request)
     try:
         authorization: str = request.headers.get("Authorization")
         scheme, param = get_authorization_scheme_param(authorization)

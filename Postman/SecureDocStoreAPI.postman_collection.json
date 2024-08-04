@@ -346,13 +346,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
 					"raw": "http://127.0.0.1:8000/health",
 					"protocol": "http",
