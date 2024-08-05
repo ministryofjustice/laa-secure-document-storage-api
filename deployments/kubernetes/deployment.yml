@@ -40,3 +40,7 @@ spec:
                 secretKeyRef:
                   name: ${BUCKET_SECRET_REF}
                   key: bucket_name
+            - name: TENANT_ID
+              value: ${TENANT_ID}
+            - name: AUDIENCE
+              value: ${AUDIENCE}

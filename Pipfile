@@ -15,6 +15,9 @@ flask = "==3.0.3"
 pytest-mock = "==3.14.0"
 responses = "==0.25.3"
 aiohttp = "==3.10.1"
+msal = "==1.29.0"
+python-jose = "==3.3.0"
+cachetools = "==5.3.3"
 
 [dev-packages]
 flake8 = "==7.0.0"

@@ -9,6 +9,7 @@ from structlog.stdlib import LoggerFactory
 from src.config import logging_config
 from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
+from src.middleware.auth import bearer_token_middleware
 
 
 def add_correlation(
@@ -36,5 +37,6 @@ structlog.configure(logger_factory=LoggerFactory(), processors=[
                     )
 
 logging.config.dictConfig(logging_config.config)
+app.middleware("http")(bearer_token_middleware)
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
