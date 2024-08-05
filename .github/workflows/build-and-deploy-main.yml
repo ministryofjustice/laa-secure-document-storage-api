@@ -58,3 +58,54 @@ jobs:
         bucket-secret-ref: 'laa-sds-s3-equiniti-output'
         tenant_id: ${{secrets.TEST_TENANT_ID}}
         audience: ${{secrets.TEST_AUDIENCE}}
+
+  deploy_staging:
+    needs: deploy_test
+    environment: staging
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Build Docker Image
+      run:
+        docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+    - name: Assume AWS Role
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.STAGING_ECR_ROLE_TO_ASSUME }}
+        aws-region: ${{ vars.STAGING_ECR_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr-dev
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Store ECR endpoint as output
+      id: ecr-url-output
+      run: echo "::set-output name=ecr_url::${{ steps.login-ecr-dev.outputs.registry }}/${{ vars.STAGING_ECR_REPOSITORY }}"
+
+    - name: Push to ECR
+      id: ecr
+      env:
+        ECR_URL: ${{ steps.ecr-url-output.outputs.ecr_url }}
+      run: |
+        docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} $ECR_URL:${{ github.sha }}
+        docker push $ECR_URL:${{ github.sha }}
+
+    - name: Deploy STAGING
+      uses: ./.github/actions/deploy
+      with:
+        ecr-url: ${{ steps.ecr-url-output.outputs.ecr_url }}
+        kube-cert: ${{ secrets.STAGING_KUBE_CERT }}
+        kube-token: ${{ secrets.STAGING_KUBE_TOKEN }}
+        kube-cluster: ${{ secrets.STAGING_KUBE_CLUSTER }}
+        kube-namespace: ${{ secrets.STAGING_KUBE_NAMESPACE }}
+        irsa-sa-environment: 'staging'
+        bucket-secret-ref: 'laa-sds-s3-equiniti-output'
+        tenant_id: ${{secrets.STAGING_TENANT_ID}}
+        audience: ${{secrets.STAGING_AUDIENCE}}
