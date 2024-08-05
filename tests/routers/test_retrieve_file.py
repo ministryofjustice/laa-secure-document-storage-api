@@ -1,6 +1,8 @@
 from unittest.mock import patch
-from fastapi import HTTPException
+from fastapi import HTTPException, FastAPI
 from fastapi.testclient import TestClient
+from starlette.middleware import Middleware
+
 from src.main import app
 from src.models.execeptions.file_not_found import FileNotFoundException
 
@@ -9,12 +11,20 @@ test_client = TestClient(app)
 
 def test_retrieve_file_missing_key():
     # Act
+    remove_middleware(app,)
     response = test_client.get('/retrieve_file/')
 
     # Assert
     assert response.status_code == 400
     assert 'detail' in response.json()
     assert response.json()['detail'] == 'File key is missing'
+
+
+def remove_middleware(app: FastAPI) -> FastAPI:
+    new_middlewares: list[Middleware] = []
+    app.user_middleware = new_middlewares
+    app.middleware_stack = app.build_middleware_stack()
+    return app
 
 
 def mock_get_item(service_id, file_key):
