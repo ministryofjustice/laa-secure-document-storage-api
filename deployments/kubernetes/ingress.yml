@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: laa-sds-ingress
   annotations:
+    nginx.ingress.kubernetes.io/whitelist-source-range: 35.178.209.113/32,3.8.51.207/32,35.177.252.54/32,18.169.147.172/32,35.176.93.186/32,18.130.148.126/32,35.176.148.126/32
     external-dns.alpha.kubernetes.io/set-identifier: laa-sds-ingress-${KUBE_NAMESPACE}-green
     external-dns.alpha.kubernetes.io/aws-weight: "100"
 spec:
