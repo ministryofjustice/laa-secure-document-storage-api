@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 fastapi = "==0.110.0"
-uvicorn = "==0.28.1"
+uvicorn = "==0.30.5"
 structlog = "==24.1.0"
 asgi-correlation-id = "==4.3.1"
 python-dotenv = "==1.0.1"
