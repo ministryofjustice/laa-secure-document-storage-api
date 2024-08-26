@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6ef6e1cc84b37737e31bcdda51b5673c99bcf41cb3961836775e4db444ec51dc"
+            "sha256": "f6a813050b2a795ef365dd4fdf1f3e2255676daee10dcaf085f49d9231d19139"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -408,12 +408,12 @@
         },
         "fastapi": {
             "hashes": [
-                "sha256:266775f0dcc95af9d3ef39bad55cff525329a931d5fd51930aadd4f428bf7ff3",
-                "sha256:87a1f6fb632a218222c5984be540055346a8f5d8a68e8f6fb647b1dc9934de4b"
+                "sha256:3d4729c038414d5193840706907a41839d839523da6ed0c2811f1168cac1798c",
+                "sha256:db84b470bd0e2b1075942231e90e3577e12a903c4dc8696f0d206a7904a7af1c"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==0.110.0"
+            "version": "==0.112.2"
         },
         "flask": {
             "hashes": [
@@ -517,11 +517,11 @@
         },
         "idna": {
             "hashes": [
-                "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc",
-                "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"
+                "sha256:050b4e5baadcd44d760cedbd2b8e639f2ff89bbc7a5730fcc662954303377aac",
+                "sha256:d838c2c0ed6fced7693d5e8ab8e734d5f8fda53a039c0164afb0b82e771e3603"
             ],
-            "markers": "python_version >= '3.5'",
-            "version": "==3.7"
+            "markers": "python_version >= '3.6'",
+            "version": "==3.8"
         },
         "iniconfig": {
             "hashes": [
@@ -1022,11 +1022,11 @@
         },
         "starlette": {
             "hashes": [
-                "sha256:13d429aa93a61dc40bf503e8c801db1f1bca3dc706b10ef2434a36123568f044",
-                "sha256:90a671733cfb35771d8cc605e0b679d23b992f8dcfad48cc60b38cb29aeb7080"
+                "sha256:4ec6a59df6bbafdab5f567754481657f7ed90dc9d69b0c9ff017907dd54faeff",
+                "sha256:c7c0441065252160993a1a37cf2a73bb64d271b17303e0b0c1eb7191cfb12d75"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==0.36.3"
+            "version": "==0.38.2"
         },
         "structlog": {
             "hashes": [
