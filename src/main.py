@@ -1,10 +1,10 @@
+from fastapi import FastAPI, HTTPException
 import sentry_sdk
 import logging.config
 from typing import Any
-
 import structlog
 from asgi_correlation_id.context import correlation_id
-from fastapi import FastAPI, HTTPException
+from httpx import Request
 from structlog.stdlib import LoggerFactory
 
 from src.config import logging_config
@@ -12,6 +12,7 @@ from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
 from src.middleware.auth import bearer_token_middleware
 
+# Initialize Sentry
 sentry_sdk.init(
     dsn="https://02c5e4a686e2a1f58c3329be0bd51138@o345774.ingest.us.sentry.io/4507815741030400",
     traces_sample_rate=1.0,
@@ -44,13 +45,16 @@ structlog.configure(logger_factory=LoggerFactory(), processors=[
                     )
 
 logging.config.dictConfig(logging_config.config)
-app.middleware("http")(bearer_token_middleware)
+
+
+# Apply middleware to all routes except /test-error
+@app.middleware("http")
+async def custom_middleware(request: Request, call_next):
+    if request.url.path == "/test-error":
+        response = await call_next(request)
+        return response
+    return await bearer_token_middleware(request, call_next)
+
+
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
-
-
-# Add a test route to trigger an error
-@app.get("/test-error")
-def test_error():
-    division_by_zero = 1 / 0  # This will raise a ZeroDivisionError
-    return {"message": "This will never be reached"}
