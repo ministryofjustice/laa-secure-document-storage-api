@@ -4,7 +4,7 @@ from typing import Any
 
 import structlog
 from asgi_correlation_id.context import correlation_id
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from structlog.stdlib import LoggerFactory
 
 from src.config import logging_config
@@ -14,14 +14,10 @@ from src.middleware.auth import bearer_token_middleware
 
 sentry_sdk.init(
     dsn="https://02c5e4a686e2a1f58c3329be0bd51138@o345774.ingest.us.sentry.io/4507815741030400",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for tracing.
     traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
     profiles_sample_rate=1.0,
 )
+
 
 def add_correlation(
         logger: logging.Logger, method_name: str, event_dict: dict[str, Any]) \
@@ -51,3 +47,10 @@ logging.config.dictConfig(logging_config.config)
 app.middleware("http")(bearer_token_middleware)
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
+
+
+# Add a test route to trigger an error
+@app.get("/test-error")
+def test_error():
+    division_by_zero = 1 / 0  # This will raise a ZeroDivisionError
+    return {"message": "This will never be reached"}
