@@ -1,3 +1,4 @@
+import sentry_sdk
 import logging.config
 from typing import Any
 
@@ -11,6 +12,16 @@ from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
 from src.middleware.auth import bearer_token_middleware
 
+sentry_sdk.init(
+    dsn="https://02c5e4a686e2a1f58c3329be0bd51138@o345774.ingest.us.sentry.io/4507815741030400",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
 
 def add_correlation(
         logger: logging.Logger, method_name: str, event_dict: dict[str, Any]) \
