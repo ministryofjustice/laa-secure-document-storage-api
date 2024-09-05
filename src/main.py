@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 import sentry_sdk
 import logging.config
 from typing import Any
