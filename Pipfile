@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "==0.110.0"
+fastapi = "==0.114.2"
 uvicorn = "==0.28.1"
 structlog = "==24.1.0"
 asgi-correlation-id = "==4.3.1"
