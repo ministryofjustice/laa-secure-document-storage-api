@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6ef6e1cc84b37737e31bcdda51b5673c99bcf41cb3961836775e4db444ec51dc"
+            "sha256": "6eb26501fc25bf30c201b179ade53eccd1699d416588865167e11eb017abd4a2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -158,20 +158,20 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:60e5dda0b29805fb410bfda1d98e898edaebedac0e6983e9c57cb88e44dfa64e",
-                "sha256:6c8125310005255ea998bccc3e8353b4df81a96ab105c89c118461f6c54c07c8"
+                "sha256:47e89d95964f10beee21ee723c3290874fddf364269bd97d200e8bfa9bf93a06",
+                "sha256:aaddbeb8c37608492f2c8286d004101464833d4c6e49af44601502b8b18785ed"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==1.34.97"
+            "version": "==1.35.20"
         },
         "botocore": {
             "hashes": [
-                "sha256:4215db28d25309d59c99507f1f77df9089e5bebbad35f6e19c7c44ec5383a3e8",
-                "sha256:a2cf26e1bf10d5917a2285e50257bc44e94a1d16574f282f3274f7a5d8d1f08b"
+                "sha256:62412038f960691a299e60492f9ee7e8e75af563f2eca7f3640b3b54b8f5d236",
+                "sha256:82ad8a73fcd5852d127461c8dadbe40bf679f760a4efb0dde8d4d269ad3f126f"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==1.34.144"
+            "version": "==1.35.20"
         },
         "cachetools": {
             "hashes": [
@@ -1055,11 +1055,11 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472",
-                "sha256:dd505485549a7a552833da5e6063639d0d177c04f23bc3864e41e5dc5f612168"
+                "sha256:ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac",
+                "sha256:e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==2.2.2"
+            "version": "==2.2.3"
         },
         "uvicorn": {
             "hashes": [
