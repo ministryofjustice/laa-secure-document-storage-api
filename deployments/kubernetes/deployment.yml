@@ -44,3 +44,5 @@ spec:
               value: ${TENANT_ID}
             - name: AUDIENCE
               value: ${AUDIENCE}
+            - name: SENTRY_DSN
+              value: ${SENTRY_DSN}

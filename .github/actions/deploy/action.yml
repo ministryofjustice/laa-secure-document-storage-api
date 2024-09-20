@@ -56,7 +56,7 @@ runs:
         BUCKET_SECRET_REF: ${{ inputs.bucket-secret-ref }}
         AUDIENCE: ${{ inputs.audience }}
         TENANT_ID: ${{ inputs.tenant_id }}
-
+        SENTRY_DSN: ${{ inputs.sentry_dsn }}
 
       shell: bash
       run: |

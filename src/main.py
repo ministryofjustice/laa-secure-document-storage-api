@@ -1,16 +1,20 @@
 import logging.config
+import os
 from typing import Any
 
+import sentry_sdk
 import structlog
 from asgi_correlation_id.context import correlation_id
 from fastapi import FastAPI
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 from structlog.stdlib import LoggerFactory
 
 from src.config import logging_config
+from src.middleware.auth import bearer_token_middleware
 from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
 from src.routers import save_file as save_router
-from src.middleware.auth import bearer_token_middleware
 
 
 def add_correlation(
@@ -20,6 +24,24 @@ def add_correlation(
         event_dict["request_id"] = request_id
     return event_dict
 
+
+sentry_dsn = os.environ.get('SENTRY_DSN')
+
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+
+        integrations=[
+            StarletteIntegration(
+                transaction_style="endpoint",
+                failed_request_status_codes=[range(500, 599)],
+            ),
+            FastApiIntegration(
+                transaction_style="endpoint",
+                failed_request_status_codes=[range(500, 599)],
+            ),
+        ]
+    )
 
 app = FastAPI()
 
