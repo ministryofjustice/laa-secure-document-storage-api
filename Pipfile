@@ -17,6 +17,7 @@ aiohttp = "*"
 msal = "==1.29.0"
 python-jose = "==3.3.0"
 cachetools = "==5.3.3"
+sentry-sdk = "*"
 
 [dev-packages]
 flake8 = "==7.0.0"
