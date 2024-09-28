@@ -2,7 +2,7 @@ import os
 import boto3
 import pytest
 from botocore.exceptions import ClientError
-
+from io import BytesIO
 from src.models.execeptions.file_not_found import FileNotFoundException
 from src.services.s3_service import S3Service
 
@@ -50,3 +50,48 @@ def test_generate_file_url_missing_file(s3_service, mocker):
         # Assert
         assert str(e.message) == 'The file test_key could not be found.'
         assert str(e.filename) == 'test_key'
+
+
+def test_upload_file_obj_success(s3_service, mocker):
+    # Arrange
+    mock_put_object = mocker.patch.object(s3_service.s3_client, 'put_object')
+
+    file = BytesIO(b"Test data")
+    bucket_name = 'test_bucket'
+    filename = 'test_file'
+    metadata = {'key1': 'value1'}
+
+    # Act
+    s3_service.upload_file_obj(bucket_name, file, filename, metadata)
+
+    # Assert
+    mock_put_object.assert_called_once_with(
+        Bucket=bucket_name,
+        Key=filename,
+        Body=file.getvalue(),
+        Metadata=metadata
+    )
+
+
+def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
+    # Arrange
+    error_response = {'Error': {'Code': 'NoSuchBucket', 'Message': 'The specified bucket does not exist'}}
+    mocker.patch.object(
+        s3_service.s3_client,
+        'put_object',
+        side_effect=ClientError(error_response=error_response, operation_name='PutObject')
+    )
+
+    file = BytesIO(b"Test data")
+    bucket_name = 'test_bucket'
+    filename = 'test_file'
+    metadata = {'key1': 'value1'}
+
+    # Act and Assert
+    with pytest.raises(ClientError) as ex:
+        s3_service.upload_file_obj(bucket_name, file, filename, metadata)
+
+    assert ex.value.response['Error']['Code'] == 'NoSuchBucket'
+    assert str(
+        ex.value) == ('An error occurred (NoSuchBucket) when calling the PutObject operation: '
+                      'The specified bucket does not exist')
