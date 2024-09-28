@@ -6,7 +6,7 @@ from cachetools import cached, TTLCache
 from fastapi import HTTPException, Request
 from fastapi.security import HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
-from jose import jwt, jwk
+from jose import jwt, jwk, JWTError
 from starlette.responses import JSONResponse
 
 security = HTTPBearer()
@@ -29,6 +29,9 @@ async def bearer_token_middleware(request: Request, call_next):
             return response
         else:
             raise HTTPException(status_code=403, detail="Not authenticated")
+    except JWTError as e:
+        logger.error(f"Invalid JWT token: {str(e)}")
+        return JSONResponse({"detail": "Invalid or expired token"}, 401)
     except HTTPException as http_exc:
         return JSONResponse({"detail": http_exc.detail}, http_exc.status_code)
     except Exception as e:

@@ -56,4 +56,5 @@ jobs:
         bucket-secret-ref: 'laa-sds-s3-bucket-output'
         tenant_id: ${{secrets.DEV_TENANT_ID}}
         audience: ${{secrets.DEV_AUDIENCE}}
+        sentry_dsn: ${{secrets.DEV_SENTRY_DSN}}
 

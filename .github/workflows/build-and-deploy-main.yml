@@ -58,6 +58,7 @@ jobs:
         bucket-secret-ref: 'laa-sds-s3-equiniti-output'
         tenant_id: ${{secrets.TEST_TENANT_ID}}
         audience: ${{secrets.TEST_AUDIENCE}}
+        sentry_dsn: ${{secrets.TEST_SENTRY_DSN}}
 
   deploy_staging:
     needs: deploy_test
@@ -109,6 +110,7 @@ jobs:
         bucket-secret-ref: 'laa-sds-s3-equiniti-output'
         tenant_id: ${{secrets.STAGING_TENANT_ID}}
         audience: ${{secrets.STAGING_AUDIENCE}}
+        sentry_dsn: ${{secrets.STAGING_SENTRY_DSN}}
 
   deploy_prod:
     needs: deploy_staging
@@ -160,3 +162,4 @@ jobs:
           bucket-secret-ref: 'laa-sds-s3-equiniti-output'
           tenant_id: ${{secrets.PROD_TENANT_ID}}
           audience: ${{secrets.PROD_AUDIENCE}}
+          sentry_dsn: ${{secrets.PROD_SENTRY_DSN}}
