@@ -18,6 +18,8 @@ msal = "==1.29.0"
 python-jose = "==3.3.0"
 cachetools = "==5.3.3"
 sentry-sdk = "==2.14.0"
+pydantic = "==2.9.2"
+python-multipart = "==0.0.11"
 
 [dev-packages]
 flake8 = "==7.0.0"

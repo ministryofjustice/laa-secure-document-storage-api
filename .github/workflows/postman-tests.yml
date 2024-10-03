@@ -68,7 +68,9 @@ jobs:
         run: sleep 30
 
       - name: Run Postman Tests
-        run: newman run ./Postman/SecureDocStoreAPI.postman_collection.json --env-var client_id=$CLIENT_ID --env-var client_secret=$CLIENT_SECRET
+        run: |
+          cd ./Postman
+          newman run ./SecureDocStoreAPI.postman_collection.json --env-var client_id=$CLIENT_ID --env-var client_secret=$CLIENT_SECRET
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}

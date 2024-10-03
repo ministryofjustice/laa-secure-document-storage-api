@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import boto3
 import os
 
@@ -65,6 +67,18 @@ class S3Service:
         except Exception as e:
             logger.debug(f"Error reading file from S3: {str(e)}")
 
+    def upload_file_obj(self, bucket_name, file: BytesIO, filename: str, metadata: dict = {}):
+        try:
+            self.s3_client.put_object(
+                Bucket=bucket_name,
+                Key=filename,
+                Body=file.read(),
+                Metadata=metadata
+            )
+        except Exception as e:
+            logger.error(f"Error uploading file to S3: {str(e)}")
+            raise e
+
 
 def retrieveFile(fileName: str):
     s3_service = S3Service.getInstance()
@@ -75,3 +89,11 @@ def retrieveFileUrl(fileName: str):
     s3_service = S3Service.getInstance()
     logger.info(f"bucket name is {os.getenv('BUCKET_NAME')}")
     return s3_service.generate_file_url(os.getenv('BUCKET_NAME'), fileName)
+
+
+def save(file: BytesIO, filename: str, bucketName: str, metadata: dict = {}) -> bool:
+    s3_service = S3Service.getInstance()
+
+    s3_service.upload_file_obj(bucketName, file, filename, metadata)
+
+    return True
