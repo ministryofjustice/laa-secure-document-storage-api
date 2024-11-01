@@ -5,14 +5,17 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.middleware import Middleware
 
+from src.models.validation_response import ValidationResponse
 from src.main import app
 
 test_client = TestClient(app)
 
 
 @patch("src.routers.save_file.saveToS3", return_value=True)
-def test_save_file_with_valid_data(save_mock):
+@patch("src.routers.save_file.validate_request")
+def test_save_file_with_valid_data(validator_mock,save_mock):
     remove_middleware(app, )
+    validator_mock.return_value = ValidationResponse(status_code=200, message="")
 
     data = {
         "body": '{"bucketName": "test_bucket"}'
@@ -39,7 +42,7 @@ def test_save_file_with_no_file():
     response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 400
-    assert response.json() == {'detail': 'File is required'}
+    assert response.json() == {'detail': ['File is required']}
 
 
 def test_save_file_with_invalid_data():
