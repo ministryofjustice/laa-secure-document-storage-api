@@ -2,12 +2,13 @@ import os
 from typing import Type, Optional
 
 import structlog
-from fastapi import APIRouter, HTTPException, UploadFile, Form, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, Form, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
 
 from src.models.file_upload import FileUpload
 from src.services.s3_service import save as saveToS3
+from src.validation.validator import validate_request
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -25,11 +26,14 @@ def validate_json(model: Type[BaseModel]):
 
 
 @router.post("/save_file")
-async def save_file(file: Optional[UploadFile] = UploadFile(None),
-                    body: FileUpload = Depends(validate_json(FileUpload))):
-    if file.filename is None or file.filename == "":
-        raise HTTPException(status_code=400, detail="File is required")
-    metadata = body.dict()
+async def save_file(
+        request: Request,
+        file: Optional[UploadFile] = UploadFile(None),
+        body: FileUpload = Depends(validate_json(FileUpload))):
+    validation_result = await validate_request(request.headers, file)
+    if validation_result.status_code != 200:
+        raise HTTPException(status_code=validation_result.status_code, detail=validation_result.message)
+    metadata = body.model_dump()
 
     bucketName = metadata.pop('bucketName')
     folderPrefix = metadata.pop('folder')

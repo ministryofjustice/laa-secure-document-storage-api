@@ -33,3 +33,12 @@ services:
     volumes:
       - ./localstack-script.sh:/etc/localstack/init/ready.d/script.sh
       - '/var/run/docker.sock:/var/run/docker.sock'
+  laa-clamav:
+    image: ghcr.io/ministryofjustice/clamav-docker/laa-clamav:latest
+    ports:
+      - "3310:3310"
+    volumes:
+      - ./tests/testFiles:/test_files
+    environment:
+      - FRESHCLAM_CHECKS=24
+      - MIRROR_URL=https://laa-clamav-mirror-production.apps.live.cloud-platform.service.justice.gov.uk
