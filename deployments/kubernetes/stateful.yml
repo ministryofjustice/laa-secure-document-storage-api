@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: laa-sds-clamav
+  labels:
+    app: laa-sds-clamav
+spec:
+  serviceName: "laa-sds-clamav-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laa-sds-clamav
+  template:
+    metadata:
+      labels:
+        app: laa-sds-clamav
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: laa-sds-clamav
+          image: ghcr.io/ministryofjustice/clamav-docker/laa-clamav:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: laa-sds-clamav-data
+              mountPath: "/var/lib/clamav"
+          resources:
+            requests:
+              memory: "4Gi"
+            limits:
+              memory: "5Gi"
+          ports:
+            - containerPort: 3310
+          env:
+            - name: FRESHCLAM_CHECKS
+              value: "24"
+            - name: MIRROR_URL
+              value: "https://laa-clamav-mirror-production.apps.live.cloud-platform.service.justice.gov.uk"
+  volumeClaimTemplates:
+  - metadata:
+      name: laa-sds-clamav-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
