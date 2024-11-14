@@ -8,10 +8,14 @@ from asgi_correlation_id.context import correlation_id
 from fastapi import FastAPI
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
+from starlette.middleware.authentication import AuthenticationMiddleware
 from structlog.stdlib import LoggerFactory
+import casbin
+from casbin.util.log import configure_logging
+from fastapi_authz import CasbinMiddleware
 
 from src.config import logging_config
-from src.middleware.auth import bearer_token_middleware
+from src.middleware.auth import BearerTokenAuthBackend
 from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
 from src.routers import save_file as save_router
@@ -43,24 +47,34 @@ if sentry_dsn:
         ]
     )
 
+enforcer = casbin.SyncedEnforcer(
+    model=os.environ.get('CASBIN_MODEL', '/authz/default_model.conf'),
+    adapter=os.environ.get('CASBIN_POLICY', '/authz/default_policy.csv'),
+)
+enforcer.start_auto_load_policy(int(os.getenv('CASBIN_RELOAD_INTERVAL', 600)))
+if os.getenv('CASBIN_LOGGING_LEVEL', 'NONE').upper() != 'NONE':
+    configure_logging()
+
 app = FastAPI()
 
 structlog.configure(logger_factory=LoggerFactory(), processors=[
-    add_correlation,
-    structlog.stdlib.add_logger_name,
-    structlog.stdlib.add_log_level,
-    structlog.stdlib.PositionalArgumentsFormatter(),
-    structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M.%S"),
-    structlog.processors.StackInfoRenderer(),
-    structlog.processors.format_exc_info,
-    structlog.processors.JSONRenderer()
-],
-                    wrapper_class=None,
-                    cache_logger_on_first_use=True
-                    )
+        add_correlation,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M.%S"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.JSONRenderer()
+    ],
+    wrapper_class=None,
+    cache_logger_on_first_use=True
+)
 
 logging.config.dictConfig(logging_config.config)
-app.middleware("http")(bearer_token_middleware)
+# Order matters here: Casbin middleware first, then the auth backend
+app.add_middleware(CasbinMiddleware, enforcer=enforcer)
+app.add_middleware(AuthenticationMiddleware, backend=BearerTokenAuthBackend())
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
 app.include_router(save_router.router)

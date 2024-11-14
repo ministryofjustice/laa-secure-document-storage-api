@@ -5,6 +5,7 @@ services:
     build: .
     volumes:
       - .:/app
+      - ./authz:/authz
     ports:
       - 8000:8000
     environment:

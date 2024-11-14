@@ -20,6 +20,10 @@ cachetools = "==5.3.3"
 sentry-sdk = "==2.14.0"
 pydantic = "==2.9.2"
 python-multipart = "==0.0.11"
+exceptiongroup = "==1.2.2"
+typing_extensions = "==4.12.2"
+casbin = "==1.36.3"
+fastapi-authz = "==1.0.0"
 
 [dev-packages]
 flake8 = "==7.0.0"
