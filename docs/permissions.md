@@ -1,5 +1,3 @@
-from src.main import enforcer
-
 # Permissions (Authorisation)
 
 Permissions are what a user can do once that user has verified their identity (authenticated).
