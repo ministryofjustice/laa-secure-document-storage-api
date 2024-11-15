@@ -60,6 +60,9 @@ p, client-username, /save_file, POST
 # Allow all rest actions on an endpoint
 p, client-username, /controller, *
 
+# Allow two different rest actions on an endpoint
+p, client-username, /controller, (GET)|(POST)
+
 # Allow anonymous access to an endpoint
 p, anonymous, /health, GET
 ```
@@ -120,3 +123,11 @@ async def retrieve_file(client_user = fastapi.params.Depends(request_user_dep), 
     enforcer.enforce(client_user.username, 'data-object', 'read')
     # ...
 ```
+
+## Developing and checking models and policies
+
+Casbin has an [editor](https://casbin.org/editor/) which can be used to check the policy rules and the model.
+
+Logging can be quite detailed, and is controlled by setting the `LOGGING_LEVEL_CASBIN` environment variable. If not set,
+casbin will not emit any logs.
+
