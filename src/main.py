@@ -52,7 +52,7 @@ enforcer = casbin.SyncedEnforcer(
     adapter=os.environ.get('CASBIN_POLICY', '/authz/default_policy.csv'),
 )
 enforcer.start_auto_load_policy(int(os.getenv('CASBIN_RELOAD_INTERVAL', 600)))
-if os.getenv('CASBIN_LOGGING_LEVEL', 'NONE').upper() != 'NONE':
+if os.getenv('LOGGING_LEVEL_CASBIN', 'NONE').upper() != 'NONE':
     configure_logging()
 
 app = FastAPI()

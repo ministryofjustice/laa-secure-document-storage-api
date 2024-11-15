@@ -20,6 +20,8 @@ services:
       - TENANT_ID=$TENANT_ID
       - AUDIENCE=$AUDIENCE_ID
       - CLAMD_HOST=laa-clamav
+      - CASBIN_POLICY=/authz/any_authenticated_access.csv
+      - CASBIN_MODEL=/authz/any_authenticated_access.conf
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb_local
