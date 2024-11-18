@@ -18,6 +18,10 @@ Casbin starts with a model telling it how to apply rules, and a policy which is 
 rules. An enforcer is created using the model and policy files, and this provides a simple interface to check a subject
 (the user) can perform an action (such as update or get) on an object (such as a bucket or an endpoint).
 
+*Important* The model controls how the policy rules are interpreted, and by default matches are straight string
+comparisons which means strings we may expect to work (such as '*' meaning 'any value') will not actually work without
+also changing the model.
+
 ## Control access to endpoints
 
 We use `fastapi-authz` as middleware which enforces authz for each request. The middleware requires authentication to be
@@ -57,14 +61,23 @@ Then all we need are policy rules for accessing endpoints:
 p, client-username, /retrieve_file, GET
 p, client-username, /save_file, POST
 
-# Allow all rest actions on an endpoint
-p, client-username, /controller, *
+# Allow anonymous access to an endpoint
+# This works because the middleware sets unauthenticated user object usernames to 'anonymous'
+p, anonymous, /health, GET
+```
 
-# Allow two different rest actions on an endpoint
+To support specifying multiple actions on an endpoint, we need to ensure the model supports this.
+For example, to allow both GET and POST on an endpoint:
+
+```csv
+# policy.csv
 p, client-username, /controller, (GET)|(POST)
 
-# Allow anonymous access to an endpoint
-p, anonymous, /health, GET
+# model.conf
+...
+[matchers]
+# Replace the default r.act == p.act with a regex match:
+m = ... && regexMatch(r.act, p.act)
 ```
 
 
@@ -131,3 +144,4 @@ Casbin has an [editor](https://casbin.org/editor/) which can be used to check th
 Logging can be quite detailed, and is controlled by setting the `LOGGING_LEVEL_CASBIN` environment variable. If not set,
 casbin will not emit any logs.
 
+Remember the policy rules do not support special strings or combinations without support from the model.
