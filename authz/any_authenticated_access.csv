@@ -1,6 +1,5 @@
+p, authenticated, /retrieve_file, GET
+p, authenticated, /save_file, (GET)|(POST)
 
-p, authenticated, /retrieve_file, *
-p, authenticated, /save_file, *
-
-p, anonymous, /, GET
-p, anonymous, /health, GET
+p, *, /, GET
+p, *, /health, GET
