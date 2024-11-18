@@ -48,8 +48,8 @@ if sentry_dsn:
     )
 
 enforcer = casbin.SyncedEnforcer(
-    model=os.environ.get('CASBIN_MODEL', '/authz/default_model.conf'),
-    adapter=os.environ.get('CASBIN_POLICY', '/authz/default_policy.csv'),
+    model=os.environ.get('CASBIN_MODEL', '../authz/default_model.conf'),
+    adapter=os.environ.get('CASBIN_POLICY', '../authz/default_policy.csv'),
 )
 enforcer.start_auto_load_policy(int(os.getenv('CASBIN_RELOAD_INTERVAL', 600)))
 if os.getenv('LOGGING_LEVEL_CASBIN', 'NONE').upper() != 'NONE':
