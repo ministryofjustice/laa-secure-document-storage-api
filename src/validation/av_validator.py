@@ -6,13 +6,11 @@ from src.models.validation_response import ValidationResponse
 from src.services.av_check_service import virus_check
 
 
-
 async def validate_request(headers: Header, file: UploadFile):
     messages = []
     status_code = None
     validator_sequence = [content_length_is_present,
                           check_file_exists,
-                          content_length_is_more_than_file_size,
                           check_antivirus]
 
     for validator in validator_sequence:
@@ -36,15 +34,6 @@ def content_length_is_present(headers: Header, file: UploadFile):
         return 200, ""
     else:
         return 411, "content-length header not found"
-
-
-def content_length_is_more_than_file_size(headers: Header, file: UploadFile):
-    content_length = headers.get('content-length')
-    if content_length is not None and file is not None and int(content_length) > file.size:
-        return 200, ""
-    else:
-        return 400, "Content length does not exceed file size or required parameters are missing"
-
 
 
 def check_file_exists(headers: Header, file: UploadFile):

@@ -18,6 +18,7 @@ services:
       - BUCKET_NAME=sds-local
       - TENANT_ID=$TENANT_ID
       - AUDIENCE=$AUDIENCE_ID
+      - CLAMD_HOST=laa-clamav
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb_local

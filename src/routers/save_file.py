@@ -8,7 +8,7 @@ from pydantic import BaseModel, ValidationError
 
 from src.models.file_upload import FileUpload
 from src.services.s3_service import save as saveToS3
-from src.validation.validator import validate_request
+from src.validation.av_validator import validate_request
 
 router = APIRouter()
 logger = structlog.get_logger()

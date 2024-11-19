@@ -2,9 +2,11 @@ import os
 from io import BytesIO
 
 import clamd
+import structlog
 from dotenv import load_dotenv
 
 load_dotenv()
+logger = structlog.get_logger()
 
 
 class AvCheckService:
@@ -17,7 +19,7 @@ class AvCheckService:
             AvCheckService._instance = self
             _host = os.getenv('CLAMD_HOST', 'localhost')
             _port = int(os.getenv('CLAMD_PORT', '3310'))
-            _clamd = clamd.ClamdNetworkSocket();
+            _clamd = clamd.ClamdNetworkSocket()
             _clamd.__init__(host=_host, port=_port, timeout=None)
             self._clamd = _clamd
 
@@ -39,6 +41,7 @@ class AvCheckService:
             status = 400
         else:
             message = 'Error occurred while processing'
+            status = 500
 
         response['message'] = message
         return response, status

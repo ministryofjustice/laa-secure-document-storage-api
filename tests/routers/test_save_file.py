@@ -13,7 +13,7 @@ test_client = TestClient(app)
 
 @patch("src.routers.save_file.saveToS3", return_value=True)
 @patch("src.routers.save_file.validate_request")
-def test_save_file_with_valid_data(validator_mock,save_mock):
+def test_save_file_with_valid_data(validator_mock, save_mock):
     remove_middleware(app, )
     validator_mock.return_value = ValidationResponse(status_code=200, message="")
 

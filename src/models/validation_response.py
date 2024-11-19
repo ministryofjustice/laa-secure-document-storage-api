@@ -1,5 +1,6 @@
 from fastapi import Response
 
+
 class ValidationResponse(Response):
     def __init__(self, status_code, message=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
