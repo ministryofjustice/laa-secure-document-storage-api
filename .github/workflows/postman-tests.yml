@@ -64,8 +64,8 @@ jobs:
       - name: Setup AuditDB
         run: ./auditdb.sh
 
-      - name: Delay for 30 seconds
-        run: sleep 30
+      - name: Delay for 60 seconds
+        run: sleep 60
 
       - name: Run Postman Tests
         run: |

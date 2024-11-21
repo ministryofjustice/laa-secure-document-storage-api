@@ -46,3 +46,5 @@ spec:
               value: ${AUDIENCE}
             - name: SENTRY_DSN
               value: ${SENTRY_DSN}
+            - name: CLAMD_HOST
+              value: "laa-sds-clamav-service"

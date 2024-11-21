@@ -490,6 +490,88 @@
 			"response": []
 		},
 		{
+			"name": "save_file_virus",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Check response detail for Virus Found\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.eql({\"detail\": [\"Virus Found\"]});",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer {{bearerToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "eicar.txt"
+						},
+						{
+							"key": "body",
+							"value": "{\"bucketName\":\"sds-local\", \"folder\":\"testmult\"} ",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/save_file",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"save_file"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "save_file_missing_bucket",
 			"event": [
 				{
@@ -587,7 +669,7 @@
 							"pm.test(\"Response has required fields\", function () {",
 							"    var jsonData = pm.response.json();",
 							"    pm.expect(jsonData).to.have.property('detail');",
-							"    pm.expect(jsonData.detail).to.eql('File is required');",
+							"    pm.expect(jsonData.detail).to.include('File is required');",
 							"});"
 						],
 						"type": "text/javascript",
