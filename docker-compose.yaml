@@ -42,4 +42,3 @@ services:
       - ./tests/testFiles:/test_files
     environment:
       - FRESHCLAM_CHECKS=24
-      - MIRROR_URL=https://laa-clamav-mirror-production.apps.live.cloud-platform.service.justice.gov.uk
