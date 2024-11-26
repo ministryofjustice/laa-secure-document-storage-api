@@ -10,8 +10,6 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 from starlette.middleware.authentication import AuthenticationMiddleware
 from structlog.stdlib import LoggerFactory
-import casbin
-from casbin.util.log import configure_logging
 from fastapi_authz import CasbinMiddleware
 
 from src.config import logging_config
@@ -19,6 +17,7 @@ from src.middleware.auth import BearerTokenAuthBackend
 from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
 from src.routers import save_file as save_router
+from src.services.authz_service import AuthzServiceSingleton
 
 
 def add_correlation(
@@ -47,14 +46,6 @@ if sentry_dsn:
         ]
     )
 
-enforcer = casbin.SyncedEnforcer(
-    model=os.environ.get('CASBIN_MODEL', '../authz/any_authenticated_access.conf'),
-    adapter=os.environ.get('CASBIN_POLICY', '../authz/any_authenticated_access.csv'),
-)
-enforcer.start_auto_load_policy(int(os.getenv('CASBIN_RELOAD_INTERVAL', 600)))
-if os.getenv('LOGGING_LEVEL_CASBIN', 'NONE').upper() != 'NONE':
-    configure_logging()
-
 app = FastAPI()
 
 structlog.configure(logger_factory=LoggerFactory(), processors=[
@@ -73,7 +64,7 @@ structlog.configure(logger_factory=LoggerFactory(), processors=[
 
 logging.config.dictConfig(logging_config.config)
 # Order matters here: Casbin middleware first, then the auth backend
-app.add_middleware(CasbinMiddleware, enforcer=enforcer)
+app.add_middleware(CasbinMiddleware, enforcer=AuthzServiceSingleton().enforcer)
 app.add_middleware(AuthenticationMiddleware, backend=BearerTokenAuthBackend())
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
