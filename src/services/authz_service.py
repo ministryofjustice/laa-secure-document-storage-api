@@ -14,7 +14,7 @@ class AuthzServiceSingleton:
 
     _instance = None
 
-    def __new__(cls, enforcer: casbin.Enforcer|None = None):
+    def __new__(cls, enforcer: casbin.Enforcer | None = None):
         if cls._instance is None:
             cls._instance = super(AuthzServiceSingleton, cls).__new__(cls)
             if enforcer is None:
