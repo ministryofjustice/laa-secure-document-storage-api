@@ -33,14 +33,35 @@ def rebuild_middleware_with(app: FastAPI, model_file: str, policy_file: str) -> 
     return app
 
 
-@pytest.mark.parametrize("model_file,policy_file,username,expected_status,assert_msg",[
-    ('casbin_model_acl.conf', 'casbin_policy_allow_test_user.csv', 'test_user', 200, 'Specified user is allowed'),
-    ('casbin_model_acl.conf', 'casbin_policy_allow_test_user.csv', 'other_user', 403, 'Different, but still authenticated, user is denied'),
-    ('casbin_model_acl.conf', 'casbin_policy_allow_test_user.csv', None, 403, 'Unauthenticated user is denied'),
-    ('casbin_model_add_authenticated.conf', 'casbin_policy_allow_authenticated.csv', uuid.uuid4().hex, 200, 'Model treats "authenticated" as special to allow an authenticated user'),
-    ('casbin_model_add_authenticated.conf', 'casbin_policy_allow_authenticated.csv', None, 403, 'Model does not allow anonymous users to be matched against "authenticated"'),
-    ('casbin_model_add_authenticated.conf', 'casbin_policy_allow_any.csv', uuid.uuid4().hex, 200, 'Model treats "*" as a wildcard, allowing any user'),
-    ('casbin_model_add_authenticated.conf', 'casbin_policy_allow_any.csv', None, 200, 'Model treats "*" as a wildcard, allowing any user')
+@pytest.mark.parametrize("model_file,policy_file,username,expected_status,assert_msg", [
+    (
+        'casbin_model_acl.conf', 'casbin_policy_allow_test_user.csv', 'test_user', 200,
+        'Specified user is allowed'
+    ),
+    (
+        'casbin_model_acl.conf', 'casbin_policy_allow_test_user.csv', 'other_user', 403,
+        'Different, but still authenticated, user is denied'
+    ),
+    (
+        'casbin_model_acl.conf', 'casbin_policy_allow_test_user.csv', None, 403,
+        'Unauthenticated user is denied'
+    ),
+    (
+        'casbin_model_add_authenticated.conf', 'casbin_policy_allow_authenticated.csv', uuid.uuid4().hex, 200,
+        'Model treats "authenticated" as special to allow an authenticated user'
+    ),
+    (
+        'casbin_model_add_authenticated.conf', 'casbin_policy_allow_authenticated.csv', None, 403,
+        'Model does not allow anonymous users to be matched against "authenticated"'
+    ),
+    (
+        'casbin_model_add_authenticated.conf', 'casbin_policy_allow_any.csv', uuid.uuid4().hex, 200,
+        'Model treats "*" as a wildcard, allowing any user'
+    ),
+    (
+        'casbin_model_add_authenticated.conf', 'casbin_policy_allow_any.csv', None, 200,
+        'Model treats "*" as a wildcard, allowing any user'
+    )
 ])
 def test_authz_service(model_file: str, policy_file: str, username: str | None, expected_status: int, assert_msg: str):
     rebuild_middleware_with(
