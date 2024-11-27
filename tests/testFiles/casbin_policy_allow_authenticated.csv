@@ -1,0 +1,3 @@
+
+p, *, /, GET
+p, authenticated, /health, GET
