@@ -58,14 +58,11 @@ jobs:
 
 
 
-      - name: Setup S3 Bucket
-        run: ./s3-bucket-create.sh
-
       - name: Setup AuditDB
         run: ./auditdb.sh
 
-      - name: Delay for 60 seconds
-        run: sleep 60
+      - name: Setup S3 Bucket
+        run: ./s3-bucket-create.sh
 
       - name: Run Postman Tests
         run: |
