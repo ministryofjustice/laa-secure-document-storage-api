@@ -64,6 +64,9 @@ jobs:
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
 
+      - name: Delay for 60 seconds
+        run: sleep 60
+
       - name: Run Postman Tests
         run: |
           cd ./Postman
