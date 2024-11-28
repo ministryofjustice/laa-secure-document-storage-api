@@ -48,7 +48,8 @@ if sentry_dsn:
 
 app = FastAPI()
 
-structlog.configure(logger_factory=LoggerFactory(), processors=[
+structlog.configure(
+    logger_factory=LoggerFactory(), processors=[
         add_correlation,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
