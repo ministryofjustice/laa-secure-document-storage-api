@@ -6,6 +6,19 @@ from casbin.util.log import configure_logging
 
 logger = structlog.get_logger()
 
+DEFAULT_ACL_MODEL = casbin.Model()
+DEFAULT_ACL_MODEL.load_model_from_text("""
+[request_definition]
+r = sub, obj, act
+[policy_definition]
+p = sub, obj, act
+[policy_effect]
+e = some(where (p.eft == allow))
+[matchers]
+m = r.sub == p.sub && r.obj == p.obj && regexMatch(r.act, p.act)
+""")
+DENY_ALL_POLICY = casbin.Adapter()
+
 
 class AuthzServiceSingleton:
     """
@@ -20,8 +33,8 @@ class AuthzServiceSingleton:
             if enforcer is None:
                 # Use an Enforcer that will poll for changes to the specified model and policy files.
                 enforcer = casbin.SyncedEnforcer(
-                    model=os.environ.get('CASBIN_MODEL', '../authz/any_authenticated_access.conf'),
-                    adapter=os.environ.get('CASBIN_POLICY', '../authz/any_authenticated_access.csv'),
+                    model=os.environ.get('CASBIN_MODEL', DEFAULT_ACL_MODEL),
+                    adapter=os.environ.get('CASBIN_POLICY', DENY_ALL_POLICY),
                 )
                 enforcer.start_auto_load_policy(int(os.getenv('CASBIN_RELOAD_INTERVAL', 600)))
                 if os.getenv('LOGGING_LEVEL_CASBIN', 'NONE').upper() != 'NONE':
