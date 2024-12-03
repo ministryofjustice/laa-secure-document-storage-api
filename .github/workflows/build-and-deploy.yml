@@ -57,4 +57,6 @@ jobs:
         tenant_id: ${{secrets.DEV_TENANT_ID}}
         audience: ${{secrets.DEV_AUDIENCE}}
         sentry_dsn: ${{secrets.DEV_SENTRY_DSN}}
+        casbin_policy: ${{vars.CASBIN_POLICY}}
+        casbin_model: ${{vars.CASBIN_MODEL}}
 

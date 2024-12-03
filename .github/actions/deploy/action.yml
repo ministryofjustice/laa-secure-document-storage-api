@@ -28,6 +28,12 @@ inputs:
   tenant_id:
     description: azure tenant id where application is registered
     required: true
+  casbin_policy:
+    description: casbin policy for auth
+    required: true
+  casbin_model:
+    description: casbin model for auth
+    required: true
 
 
 runs:
@@ -57,6 +63,10 @@ runs:
         AUDIENCE: ${{ inputs.audience }}
         TENANT_ID: ${{ inputs.tenant_id }}
         SENTRY_DSN: ${{ inputs.sentry_dsn }}
+        CASBIN_POLICY: ${{ inputs.casbin_policy }}
+        CASBIN_MODEL: ${{ inputs.casbin_model }}
+
+
 
       shell: bash
       run: |

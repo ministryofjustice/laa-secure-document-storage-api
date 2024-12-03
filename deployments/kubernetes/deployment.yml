@@ -48,3 +48,7 @@ spec:
               value: ${SENTRY_DSN}
             - name: CLAMD_HOST
               value: "laa-sds-clamav-service"
+            - name: CASBIN_POLICY
+              value: ${CASBIN_POLICY}
+            - name: CASBIN_MODEL
+              value: ${CASBIN_MODEL}
