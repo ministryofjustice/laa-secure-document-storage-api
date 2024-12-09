@@ -1,0 +1,5 @@
+p, authenticated, /retrieve_file, GET
+p, authenticated, /save_file, POST
+
+p, *, /, GET
+p, *, /health, GET

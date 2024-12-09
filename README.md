@@ -91,8 +91,7 @@ pipenv run pytest
 #### Setup
 
 - Install [Postman](https://www.postman.com/downloads/) on your Mac or other device.
-- If it doesn't exist already, create the following directory: **~/Postman
-- ** (note capital P at start)
+- If it doesn't exist already, create the following directory: **~/Postman** (note capital P at start)
 - Copy the files from this repo's **tests/postman** folder into the above directory.
 - Start Postman and import the `SecureDocStoreAPI.postman_collection.json`json file from the **tests/postman** directory
   via import button or menu `File > Import`.
@@ -118,7 +117,7 @@ You can then use the secret directly in k8s deployment.yml
 
 As part of using cloud platform K8s cluster we need to create a docker image, this docker image is pushed to the ecr
 repo
-and form there it is eventually deployed via github actions to cloud platform.
+and from there it is eventually deployed via github actions to cloud platform.
 
 Cloud platform run a tightly managed service on AWS, we have created 4 namespaces on cloud platform for this project
 
@@ -133,7 +132,7 @@ Cloud platform run a tightly managed service on AWS, we have created 4 namespace
 
 We have setup all the environments yet to respond on these endpoints, as it stands we will be playing around exclusively
 in
-dev and maybe test. btu the target endpoints are correct.
+dev and maybe test, but the target endpoints are correct.
 
 All infrastructure changes that need to be made have to be made in the namespace above, this includes creating
 additional services like clamav and adding s3 buckets
@@ -149,8 +148,8 @@ Important cloud platform instructions
 
 ##### Optional extras with kubectl
 
-Whilst we dont want to duplicate the guidance notes, in order to work with cloud platform namespace i find it is easier
-to interact and query the custer when we create local aliases
+Whilst we dont want to duplicate the guidance notes, in order to work with cloud platform namespace I find it is easier
+to interact and query the cluster when we create local aliases.
 
 I have the following alias in my setup
 
@@ -174,11 +173,11 @@ querying the cluster on every level.
 
 ### Github Actions
 
-We have a basic pipeline configured to deploy to dev and test, it is early days and this will need ot be further refined
+We have a basic pipeline configured to deploy to dev and test, it is early days and this will need to be further refined
 to suit our working practices, this change is largely there to give a glimpse of what we can do with github
 actions and the cloud platform and how to set them up.
 
-As a bonus we are suing environments feature in github and i have temporarily put in a restriction that someone
+As a bonus we are using the environments feature in github and I have temporarily put in a restriction that someone
 from the sds team has to approve the deployment, we can restrict this further for higher environments or remove it
 altogether.
 

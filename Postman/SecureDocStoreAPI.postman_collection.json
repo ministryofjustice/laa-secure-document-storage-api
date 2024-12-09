@@ -378,7 +378,7 @@
 							"",
 							"pm.test(\"response message is not authenticated\", function() {",
 							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.detail).to.eql(\"Not authenticated\");",
+							"    pm.expect(jsonData).to.eql(\"Forbidden\");",
 							"});"
 						],
 						"type": "text/javascript",

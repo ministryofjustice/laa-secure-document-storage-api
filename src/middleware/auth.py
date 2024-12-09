@@ -3,40 +3,41 @@ from typing import Tuple
 import requests
 import structlog
 from cachetools import cached, TTLCache
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
 from fastapi.security import HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import jwt, jwk, JWTError
-from starlette.responses import JSONResponse
+from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCredentials, BaseUser
+from starlette.requests import HTTPConnection
 
 security = HTTPBearer()
 logger = structlog.get_logger()
 
 
-async def bearer_token_middleware(request: Request, call_next):
-    # ignore these routes
-    if request.url.path in ["/", "/health"]:
-        return await call_next(request)
-    try:
-        authorization: str = request.headers.get("Authorization")
-        scheme, param = get_authorization_scheme_param(authorization)
-        if not authorization or scheme.lower() != "bearer":
+class BearerTokenAuthBackend(AuthenticationBackend):
+    async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, BaseUser] | None:
+        if "Authorization" not in conn.headers:
+            logger.info('No auth headers')
+            return
+        try:
+            authorization: str = conn.headers.get("Authorization")
+            scheme, param = get_authorization_scheme_param(authorization)
+            if scheme.lower() != "bearer":
+                logger.info(f'Incorrect authorisation scheme {scheme}')
+                raise HTTPException(status_code=403, detail="Not authenticated")
+            is_valid, payload = validate_token(param, os.getenv('AUDIENCE'), os.getenv('TENANT_ID'))
+        except JWTError as e:
+            logger.error(f"Invalid JWT token: {str(e)}")
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        except Exception as e:
+            logger.error(f"Error processing bearer token: {str(e)}")
+            raise HTTPException(status_code=500, detail="Something went wrong")
+        if not is_valid:
             raise HTTPException(status_code=403, detail="Not authenticated")
-        is_valid, payload = validate_token(param, os.getenv('AUDIENCE'), os.getenv('TENANT_ID'))
-        if is_valid:
-            request.state.payload = payload
-            response = await call_next(request)
-            return response
-        else:
-            raise HTTPException(status_code=403, detail="Not authenticated")
-    except JWTError as e:
-        logger.error(f"Invalid JWT token: {str(e)}")
-        return JSONResponse({"detail": "Invalid or expired token"}, 401)
-    except HTTPException as http_exc:
-        return JSONResponse({"detail": http_exc.detail}, http_exc.status_code)
-    except Exception as e:
-        logger.error(f"Error processing bearer token: {str(e)}")
-        return JSONResponse({"detail": "Something went wrong"}, 500)  # Replace this with proper logging
+        username: str = payload.get("sub")
+        auth_creds = AuthCredentials(scopes=[])
+        user = SimpleUser(username)
+        return auth_creds, user
 
 
 @cached(TTLCache(maxsize=100, ttl=3600))
@@ -82,6 +83,6 @@ def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
             is_valid = True
 
         except Exception as error:
-            logger.debug(f'The token is invalid: {error}')
+            logger.debug(f'The token is invalid: {error.__class__.__name__} {error}')
 
     return is_valid, payload
