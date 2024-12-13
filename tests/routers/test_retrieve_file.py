@@ -1,23 +1,29 @@
 from unittest.mock import patch
 from fastapi import HTTPException, FastAPI
 from fastapi.testclient import TestClient
+
 from starlette.middleware import Middleware
 
 from src.main import app
 from src.models.execeptions.file_not_found import FileNotFoundException
 
 test_client = TestClient(app)
+from tests.auth.authn import test_user_credentials
+from tests.auth.authn import rebuild_middleware_with_acl
 
 
-def test_retrieve_file_missing_key():
+@patch("src.middleware.auth.BearerTokenAuthBackend.authenticate", return_value=test_user_credentials)
+def test_retrieve_file_missing_key(mock_auth):
     # Act
-    remove_middleware(app,)
+    rebuild_middleware_with_acl(app,)
+
     response = test_client.get('/retrieve_file/')
 
     # Assert
     assert response.status_code == 400
     assert 'detail' in response.json()
     assert response.json()['detail'] == 'File key is missing'
+    mock_auth.assert_called()
 
 
 def remove_middleware(app: FastAPI) -> FastAPI:
@@ -32,9 +38,12 @@ def mock_get_item(service_id, file_key):
                     "operations on a non-existent table")
 
 
-@patch("src.services.s3_service.retrieveFileUrl")
-def test_retrieve_file_not_found(retrieveFileUrl_mock):
+@patch("src.middleware.auth.BearerTokenAuthBackend.authenticate", return_value=test_user_credentials)
+@patch("src.services.s3_service.retrieve_file_url")
+def test_retrieve_file_not_found(retrieveFileUrl_mock, mock_auth):
     # Arrange
+    rebuild_middleware_with_acl(app, )
+
     file_key = 'test-file-key'
     expected_error_message = ('The file test_file_key could not be found')
     retrieveFileUrl_mock.side_effect = FileNotFoundException(f'The file {file_key} could not be found', file_key)
@@ -47,8 +56,9 @@ def test_retrieve_file_not_found(retrieveFileUrl_mock):
         assert str(e.status_code) == '404'
 
 
-@patch("src.services.s3_service.retrieveFileUrl")
-def test_retrieve_unknown_exception(retrieveFileUrl_mock):
+@patch("src.middleware.auth.BearerTokenAuthBackend.authenticate", return_value=test_user_credentials)
+@patch("src.services.s3_service.retrieve_file_url")
+def test_retrieve_unknown_exception(retrieveFileUrl_mock, mock_auth):
     file_key = 'test-file-key'
     retrieveFileUrl_mock.side_effect = Exception('unknown exception')
     try:

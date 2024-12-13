@@ -1,0 +1,2 @@
+class ConfigForUserNotFoundError(Exception):
+    pass

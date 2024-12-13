@@ -1,0 +1,8 @@
+
+p, anonymous, /, GET
+p, anonymous, /health, GET
+
+p, anonymous, /retrieve_file, ((GET)|(POST))
+p, anonymous, /retrieve_file/, ((GET)|(POST))
+p, anonymous, /save_file, ((GET)|(POST))
+p, anonymous, /save_file/, ((GET)|(POST))
