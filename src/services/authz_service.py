@@ -2,6 +2,7 @@ import os
 
 import structlog
 import casbin
+from fastapi import HTTPException
 from casbin.util.log import configure_logging
 
 logger = structlog.get_logger()
@@ -47,9 +48,9 @@ class AuthzService:
             cls._instance.enforcer = enforcer
         return cls._instance
 
-    def check_permission(self, subj: str, obj: str, action: str) -> bool:
+    def enforce(self, subj: str, obj: str, action: str) -> bool:
         """
-        Check if a subject has permission to perform the specified action on a resource.
+        Convenience method passing through to the single casbin.Enforcer enforce method.
 
         :param subj: str
         :param obj: str
@@ -57,3 +58,18 @@ class AuthzService:
         :return: bool
         """
         return self.enforcer.enforce(subj, obj, action)
+
+    def enforce_or_error(self, subj: str, obj: str, action: str, detail: str = 'Forbidden') -> None:
+        """
+        Convenience method passing through to the single casbin.Enforcer enforce method, but raises an HTTPException
+        if the check fails.
+
+        :param subj: str
+        :param obj: str
+        :param action: str
+        :param detail: str
+        :return: None
+        """
+        if not self.enforcer.enforce(subj, obj, action):
+            logger.warning(f"User {subj} does not have {action} on {obj}")
+            raise HTTPException(status_code=403, detail=detail)
