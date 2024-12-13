@@ -12,7 +12,7 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 
 from src.main import app
 from src.middleware.auth import BearerTokenAuthBackend
-from src.services.authz_service import AuthzServiceSingleton
+from src.services.authz_service import AuthzService
 
 test_client = TestClient(app)
 logger = structlog.get_logger()
@@ -22,12 +22,12 @@ def rebuild_middleware_with(app: FastAPI, model_file: str, policy_file: str) -> 
     # Force authz service to create a new enforcer, picking up the specified model and policy files from env
     os.environ['CASBIN_MODEL'] = model_file
     os.environ['CASBIN_POLICY'] = policy_file
-    AuthzServiceSingleton._instance = None
+    AuthzService._instance = None
     if app.middleware_stack is not None:
         app.middleware_stack = None
     if len(app.user_middleware) > 0:
         app.user_middleware.clear()
-    app.add_middleware(CasbinMiddleware, enforcer=AuthzServiceSingleton().enforcer)
+    app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
     app.add_middleware(AuthenticationMiddleware, backend=BearerTokenAuthBackend())
     app.middleware_stack = app.build_middleware_stack()
     return app
