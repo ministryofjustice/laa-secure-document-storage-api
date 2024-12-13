@@ -31,10 +31,15 @@ class AuthzService:
         if cls._instance is None:
             cls._instance = super(AuthzService, cls).__new__(cls)
             if enforcer is None:
+                policy = os.environ.get('CASBIN_POLICY', DENY_ALL_POLICY)
+                if policy == DENY_ALL_POLICY:
+                    logger.warning(f"No CASBIN_POLICY specified, using default deny-all policy")
+                else:
+                    logger.info(f"Using policy {policy}")
                 # Use an Enforcer that will poll for changes to the specified model and policy files.
                 enforcer = casbin.SyncedEnforcer(
                     model=os.environ.get('CASBIN_MODEL', DEFAULT_ACL_MODEL),
-                    adapter=os.environ.get('CASBIN_POLICY', DENY_ALL_POLICY),
+                    adapter=policy,
                 )
                 enforcer.start_auto_load_policy(int(os.getenv('CASBIN_RELOAD_INTERVAL', 600)))
                 if os.getenv('LOGGING_LEVEL_CASBIN', 'NONE').upper() != 'NONE':
