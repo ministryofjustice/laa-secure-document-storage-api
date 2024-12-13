@@ -20,7 +20,7 @@ m = r.sub == p.sub && r.obj == p.obj && regexMatch(r.act, p.act)
 DENY_ALL_POLICY = casbin.Adapter()
 
 
-class AuthzServiceSingleton:
+class AuthzService:
     """
     Singleton class to handle authorization checks, primarily a thin wrapper around a casbin Enforcer.
     """
@@ -29,7 +29,7 @@ class AuthzServiceSingleton:
 
     def __new__(cls, enforcer: casbin.Enforcer | None = None):
         if cls._instance is None:
-            cls._instance = super(AuthzServiceSingleton, cls).__new__(cls)
+            cls._instance = super(AuthzService, cls).__new__(cls)
             if enforcer is None:
                 # Use an Enforcer that will poll for changes to the specified model and policy files.
                 enforcer = casbin.SyncedEnforcer(
