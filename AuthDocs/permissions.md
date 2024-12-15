@@ -65,12 +65,12 @@ async def get_example(request: Request, file: str = fastapi.params.Query(None, m
     # but we may want to check additional permissions...
     
     # Optional permission: Only if the user has this permission:
-    if AuthzService().enforce(request.user.username, file, 'action-name'):
+    if authz_service.enforce(request.user.username, file, 'action-name'):
         # User can perform 'action-name' on the file
         ...
     
     # Or a required permission: Raise an exception if the user does not have this permission:
-    AuthzService().enforce_or_error(request.user.username, file, 'action-name')
+    authz_service.enforce_or_error(request.user.username, file, 'action-name')
     # ...
 ```
 
@@ -113,15 +113,15 @@ is achieved using a singleton service:
 
 ```python
 # ...
-from src.services.authz_service import AuthzService
+from src.services import authz_service
 
 # An optional action using the passthrough to the enforcer:
-if AuthzService().enforce(request.user.username, data_object_id, 'ACTION'):
+if authz_service.enforce(request.user.username, data_object_id, 'ACTION'):
     # User has permission
     ...
 
 # Or a required action, raise a 403 error if the user does not have permission:
-AuthzService().enforce_or_error(request.user.username, data_object_id, 'ACTION')
+authz_service.enforce_or_error(request.user.username, data_object_id, 'ACTION')
 # ...
 ```
 
@@ -169,7 +169,7 @@ And check permissions thus:
 ```python
 # route.py
 ...
-if AuthzService().enforce(request.user.username, file, OperationType.READ.value):
+if authz_service.enforce(request.user.username, file, OperationType.READ.value):
     # User has permission
     ...
 
@@ -190,7 +190,7 @@ def request_user_dep(request: fastapi.requests.Request) -> starlette.authenticat
 
 
 # routers/endpoint.py
-from src.services.authz_service import AuthzService
+from src.services import authz_service
 
 router = fastapi.APIRouter()
 
@@ -200,7 +200,7 @@ async def retrieve_file(
         client_user=fastapi.Depends(request_user_dep),
         file: str = fastapi.Query(None, min_length=1)
     ):
-    if AuthzService().enforce(client_user.username, file, 'action-name'):
+    if authz_service.enforce(client_user.username, file, 'action-name'):
         # User has permission
         ...
     # ...

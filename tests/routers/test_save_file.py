@@ -14,9 +14,9 @@ from tests.auth.authz import test_user_client_config
 test_client = TestClient(app)
 
 
-@patch("src.dependencies.get_config_for_client", return_value=test_user_client_config)
+@patch("src.dependencies.client_config_service.get_config_for_client", return_value=test_user_client_config)
 @patch("src.middleware.auth.BearerTokenAuthBackend.authenticate", return_value=test_user_credentials)
-@patch("src.routers.save_file.save_to_s3", return_value=True)
+@patch("src.routers.save_file.s3_service.save", return_value=True)
 @patch("src.routers.save_file.validate_request")
 def test_save_file_with_valid_data(validator_mock, save_mock, mock_auth, mock_config):
     rebuild_middleware_with_acl(app, )

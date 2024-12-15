@@ -22,7 +22,7 @@ def s3_service():
     os.environ['AWS_KEY_ID'] = 'your_access_key_id'
     os.environ['AWS_KEY'] = 'your_secret_access_key'
     os.environ['BUCKET_NAME'] = 'test_bucket'
-    with patch.object(src.services.s3_service, 'get_config_for_client', return_value=ClientConfig(
+    with patch.object(src.services.s3_service.client_config_service, 'get_config_for_client', return_value=ClientConfig(
         client='test_user', bucket_name=os.getenv('BUCKET_NAME'), service_id='test', region_name=os.getenv('AWS_REGION')
     )) as mock_config:
         instance = S3Service.get_instance('test_user')
