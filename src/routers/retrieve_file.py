@@ -7,9 +7,7 @@ from fastapi.params import Query
 from src.dependencies import client_config_dependency
 from src.models.client_config import ClientConfig
 from src.models.execeptions.file_not_found import FileNotFoundException
-from src.services.authz_service import AuthzService
-from src.services.s3_service import retrieve_file_url
-from src.services.Audit_Service import put_item
+from src.services import authz_service, audit_service, s3_service
 from src.utils.operation_types import OperationType
 
 router = APIRouter()
@@ -24,15 +22,15 @@ async def retrieve_file(
     if not file_key:
         raise HTTPException(status_code=400, detail="File key is missing")
 
-    AuthzService().enforce_or_error(
+    authz_service.enforce_or_error(
         client_config.client, client_config.bucket_name, OperationType.READ.value
     )
 
     try:
-        put_item(client_config.service_id, file_key, OperationType.READ)
+        audit_service.put_item(client_config.service_id, file_key, OperationType.READ)
 
         logger.info("calling retrieve file operation")
-        response = retrieve_file_url(client_config, file_key)
+        response = s3_service.retrieve_file_url(client_config, file_key)
 
         logger.info(f"file retrieved successfully: {response}")
         return {'fileURL': response}

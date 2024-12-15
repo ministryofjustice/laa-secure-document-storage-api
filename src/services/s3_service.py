@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 
 from src.models.client_config import ClientConfig
 from src.models.execeptions.file_not_found import FileNotFoundException
-from src.services.client_config_service import get_config_for_client
+from src.services import client_config_service
 
 logger = structlog.get_logger()
 
@@ -25,7 +25,7 @@ class S3Service:
             client_config = client
         elif isinstance(client, str):
             username = client
-            client_config = get_config_for_client(username)
+            client_config = client_config_service.get_config_for_client(username)
         else:
             raise ValueError(f"Invalid type for client: {type(client)}")
 

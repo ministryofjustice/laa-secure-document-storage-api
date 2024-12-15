@@ -48,28 +48,28 @@ class AuthzService:
             cls._instance.enforcer = enforcer
         return cls._instance
 
-    def enforce(self, subj: str, obj: str, action: str) -> bool:
-        """
-        Convenience method passing through to the single casbin.Enforcer enforce method.
+def enforce(subj: str, obj: str, action: str) -> bool:
+    """
+    Convenience method passing through to the single casbin.Enforcer enforce method.
 
-        :param subj: str
-        :param obj: str
-        :param action: str
-        :return: bool
-        """
-        return self.enforcer.enforce(subj, obj, action)
+    :param subj: str
+    :param obj: str
+    :param action: str
+    :return: bool
+    """
+    return AuthzService().enforcer.enforce(subj, obj, action)
 
-    def enforce_or_error(self, subj: str, obj: str, action: str, detail: str = 'Forbidden') -> None:
-        """
-        Convenience method passing through to the single casbin.Enforcer enforce method, but raises an HTTPException
-        if the check fails.
+def enforce_or_error(subj: str, obj: str, action: str, detail: str = 'Forbidden') -> None:
+    """
+    Convenience method passing through to the single casbin.Enforcer enforce method, but raises an HTTPException
+    if the check fails.
 
-        :param subj: str
-        :param obj: str
-        :param action: str
-        :param detail: str
-        :return: None
-        """
-        if not self.enforcer.enforce(subj, obj, action):
-            logger.warning(f"User {subj} does not have {action} on {obj}")
-            raise HTTPException(status_code=403, detail=detail)
+    :param subj: str
+    :param obj: str
+    :param action: str
+    :param detail: str
+    :return: None
+    """
+    if not AuthzService().enforcer.enforce(subj, obj, action):
+        logger.warning(f"User {subj} does not have {action} on {obj}")
+        raise HTTPException(status_code=403, detail=detail)
