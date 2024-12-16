@@ -66,7 +66,7 @@ class ClientConfigService:
             logger.warning(f"Using default ClientConfig from environment variables for '{self.username}'")
             loaded_config = ClientConfig(
                 client=self.username,
-                service_id=os.getenv('SERVICE_ID', 'sds-deadletter'),
+                service_id=os.getenv('SERVICE_ID', 'equiniti-service-id'),
                 bucket_name=os.getenv('BUCKET_NAME', 'sds-deadletter')
             )
         return loaded_config

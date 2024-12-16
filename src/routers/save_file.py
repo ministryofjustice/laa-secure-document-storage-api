@@ -9,7 +9,7 @@ from pydantic import BaseModel, ValidationError
 from src.dependencies import client_config_dependency
 from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload
-from src.services import audit_service, authz_service, s3_service
+from src.services import audit_service, s3_service
 from src.utils.operation_types import OperationType
 from src.validation.av_validator import validate_request
 
@@ -51,10 +51,6 @@ async def save_file(
 
     folder_prefix = metadata.pop('folder')
     full_filename = os.path.join(folder_prefix if folder_prefix else '', file.filename)
-
-    authz_service.enforce_or_error(
-        client_config.client, client_config.bucket_name, OperationType.CREATE.value
-    )
 
     try:
         audit_service.put_item(client_config.service_id, full_filename, OperationType.CREATE)
