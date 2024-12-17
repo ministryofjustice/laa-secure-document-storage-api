@@ -9,8 +9,8 @@ from src.models.execeptions.config_for_user_not_found import ConfigForUserNotFou
 def test_unauthenticated_user_raises_exception():
     try:
         config = src.services.client_config_service.get_config_for_client('anonymous')
-        assert False, "Should have raised an exception"
-    except ConfigForUserNotFoundError as nfe:
+        assert False, f"Should have raised an exception, instead got {config}"
+    except ConfigForUserNotFoundError:
         assert True
 
 

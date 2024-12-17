@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 from src.main import app
+from tests.auth.authn import rebuild_middleware_with_acl
 
 test_client = TestClient(app)
-from tests.auth.authn import rebuild_middleware_with_acl
 
 
 def test_health():

@@ -1,5 +1,3 @@
-from typing import Annotated
-
 import structlog
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.params import Query
@@ -16,9 +14,9 @@ logger = structlog.get_logger()
 
 @router.get('/retrieve_file')
 async def retrieve_file(
-        file_key: str = Query(None, min_length=1),
-        client_config: ClientConfig = Depends(client_config_dependency),
-    ):
+            file_key: str = Query(None, min_length=1),
+            client_config: ClientConfig = Depends(client_config_dependency),
+        ):
     if not file_key:
         raise HTTPException(status_code=400, detail="File key is missing")
 

@@ -30,11 +30,11 @@ def validate_json(model: Type[BaseModel]):
 
 @router.post("/save_file")
 async def save_file(
-        request: Request,
-        file: Optional[UploadFile] = UploadFile(None),
-        body: FileUpload = Depends(validate_json(FileUpload)),
-        client_config: ClientConfig = Depends(client_config_dependency),
-    ):
+            request: Request,
+            file: Optional[UploadFile] = UploadFile(None),
+            body: FileUpload = Depends(validate_json(FileUpload)),
+            client_config: ClientConfig = Depends(client_config_dependency),
+        ):
     validation_result = await validate_request(request.headers, file)
     if validation_result.status_code != 200:
         raise HTTPException(status_code=validation_result.status_code, detail=validation_result.message)
@@ -47,7 +47,9 @@ async def save_file(
     if bucketName != client_config.bucket_name:
         # For compatibility we allow the bucket name to be specified in the request,
         # but log a warning to help prevent confusion
-        logger.warning(f"User {client_config.client} specified {bucketName} in request, not {client_config.bucket_name}")
+        logger.warning(
+            f"{client_config.client} specified {bucketName}, not configured name {client_config.bucket_name}"
+        )
 
     folder_prefix = metadata.pop('folder')
     full_filename = os.path.join(folder_prefix if folder_prefix else '', file.filename)

@@ -6,10 +6,10 @@ from starlette.middleware import Middleware
 
 from src.main import app
 from src.models.execeptions.file_not_found import FileNotFoundException
-
-test_client = TestClient(app)
 from tests.auth.authn import test_user_credentials
 from tests.auth.authn import rebuild_middleware_with_acl
+
+test_client = TestClient(app)
 
 
 @patch("src.middleware.auth.BearerTokenAuthBackend.authenticate", return_value=test_user_credentials)
