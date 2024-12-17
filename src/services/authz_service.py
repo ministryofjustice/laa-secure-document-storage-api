@@ -34,7 +34,7 @@ class AuthzService:
             if enforcer is None:
                 policy = os.environ.get('CASBIN_POLICY', DENY_ALL_POLICY)
                 if policy == DENY_ALL_POLICY:
-                    logger.warning(f"No CASBIN_POLICY specified, using default deny-all policy")
+                    logger.warning("No CASBIN_POLICY specified, using default deny-all policy")
                 else:
                     logger.info(f"Using policy {policy}")
                 # Use an Enforcer that will poll for changes to the specified model and policy files.
@@ -48,6 +48,7 @@ class AuthzService:
             cls._instance.enforcer = enforcer
         return cls._instance
 
+
 def enforce(subj: str, obj: str, action: str) -> bool:
     """
     Convenience method passing through to the single casbin.Enforcer enforce method.
@@ -58,6 +59,7 @@ def enforce(subj: str, obj: str, action: str) -> bool:
     :return: bool
     """
     return AuthzService().enforcer.enforce(subj, obj, action)
+
 
 def enforce_or_error(subj: str, obj: str, action: str, detail: str = 'Forbidden') -> None:
     """

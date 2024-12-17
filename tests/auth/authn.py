@@ -12,7 +12,10 @@ from src.services.authz_service import AuthzService
 test_user_credentials = (AuthCredentials(scopes=[]), SimpleUser('test_user'))
 
 
-def rebuild_middleware_with_acl(app: FastAPI, test_files_model: str = 'casbin_model_acl.conf', test_files_policy: str = 'casbin_policy_allow_test_user.csv') -> FastAPI:
+def rebuild_middleware_with_acl(
+            app: FastAPI, test_files_model: str = 'casbin_model_acl.conf',
+            test_files_policy: str = 'casbin_policy_allow_test_user.csv'
+        ) -> FastAPI:
     # Force authz service to create a new enforcer, picking up the specified model and policy files from env
     os.environ['CASBIN_MODEL'] = os.path.join('tests', 'auth', test_files_model)
     os.environ['CASBIN_POLICY'] = os.path.join('tests', 'auth', test_files_policy)

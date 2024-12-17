@@ -22,9 +22,14 @@ def s3_service():
     os.environ['AWS_KEY_ID'] = 'your_access_key_id'
     os.environ['AWS_KEY'] = 'your_secret_access_key'
     os.environ['BUCKET_NAME'] = 'test_bucket'
-    with patch.object(src.services.s3_service.client_config_service, 'get_config_for_client', return_value=ClientConfig(
-        client='test_user', bucket_name=os.getenv('BUCKET_NAME'), service_id='test', region_name=os.getenv('AWS_REGION')
-    )) as mock_config:
+    with patch.object(
+                src.services.s3_service.client_config_service, 'get_config_for_client',
+                return_value=ClientConfig(
+                    client='test_user',
+                    bucket_name=os.getenv('BUCKET_NAME'),
+                    service_id='test'
+                )
+            ) as mock_config:
         instance = S3Service.get_instance('test_user')
         mock_config.assert_called()
         return instance
@@ -96,7 +101,6 @@ def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
     )
 
     file = BytesIO(b"Test data")
-    bucket_name = 'test_bucket'
     filename = 'test_file'
     metadata = {'key1': 'value1'}
 
@@ -105,6 +109,7 @@ def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
         s3_service.upload_file_obj(file, filename, metadata)
 
     assert ex.value.response['Error']['Code'] == 'NoSuchBucket'
-    assert str(
-        ex.value) == ('An error occurred (NoSuchBucket) when calling the PutObject operation: '
-                      'The specified bucket does not exist')
+    assert str(ex.value) == (
+        'An error occurred (NoSuchBucket) when calling the PutObject operation: '
+        'The specified bucket does not exist'
+    )
