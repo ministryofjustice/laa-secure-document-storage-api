@@ -1,8 +1,15 @@
-from fastapi import UploadFile
+from fastapi import UploadFile, FastAPI
 from io import BufferedReader
 from unittest.mock import AsyncMock
 import pytest
 import os
+
+from starlette.middleware import Middleware
+
+pytest_plugins = [
+    "tests.fixtures.auth",
+    "tests.fixtures.audit",
+]
 
 
 @pytest.fixture()
@@ -27,3 +34,12 @@ def get_default_mock_file():
     test_file.filename = 'test.txt'
     test_file.content_type = 'text/plain'
     return test_file
+
+
+@pytest.fixture()
+def app_without_middleware() -> FastAPI:
+    from src.main import app
+    new_middlewares: list[Middleware] = []
+    app.user_middleware = new_middlewares
+    app.middleware_stack = app.build_middleware_stack()
+    return app
