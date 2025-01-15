@@ -31,11 +31,6 @@ jobs:
       - name: Install LocalStack CLI
         run: pip install localstack
 
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
-
       - name: Setup AWS Credentials Directory
         run: mkdir -p ~/.aws
 
