@@ -3,6 +3,7 @@ name: CI-MAIN
 on:
   push:
     branches: ['main']
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: laa-sds-api
