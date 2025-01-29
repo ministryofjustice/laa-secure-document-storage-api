@@ -11,7 +11,7 @@ def test_unauthenticated_user_raises_exception():
     try:
         config = src.services.client_config_service.get_config_for_client_or_error('anonymous')
         assert False, f"Should have raised an exception, instead got {config}"
-    except HTTPException as e:
+    except HTTPException:
         assert True
 
 
