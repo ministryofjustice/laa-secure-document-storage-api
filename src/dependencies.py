@@ -7,9 +7,11 @@ logger = structlog.get_logger()
 
 async def client_config_dependency(request: Request) -> ClientConfig:
     """
-    Create a new ClientConfig instance with the service_id and client taken from the environment variables.
+    Create a new ClientConfig instance with the service_id and client taken from the environment variables,
+    raising a 403 error if the user is not authenticated or a config for the user is not found.
 
     :param request:
     :return: ClientConfig
+    :raises HTTPException: 403 if the user is not authenticated or a config for the user is not found
     """
-    return client_config_service.get_config_for_client(request.user.username)
+    return client_config_service.get_config_for_client_or_error(request.user.username)
