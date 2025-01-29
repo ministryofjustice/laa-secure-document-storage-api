@@ -125,14 +125,16 @@ class ClientConfigService:
         :return: ClientConfig instance if found and loaded, else None
         """
         loaded_config = None
+        config_dir = os.getenv('CONFIG_DIR', 'clientconfigs')
         try:
-            config_path = os.path.join(os.getenv('CONFIG_DIR', 'clientconfigs'), f"{self.username}.json")
-            if os.path.exists(config_path):
+            candidates = [p for p in pathlib.Path(config_dir).rglob(f"{self.username}.json")]
+            if len(candidates) == 1:
+                config_path = candidates[0]
                 logger.info(f"Loading ClientConfig for '{self.username}' from {config_path}")
                 cfg_json = pathlib.Path(config_path).read_text()
                 loaded_config = ClientConfig.model_validate_json(cfg_json)
             else:
-                logger.error(f"ClientConfig for '{self.username}' not found at {config_path}")
+                logger.error(f"Found {len(candidates)} configs for {self.username} in {config_dir}")
         except Exception as e:
             logger.error(f"Error {e.__class__.__name__} during load of config for '{self.username}': {e}")
             loaded_config = None
