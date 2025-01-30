@@ -79,6 +79,15 @@ def cmd_find(args: argparse.Namespace, **kwargs):
         print_config_entry(config_entry)
 
 
+def cmd_get(args: argparse.Namespace, **kwargs):
+    client = args.client
+    source = ConfigSource()
+    config_entries = source.config_entries()
+    if args.client not in config_entries:
+        raise ValueError(f"Client {client} not found")
+    print_config_entry(config_entries[client])
+
+
 def cmd_add(args: argparse.Namespace, **kwargs):
     client = args.client
     service_id = args.service_id
@@ -120,6 +129,10 @@ def main():
     print_parser = subparsers.add_parser('find', help='Print client configurations containing the specified text')
     print_parser.add_argument('needle', type=str, help='String to find in client configuration values')
     print_parser.set_defaults(func=cmd_find)
+
+    get_parser = subparsers.add_parser('get', help='Get a specific client configuration')
+    get_parser.add_argument('client', type=str, help='Client name')
+    get_parser.set_defaults(func=cmd_get)
 
     args = parser.parse_args()
     args.func(args)

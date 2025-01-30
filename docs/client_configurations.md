@@ -28,14 +28,47 @@ local mode from environment variables. The stores used are configured via the `C
 will cascade in order of `db`, `file`, then `env`. Multiple stores can be specified by comma-separating the values, for
 example `CONFIG_STORES=db,file`.
 
+The current preferred store is `file`, and we manage configured clients by managing the configuration files in the
+`clientconfigs` directory. We also have a helper CLI tool `configfilectl.py` for viewing and adding configs.
+The files (and related ACL file) may be placed in a separate configuration repository in the future.
+
 The ClientConfigService will return `None` if a config is not found, so we also have a helper method
 `client_config_service.get_config_for_client_or_error` which will raise a `403` exception if a config is not found. 
 The result (a `ClientConfig` or `None`) is cached by the service for a configurable time, defaulting to 300 seconds
 (5 minutes). Use `CONFIG_TTL` to specify a time-to-live in seconds.
 
-The current preferred store is `file`, so we manage configured clients by managing the configuration files in the
-`clientconfigs` directory. The files (and related ACL file) may be placed in a separate configuration repository in the
-future.
+### `file` store
+
+The file store loads JSON format files from `CONFIG_DIR` (defaults to `/app/clientconfigs/`). Files are named with the
+`client` value (so `abc-123-def.json`), and may be organised in directories below the configured root.
+
+For ease of use, we have a helper CLI tool `configfilectl.py` which can be used to view and add client configurations.
+
+To list all client configurations, run
+```shell
+$ ./configfilectl.py list
+```
+
+To view the current configuration for a specific client, run
+```shell   
+$ ./configfilectl.py get {client}
+```
+
+If you have a value (such as a service or bucket name), you can find all clients which contain that value in their
+configuration by running
+```shell
+$ ./configfilectl.py find {value}
+```
+
+To add a new client interactively, run
+```shell
+$ ./configfilectl.py add
+```
+
+To add a new client configuration where you already know the values, run
+```shell
+$ ./configfilectl.py add --client {client} --bucket_name {bucket} --service_id {service}
+```
 
 ### `db` store
 
@@ -65,11 +98,6 @@ Adding client config to LOCAL_CONFIG_TABLENAME --region=eu-west-2 --endpoint-url
 Continue? (y/n) y
 $ 
 ```
-
-### `file` store
-
-The file store loads JSON format files from `CONFIG_DIR` (defaults to `/app/clientconfigs/`) with each file named after
-the client, for example `abcd-efgh-ijkl.json`
 
 ### `env` store
 
