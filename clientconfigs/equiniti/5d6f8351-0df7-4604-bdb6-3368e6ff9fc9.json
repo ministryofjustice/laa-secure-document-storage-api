@@ -1,0 +1,6 @@
+{
+  "client": "5d6f8351-0df7-4604-bdb6-3368e6ff9fc9",
+  "service_id": "equiniti-service-id",
+  "bucket_name": "laa-sds-equiniti-production",
+  "file_validators": []
+}
