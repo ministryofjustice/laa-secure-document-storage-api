@@ -71,6 +71,7 @@ class ConfigSource:
 def print_config_entry(entry: ConfigEntry):
     print(entry.model_dump_json(indent=2))
 
+
 def print_obj(obj: List[ConfigEntry] | ConfigEntry, sort_by_service: bool = True):
     if hasattr(obj, 'model_dump_json'):
         print(obj.model_dump_json(indent=2))
@@ -84,6 +85,7 @@ def print_obj(obj: List[ConfigEntry] | ConfigEntry, sort_by_service: bool = True
             print(json.dumps(config_by_service, indent=2, default=lambda x: x.model_dump()))
         else:
             print(json.dumps(obj, indent=2, default=lambda x: x.model_dump()))
+
 
 def cmd_list(args: argparse.Namespace, **kwargs):
     source = ConfigSource()
