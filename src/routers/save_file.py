@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, Form, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
 
-from src.dependencies import client_config_dependency
+from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload
 from src.services import audit_service, s3_service
@@ -33,7 +33,7 @@ async def save_file(
             request: Request,
             file: Optional[UploadFile] = UploadFile(None),
             body: FileUpload = Depends(validate_json(FileUpload)),
-            client_config: ClientConfig = Depends(client_config_dependency),
+            client_config: ClientConfig = Depends(client_config_middleware),
         ):
     validation_result = await validate_request(request.headers, file)
     if validation_result.status_code != 200:

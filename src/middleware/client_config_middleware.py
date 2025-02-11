@@ -5,7 +5,7 @@ import structlog
 logger = structlog.get_logger()
 
 
-async def client_config_dependency(request: Request) -> ClientConfig:
+async def client_config_middleware(request: Request) -> ClientConfig:
     """
     Create a new ClientConfig instance with the service_id and client taken from the environment variables,
     raising a 403 error if the user is not authenticated or a config for the user is not found.
