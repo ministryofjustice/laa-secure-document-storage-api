@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
 import pathlib
+import sys
 from dataclasses import dataclass
 from typing import List, Dict
+
+from pydantic import BaseModel, Field
 
 from src.models.client_config import ClientConfig
 
 
-@dataclass
-class ConfigEntry:
+class ConfigEntry(BaseModel):
     """
     Represents a ClientConfig and from whence it was loaded.
     """
-    config: ClientConfig
-    path: str
+    config: ClientConfig = Field(description="The client configuration")
+    path: str = Field(description="Path to the JSON file from which the configuration was loaded")
 
 
 @dataclass
@@ -55,6 +58,10 @@ class ConfigSource:
             raise ValueError(f"Client {client} already exists")
         config = ClientConfig(client=client, service_id=service_id, bucket_name=bucket_name)
         config_dir = os.path.join(self.path, subdir) if subdir and subdir != '' else self.path
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+        if os.path.isfile(config_dir):
+            raise ValueError(f"Config directory {config_dir} is a file")
         config_path = os.path.join(config_dir, f"{client}.json")
         with open(config_path, 'w') as f:
             f.write(config.model_dump_json(indent=2))
@@ -62,21 +69,31 @@ class ConfigSource:
 
 
 def print_config_entry(entry: ConfigEntry):
-    print(f"## {entry.path}")
-    print(entry.config.model_dump_json(indent=2))
+    print(entry.model_dump_json(indent=2))
 
+def print_obj(obj: List[ConfigEntry] | ConfigEntry, sort_by_service: bool = True):
+    if hasattr(obj, 'model_dump_json'):
+        print(obj.model_dump_json(indent=2))
+    else:
+        if sort_by_service:
+            config_by_service: Dict[str, List[ConfigEntry]] = {}
+            for config_entry in obj:
+                if config_entry.config.service_id not in config_by_service:
+                    config_by_service[config_entry.config.service_id] = []
+                config_by_service[config_entry.config.service_id].append(config_entry)
+            print(json.dumps(config_by_service, indent=2, default=lambda x: x.model_dump()))
+        else:
+            print(json.dumps(obj, indent=2, default=lambda x: x.model_dump()))
 
 def cmd_list(args: argparse.Namespace, **kwargs):
     source = ConfigSource()
-    for config_entry in source.config_entries().values():
-        print_config_entry(config_entry)
+    print_obj([c for c in source.config_entries().values()])
 
 
 def cmd_find(args: argparse.Namespace, **kwargs):
     needle = args.needle
     source = ConfigSource()
-    for config_entry in source.find_in_configs(needle):
-        print_config_entry(config_entry)
+    print_obj(source.find_in_configs(needle))
 
 
 def cmd_get(args: argparse.Namespace, **kwargs):
@@ -85,7 +102,7 @@ def cmd_get(args: argparse.Namespace, **kwargs):
     config_entries = source.config_entries()
     if args.client not in config_entries:
         raise ValueError(f"Client {client} not found")
-    print_config_entry(config_entries[client])
+    print_obj(config_entries[client])
 
 
 def cmd_add(args: argparse.Namespace, **kwargs):
@@ -106,7 +123,7 @@ def cmd_add(args: argparse.Namespace, **kwargs):
 
     source = ConfigSource()
     config_entry = source.add_config(client, service_id, bucket_name, subdir=subdir)
-    print_config_entry(config_entry)
+    print_obj(config_entry)
 
 
 def main():
@@ -118,8 +135,8 @@ def main():
 
     add_parser = subparsers.add_parser('add', help='Add a new client configuration')
     add_parser.add_argument('--client', type=str, default=None, help='Client name')
-    add_parser.add_argument('--service_id', type=str, default=None, help='Service ID')
-    add_parser.add_argument('--bucket_name', type=str, default=None, help='Bucket name')
+    add_parser.add_argument('--service-id', type=str, default=None, help='Service ID')
+    add_parser.add_argument('--bucket-name', type=str, default=None, help='Bucket name')
     add_parser.add_argument(
         '--subdir', type=str, default=None,
         help='Optional subdirectory to store the configuration file'
@@ -135,7 +152,11 @@ def main():
     get_parser.set_defaults(func=cmd_get)
 
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except ValueError as ve:
+        sys.stderr.write(f"{ve}\n")
+        sys.exit(1)
 
 
 if __name__ == '__main__':

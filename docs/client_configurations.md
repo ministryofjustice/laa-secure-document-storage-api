@@ -5,13 +5,13 @@
 The client configuration links a backing storage (S3 bucket) and any storage preferences (such as file filters) to an 
 authenticated client.
 
-* `client` - Unique identifier to the requesting user.
+* `client` - Unique identifier to the requesting application.
 * `service_id` - Requesting service name, may be duplicated.
 * `bucket_name` - The S3 bucket name configured for the client.
 
-`Client` This is the key by which the authenticated client is linked to the configuration. This is the OID of the user 
-created in EntraID, and is available as the sub field in the token. The EntraID user must be granted the SDS role so 
-that the SDS API can read the auth token.
+`Client` This is the key by which the authenticated application is linked to the configuration. This is the OID of the 
+application created in EntraID, and is available as the sub field in the token. The EntraID application must be granted
+the SDS role so that the SDS API can read the auth token.
 
 `Service ID` This is a label used in logging and audit events to link the client's actions to an LAA service or
 application. Applications may use multiple clients to access the SDS API (one client per bucket), so duplicates are 
@@ -29,7 +29,7 @@ will cascade in order of `db`, `file`, then `env`. Multiple stores can be specif
 example `CONFIG_STORES=db,file`.
 
 The current preferred store is `file`, and we manage configured clients by managing the configuration files in the
-`clientconfigs` directory. We also have a helper CLI tool `configfilectl.py` for viewing and adding configs.
+`clientconfigs` directory. We also have a helper CLI tool `configbuilder.py` for viewing and adding configs.
 The files (and related ACL file) may be placed in a separate configuration repository in the future.
 
 The ClientConfigService will return `None` if a config is not found, so we also have a helper method
@@ -42,32 +42,32 @@ The result (a `ClientConfig` or `None`) is cached by the service for a configura
 The file store loads JSON format files from `CONFIG_DIR` (defaults to `/app/clientconfigs/`). Files are named with the
 `client` value (so `abc-123-def.json`), and may be organised in directories below the configured root.
 
-For ease of use, we have a helper CLI tool `configfilectl.py` which can be used to view and add client configurations.
+For ease of use, we have a helper CLI tool `configbuilder.py` which can be used to view and add client configurations.
 
 To list all client configurations, run
 ```shell
-$ ./configfilectl.py list
+$ ./configbuilder.py list
 ```
 
 To view the current configuration for a specific client, run
 ```shell   
-$ ./configfilectl.py get {client}
+$ ./configbuilder.py get {client}
 ```
 
 If you have a value (such as a service or bucket name), you can find all clients which contain that value in their
 configuration by running
 ```shell
-$ ./configfilectl.py find {value}
+$ ./configbuilder.py find {value}
 ```
 
 To add a new client interactively, run
 ```shell
-$ ./configfilectl.py add
+$ ./configbuilder.py add
 ```
 
 To add a new client configuration where you already know the values, run
 ```shell
-$ ./configfilectl.py add --client {client} --bucket_name {bucket} --service_id {service}
+$ ./configbuilder.py add --client {client} --bucket_name {bucket} --service_id {service}
 ```
 
 ### `db` store
@@ -116,17 +116,17 @@ terms of configuration and ACL.
 
 1. The requesting service needs:
 
-   * An EntraID user
+   * An EntraID application
 
-     * The user must have been granted the SDS role so that the auth token can be read by the SDS API
+     * The application must have been granted the SDS role so that the auth token can be read by the SDS API
 
-     * The OID of the user must be provided
+     * The OID of the application must be provided
 
    * An S3 bucket which will be the backing store for SDS API access
 
-     * The bucket must be configured to allow the SDS API to read and write files
+     * The bucket is added by creating a name in the SDS CP namespace, as documented elsewhere
 
-     * The bucket name must be provided
+     * The bucket name must be provided when adding a config
 
    * The name of the service
 
@@ -139,15 +139,11 @@ terms of configuration and ACL.
 
      * POST /save_file
 
-2. Create a configuration file for the client, name it `{client}.json` and place it in the `clientconfigs` directory.
+2. Use the `configbuilder.py` CLI helper to add a client config.
 
     Example content in file `clientconfigs/000-000-000.json`: 
-    ```json
-    {
-      "client": "000-000-000",
-      "service_id": "sds-api-test",
-      "bucket_name": "local-sds"
-    }
+    ```bash
+   $ ./configbuilder.py add
     ```
 
 
@@ -166,18 +162,14 @@ terms of configuration and ACL.
 As a developer of either a requesting service or of the SDS API itself, I need a user to access the service and to 
 specify which locally available buckets should be used.
 
-1. The developer needs an EntraID user with the SDS role. The SDS API currently only allows users authenticated via
-   EntraID, so a dev or test user needs to be created in EntraID before the API is usable locally.
+1. The developer needs an EntraID application with the SDS role. The SDS API currently only allows applications
+   authenticated via EntraID, so a dev or test application needs to be created in EntraID before the API is usable
+   locally.
 
-2. Create a configuration file for the client, name it `{client}.json` and place it in the `clientconfigs` directory.
-
-    Example content in file `clientconfigs/000-000-000.json`: 
-    ```json
-    {
-      "client": "000-000-000",
-      "service_id": "sds-api-test",
-      "bucket_name": "local-sds"
-    }
+2. Use the `configbuilder.py` CLI helper to add a config
+ 
+    ```bash
+    $ ./configbuilder.py add
     ```
 
 3. Update the ACL policy to allow the new client to access the routes they need. For purely local development, you can
@@ -192,9 +184,9 @@ specify which locally available buckets should be used.
 
 ### Remove production client
 
-As a maintainer of the SDS API service, I want to remove a client that no longer has access to the service.
+As a maintainer of the SDS API service, I want to remove an application that no longer has access to the service.
 
-1. Find the client config file named after the client in `clientconfigs` and remove it.
+1. Find the application config file named after the application_oid in `clientconfigs` and remove it.
 
 2. Commit and push the change.
 
@@ -205,10 +197,10 @@ of the SDS API container.
 
 ### Automated test client
 
-As a developer of the SDS API, I want to run automated tests with a local test username, but I do not want to use a 
-local dynamodb instance to store the client config.
+As a developer of the SDS API, I want to run automated tests with a local test application, but I do not want to store 
+the config.
 
-1. Ensure the authorisation backend has been mocked to authenticate your test user
+1. Ensure the authorisation backend has been mocked to authenticate your test application
 
 2. Update the environment (likely the .env file) with the following values:
 ```shell
