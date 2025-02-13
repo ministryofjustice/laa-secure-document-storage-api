@@ -48,14 +48,14 @@ async def save_file(
         # For compatibility we allow the bucket name to be specified in the request,
         # but log a warning to help prevent confusion
         logger.warning(
-            f"{client_config.client} specified {bucketName}, not configured name {client_config.bucket_name}"
+            f"{client_config.azure_client_id} specified {bucketName}, not configured name {client_config.bucket_name}"
         )
 
     folder_prefix = metadata.pop('folder')
     full_filename = os.path.join(folder_prefix if folder_prefix else '', file.filename)
 
     try:
-        audit_service.put_item(client_config.service_id, full_filename, OperationType.CREATE)
+        audit_service.put_item(client_config.azure_display_name, full_filename, OperationType.CREATE)
         success = s3_service.save(client_config, file.file, full_filename, metadata)
 
         if success:

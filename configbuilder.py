@@ -36,7 +36,7 @@ class ConfigSource:
                 cfg_json = pathlib.Path(config_path).read_text()
                 loaded_config = ClientConfig.model_validate_json(cfg_json)
                 entry = ConfigEntry(config=loaded_config, path=str(config_path))
-                configs[loaded_config.client] = entry
+                configs[loaded_config.azure_client_id] = entry
             except Exception as e:
                 print(f"Error parsing {config_path}: {e}")
         return configs
@@ -48,21 +48,30 @@ class ConfigSource:
         config_entries = []
         for client, entry in self.config_entries().items():
             if client.find(needle) != -1 \
-                    or entry.config.service_id.find(needle) != -1 \
+                    or entry.config.azure_display_name.find(needle) != -1 \
                     or entry.config.bucket_name.find(needle) != -1:
                 config_entries.append(entry)
         return config_entries
 
-    def add_config(self, client: str, service_id: str, bucket_name: str, subdir: str | None = None) -> ConfigEntry:
-        if self.client_exists(client):
-            raise ValueError(f"Client {client} already exists")
-        config = ClientConfig(client=client, service_id=service_id, bucket_name=bucket_name)
+    def add_config(
+            self, azure_client_id: str,
+            azure_display_name: str,
+            bucket_name: str,
+            subdir: str | None = None
+    ) -> ConfigEntry:
+        if self.client_exists(azure_client_id):
+            raise ValueError(f"Client {azure_client_id} already exists")
+        config = ClientConfig(
+            azure_client_id=azure_client_id,
+            azure_display_name=azure_display_name,
+            bucket_name=bucket_name
+        )
         config_dir = os.path.join(self.path, subdir) if subdir and subdir != '' else self.path
         if not os.path.exists(config_dir):
             os.makedirs(config_dir)
         if os.path.isfile(config_dir):
             raise ValueError(f"Config directory {config_dir} is a file")
-        config_path = os.path.join(config_dir, f"{client}.json")
+        config_path = os.path.join(config_dir, f"{azure_client_id}.json")
         with open(config_path, 'w') as f:
             f.write(config.model_dump_json(indent=2))
         return ConfigEntry(config=config, path=config_path)
@@ -79,9 +88,9 @@ def print_obj(obj: List[ConfigEntry] | ConfigEntry, sort_by_service: bool = True
         if sort_by_service:
             config_by_service: Dict[str, List[ConfigEntry]] = {}
             for config_entry in obj:
-                if config_entry.config.service_id not in config_by_service:
-                    config_by_service[config_entry.config.service_id] = []
-                config_by_service[config_entry.config.service_id].append(config_entry)
+                if config_entry.config.azure_display_name not in config_by_service:
+                    config_by_service[config_entry.config.azure_display_name] = []
+                config_by_service[config_entry.config.azure_display_name].append(config_entry)
             print(json.dumps(config_by_service, indent=2, default=lambda x: x.model_dump()))
         else:
             print(json.dumps(obj, indent=2, default=lambda x: x.model_dump()))
@@ -99,32 +108,32 @@ def cmd_find(args: argparse.Namespace, **kwargs):
 
 
 def cmd_get(args: argparse.Namespace, **kwargs):
-    client = args.client
+    azure_client_id = args.azure_client_id
     source = ConfigSource()
     config_entries = source.config_entries()
     if args.client not in config_entries:
-        raise ValueError(f"Client {client} not found")
-    print_obj(config_entries[client])
+        raise ValueError(f"Client {azure_client_id} not found")
+    print_obj(config_entries[azure_client_id])
 
 
 def cmd_add(args: argparse.Namespace, **kwargs):
-    client = args.client
-    service_id = args.service_id
+    azure_client_id = args.azure_client_id
+    azure_display_name = args.azure_display_name
     bucket_name = args.bucket_name
     subdir = args.subdir
 
     # If any of the arguments are empty, interactively prompt for the value
-    if client is None:
-        client = input("Client name: ")
-    if service_id is None:
-        service_id = input("Service ID: ")
+    if azure_client_id is None:
+        azure_client_id = input("Azure application (client) ID: ")
+    if azure_display_name is None:
+        azure_display_name = input("Azure display name: ")
     if bucket_name is None:
         bucket_name = input("Bucket name: ")
     if subdir is None:
-        subdir = input("Sub-directory (leave empty for no sub-directory): ")
+        subdir = input("Service name (used to group clients in sub-directory): ")
 
     source = ConfigSource()
-    config_entry = source.add_config(client, service_id, bucket_name, subdir=subdir)
+    config_entry = source.add_config(azure_client_id, azure_display_name, bucket_name, subdir=subdir)
     print_obj(config_entry)
 
 
@@ -136,8 +145,8 @@ def main():
     list_parser.set_defaults(func=cmd_list)
 
     add_parser = subparsers.add_parser('add', help='Add a new client configuration')
-    add_parser.add_argument('--client', type=str, default=None, help='Client name')
-    add_parser.add_argument('--service-id', type=str, default=None, help='Service ID')
+    add_parser.add_argument('--azure-client-id', type=str, default=None, help='Client')
+    add_parser.add_argument('--azure-display-name', type=str, default=None, help='Used for logging')
     add_parser.add_argument('--bucket-name', type=str, default=None, help='Bucket name')
     add_parser.add_argument(
         '--subdir', type=str, default=None,
@@ -150,7 +159,7 @@ def main():
     print_parser.set_defaults(func=cmd_find)
 
     get_parser = subparsers.add_parser('get', help='Get a specific client configuration')
-    get_parser.add_argument('client', type=str, help='Client name')
+    get_parser.add_argument('azure-client-id', type=str, help='Client name')
     get_parser.set_defaults(func=cmd_get)
 
     args = parser.parse_args()

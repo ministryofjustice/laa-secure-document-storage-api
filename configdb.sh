@@ -35,9 +35,9 @@ if [ -z "$TABLE_EXISTS" ]; then
     aws $ENDPOINT_SPEC dynamodb create-table \
         --table-name $TABLE_NAME \
         --key-schema \
-            AttributeName=client,KeyType=HASH  \
+            AttributeName=azure_client_id,KeyType=HASH  \
         --attribute-definitions \
-            AttributeName=client,AttributeType=S \
+            AttributeName=azure_client_id,AttributeType=S \
         --provisioned-throughput \
             ReadCapacityUnits=5,WriteCapacityUnits=5
 
@@ -54,13 +54,13 @@ fi
 
 # Create a client config from this point forwards
 
-CLIENT=${2:-"$CLIENT"}
+AZURE_CLIENT_ID=${2:-"$AZURE_CLIENT_ID"}
 BUCKET_NAME=${3:-"$BUCKET_NAME"}
-SERVICE_ID=${4:-"$CLIENT"}
+AZURE_DISPLAY_NAME=${4:-"$AZURE_CLIENT_ID"}
 
-# If CLIENT is empty, prompt for the value
-if [ -z "$CLIENT" ]; then
-  read -p "Enter client id: " CLIENT
+# If AZURE_CLIENT_ID is empty, prompt for the value
+if [ -z "$AZURE_CLIENT_ID" ]; then
+  read -p "Enter Azure application (client) ID: " AZURE_CLIENT_ID
 fi
 
 # If BUCKET_NAME is empty, prompt for the value
@@ -68,15 +68,15 @@ if [ -z "$BUCKET_NAME" ]; then
   read -p "Enter bucket name: " BUCKET_NAME
 fi
 
-# If SERVICE_ID is empty, prompt for the value
-if [ -z "$SERVICE_ID" ]; then
-  read -p "Enter service id (default: $SERVICE_ID): " SERVICE_ID
+# If AZURE_DISPLAY_NAME is empty, prompt for the value
+if [ -z "$AZURE_DISPLAY_NAME" ]; then
+  read -p "Enter Azure display name (default: $AZURE_DISPLAY_NAME): " AZURE_DISPLAY_NAME
 fi
 
 echo ""
-echo "Client : $CLIENT"
-echo "Service: $SERVICE_ID"
-echo "Bucket : $BUCKET_NAME"
+echo "Azure client ID    : $AZURE_CLIENT_ID"
+echo "Azure display name : $AZURE_DISPLAY_NAME"
+echo "Bucket             : $BUCKET_NAME"
 echo ""
 echo "Adding client config to $TABLE_NAME $ENDPOINT_SPEC"
 
@@ -88,16 +88,16 @@ if [[ ! $RESPONSE =~ ^[Yy]$ ]]; then
   exit 0
 fi
 
-# Check if a record with key CLIENT_ID already exists
-if aws $ENDPOINT_SPEC dynamodb get-item --table-name "$TABLE_NAME" --key '{"client": {"S": "'"$CLIENT"'"}}' | grep -q "Item"; then
-  echo "Client $CLIENT already exists"
+# Check if a record with key AZURE_CLIENT_ID_ID already exists
+if aws $ENDPOINT_SPEC dynamodb get-item --table-name "$TABLE_NAME" --key '{"azure_client_id": {"S": "'"$AZURE_CLIENT_ID"'"}}' | grep -q "Item"; then
+  echo "Client $AZURE_CLIENT_ID already exists"
   exit 1
 fi
 
 aws $ENDPOINT_SPEC dynamodb put-item --table-name "$TABLE_NAME" --item \
 '{
-  "client": {"S": "'"$CLIENT"'"},
-  "service_id": {"S": "'"$SERVICE_ID"'"},
+  "azure_client_id": {"S": "'"$AZURE_CLIENT_ID"'"},
+  "azure_display_name": {"S": "'"$AZURE_DISPLAY_NAME"'"},
   "bucket_name": {"S": "'"$BUCKET_NAME"'"},
   "file_validators": {"L": []}
 }' || echo "Error whilst adding client config" && exit 1

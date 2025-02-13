@@ -34,7 +34,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
             raise HTTPException(status_code=500, detail="Something went wrong")
         if not is_valid:
             raise HTTPException(status_code=403, detail="Not authenticated")
-        username: str = payload.get("sub")
+        username: str = payload.get("azp")
         auth_creds = AuthCredentials(scopes=[])
         user = SimpleUser(username)
         return auth_creds, user

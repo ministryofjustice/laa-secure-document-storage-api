@@ -21,7 +21,7 @@ class S3Service:
     def get_instance(client: str | ClientConfig) -> 'S3Service':
         """ Static access method. """
         if isinstance(client, ClientConfig):
-            username = client.client
+            username = client.azure_client_id
             client_config = client
         elif isinstance(client, str):
             username = client

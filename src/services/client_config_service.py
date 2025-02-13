@@ -98,17 +98,18 @@ class ClientConfigService:
         """
         loaded_config = None
 
-        if os.getenv('LOCAL_CONFIG_CLIENT') != self.username:
+        env_username = os.getenv('LOCAL_CONFIG_AZURE_CLIENT_ID')
+        if env_username != self.username:
             logger.error(
-                f"'{self.username}' does not match LOCAL_CONFIG_CLIENT user '{os.getenv('LOCAL_CONFIG_CLIENT')}'"
+                f"'{self.username}' does not match LOCAL_CONFIG_AZURE_CLIENT_ID user '{env_username}'"
             )
         else:
-            logger.info(f"Found LOCAL_CONFIG_CLIENT for '{self.username}'")
+            logger.info(f"Found LOCAL_CONFIG_AZURE_CLIENT_ID for '{self.username}'")
             try:
                 loaded_config = ClientConfig.model_validate({
-                    'client': os.getenv('LOCAL_CONFIG_CLIENT'),
+                    'azure_client_id': env_username,
                     'bucket_name': os.getenv('LOCAL_CONFIG_BUCKET_NAME'),
-                    'service_id': os.getenv('LOCAL_CONFIG_SERVICE_ID', 'local-service-id')
+                    'azure_display_name': os.getenv('LOCAL_CONFIG_AZURE_DISPLAY_NAME', 'local-service-id')
                 })
                 logger.info(f"Loaded ClientConfig for '{self.username}' from environment variables")
             except Exception as e:
@@ -152,7 +153,7 @@ class ClientConfigService:
         try:
             dynamodb = self.get_dynamodb()
             table = dynamodb.Table(os.getenv('CONFIG_TABLE'))
-            response = table.get_item(Key={'client': self.username})
+            response = table.get_item(Key={'azure_client_id': self.username})
             if 'Item' in response:
                 logger.info(f"Retrieved ClientConfig for '{self.username}'")
                 loaded_config = ClientConfig.model_validate(response['Item'])

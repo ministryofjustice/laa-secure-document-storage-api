@@ -22,7 +22,7 @@ def test_user_credentials() -> tuple[AuthCredentials, SimpleUser]:
 @pytest.fixture
 def test_user_client_config(test_user_credentials):
     return ClientConfig(
-        client=test_user_credentials[1].username, bucket_name='test_bucket', service_id='test'
+        azure_client_id=test_user_credentials[1].username, bucket_name='test_bucket', azure_display_name='test'
     )
 
 

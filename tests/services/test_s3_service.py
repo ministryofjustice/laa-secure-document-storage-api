@@ -25,9 +25,9 @@ def s3_service():
     with patch.object(
                 src.services.s3_service.client_config_service, 'get_config_for_client',
                 return_value=ClientConfig(
-                    client='test_user',
+                    azure_client_id='test_user',
                     bucket_name=os.getenv('BUCKET_NAME'),
-                    service_id='test'
+                    azure_display_name='test'
                 )
             ) as mock_config:
         instance = S3Service.get_instance('test_user')
