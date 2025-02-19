@@ -54,9 +54,6 @@ def fetch_jwks(jwks_uri):
 
 def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
 
-    logger.info(f'Validating token: {token}')
-    logger.info(f'Validating tenant: {tenant_id}')
-    logger.info(f'Validating aud: {aud}')
     # Fetch the OpenID configuration to get the JWK URI
     oidc_config = fetch_oidc_config(tenant_id)
     jwks_uri = oidc_config['jwks_uri']
