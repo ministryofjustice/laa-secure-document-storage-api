@@ -25,6 +25,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
             if scheme.lower() != "bearer":
                 logger.info(f'Incorrect authorisation scheme {scheme}')
                 raise HTTPException(status_code=403, detail="Not authenticated")
+
             is_valid, payload = validate_token(param, os.getenv('AUDIENCE'), os.getenv('TENANT_ID'))
         except JWTError as e:
             logger.error(f"Invalid JWT token: {str(e)}")
@@ -52,6 +53,10 @@ def fetch_jwks(jwks_uri):
 
 
 def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
+
+    logger.info(f'Validating token: {token}')
+    logger.info(f'Validating tenant: {tenant_id}')
+    logger.info(f'Validating aud: {aud}')
     # Fetch the OpenID configuration to get the JWK URI
     oidc_config = fetch_oidc_config(tenant_id)
     jwks_uri = oidc_config['jwks_uri']
