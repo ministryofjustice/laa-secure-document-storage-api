@@ -85,13 +85,16 @@ def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
             is_valid = True
 
         except Exception as error:
-            if payload.get('aud') != aud:
-                logger.error(f"The token audience does not match the expected audience: {payload.get('aud')} != {aud}")
             logger.error(f"The token is invalid: {error.__class__.__name__} {error}")
+
+            token_aud = jwt.get_unverified_claims(token).get('aud')
+            if token_aud != aud:
+                logger.error(f"The token audience does not match the expected audience: {token_aud} != {aud}")
 
         # We use the azp claim as the client username
         if payload.get('azp') is None:
-            logger.error('No azp claim in token')
+            unverified_claims = jwt.get_unverified_claims(token).keys()
+            logger.error(f"No azp claim. Verified claims {payload.keys()}, Unverified claims {unverified_claims}")
             is_valid = False
 
     return is_valid, payload
