@@ -85,6 +85,6 @@ def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
             is_valid = True
 
         except Exception as error:
-            logger.debug(f'The token is invalid: {error.__class__.__name__} {error}')
+            logger.error(f'The token is invalid: {error.__class__.__name__} {error}')
 
     return is_valid, payload
