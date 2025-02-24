@@ -61,7 +61,7 @@ class S3Service:
 
     def generate_file_url(self, key, expiration=60):
         try:
-            logger.info(f"attempting download of file {key} to bucket {self.client_config.bucket_name}")
+            logger.info(f"Generating URL for file {key} from bucket {self.client_config.bucket_name}")
             # Check if the file exists by trying to get its metadata
             self.s3_client.head_object(Bucket=self.client_config.bucket_name, Key=key)
             response = self.s3_client.generate_presigned_url(
