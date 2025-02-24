@@ -29,7 +29,10 @@ class ClientConfigService:
 
         access_time = datetime.datetime.now()
         if username in ClientConfigService._config_ttls and access_time > ClientConfigService._config_ttls[username]:
-            logger.info(f"ClientConfig for '{username}' TTL expired, clearing cached config")
+            if ClientConfigService._config_ttls[username] is not None:
+                # Only log the cache clear if there is a value that is being cleared
+                logger.info(f"ClientConfig for '{username}' TTL expired, clearing cached config")
+            # Clear cache, including any cached 'None' values from a failed auth attempt
             del ClientConfigService._configs[username]
             del ClientConfigService._config_ttls[username]
 
@@ -126,16 +129,20 @@ class ClientConfigService:
         :return: ClientConfig instance if found and loaded, else None
         """
         loaded_config = None
-        config_dir = os.getenv('CONFIG_DIR', 'clientconfigs')
+        config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')
         try:
+            # Config files are JSON files named after the requesting application (client) id.
+            # Use a regular expression glob to find all files in any subdirectory of config_dir which are named
+            # {username}.json
             candidates = [p for p in pathlib.Path(config_dir).rglob(f"{self.username}.json")]
+            # There should be exactly 1 file match: Too many means possibly conflicting configs, none means not found
             if len(candidates) == 1:
                 config_path = candidates[0]
                 logger.info(f"Loading ClientConfig for '{self.username}' from {config_path}")
                 cfg_json = pathlib.Path(config_path).read_text()
                 loaded_config = ClientConfig.model_validate_json(cfg_json)
             else:
-                logger.error(f"Found {len(candidates)} configs for {self.username} in {config_dir}")
+                logger.error(f"Found {len(candidates)} configs for {self.username} in {os.path.abspath(config_dir)}")
         except Exception as e:
             logger.error(f"Error {e.__class__.__name__} during load of config for '{self.username}': {e}")
             loaded_config = None
