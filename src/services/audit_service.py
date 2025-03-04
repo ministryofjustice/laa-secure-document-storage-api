@@ -16,7 +16,7 @@ class AuditService:
     _instance = None
 
     @staticmethod
-    def getInstance():
+    def get_instance():
         """ Static access method. """
         if AuditService._instance is None:
             AuditService()
@@ -48,7 +48,7 @@ class AuditService:
 
 
 def put_item(service_id: str, file_id: str, operation: OperationType):
-    auditDb = AuditService.getInstance()
+    auditDb = AuditService.get_instance()
     dynamodb_resource = auditDb.dynamodb_client
     table = dynamodb_resource.Table(os.getenv('AUDIT_TABLE'))
 

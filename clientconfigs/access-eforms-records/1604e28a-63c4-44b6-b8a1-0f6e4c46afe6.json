@@ -1,0 +1,6 @@
+{
+  "azure_client_id": "1604e28a-63c4-44b6-b8a1-0f6e4c46afe6",
+  "azure_display_name": "laa-equiniti-historical-data-uat",
+  "bucket_name": "laa-sds-equiniti-uat",
+  "file_validators": []
+}

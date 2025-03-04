@@ -33,7 +33,7 @@ permission names) is returned. The implementation of token-based authentication 
 A simple generic implementation is:
 
 ```python
-# Example main.py
+# Simplified example main.py
 import casbin, fastapi, fastapi_authz, starlette
 from yourapp.middleware.auth import ProjectSpecificAuthentication
 enforcer = casbin.Enforcer(model='/path/to/model.conf', adapter='/path/to/policy.csv')
@@ -53,16 +53,24 @@ we make a single enforcer available as a service. So the SDS implementation look
 ...
 app = fastapi.FastAPI()
 # Order matters here: Casbin middleware first, then the auth backend
-app.add_middleware(fastapi_authz.CasbinMiddleware, enforcer=AuthzServiceSingleton().enforcer)
+app.add_middleware(fastapi_authz.CasbinMiddleware, enforcer=AuthzService().enforcer)
 app.add_middleware(starlette.middleware.authentication.AuthenticationMiddleware, backend=BearerTokenAuthBackend())
+
+
 # ...
 # Inside a route...
 @router.get('/example')
 async def get_example(request: Request, file: str = fastapi.params.Query(None, min_length=1)):
     # If a request gets here, it has already been authenticated and authorised for this endpoint
     # but we may want to check additional permissions...
-    # ...
-    AuthzServiceSingleton().check_permission(request.user.username, file, 'action-name')
+    
+    # Optional permission: Only if the user has this permission:
+    if authz_service.enforce(request.user.username, file, 'action-name'):
+        # User can perform 'action-name' on the file
+        ...
+    
+    # Or a required permission: Raise an exception if the user does not have this permission:
+    authz_service.enforce_or_error(request.user.username, file, 'action-name')
     # ...
 ```
 
@@ -102,29 +110,71 @@ We can check for permissions separately to the URL, we just need an enforcer wit
 
 For efficiency in the SDS implementation, we use the same enforcer as the middleware acting on the endpoints, and this
 is achieved using a singleton service:
+
 ```python
 # ...
-from src.services.authz_service import AuthzServiceSingleton
-# Using the convenience method:
-AuthzServiceSingleton().check_permission(request.user.username, data_object_id, 'ACTION')
-# Or the enforcer
-AuthzServiceSingleton().enforcer.enforce(request.user.username, data_object_id, 'ACTION')
+from src.services import authz_service
+
+# An optional action using the passthrough to the enforcer:
+if authz_service.enforce(request.user.username, data_object_id, 'ACTION'):
+    # User has permission
+    ...
+
+# Or a required action, raise a 403 error if the user does not have permission:
+authz_service.enforce_or_error(request.user.username, data_object_id, 'ACTION')
 # ...
 ```
 
 Note that if you are checking an action which is mapped to an enum, you may need to use the value or name of the enum
 because the default `__str__` value includes the enum class.
 ```python
+# Simplified example
 import enum
 class Operation(enum.Enum):
     CREATE = 'CREATE'
     READ = 'READ'
 
 # The matching policy action would be 'Operation.READ'
-enforcer.enforce(user, 'data-object', Operation.READ)
+if enforcer.enforce(user, 'data-object', Operation.READ):
+    ...
 # The matching policy action would be 'READ'
-enforcer.enforce(user, 'data-object', Operation.READ.value)
+if enforcer.enforce(user, 'data-object', Operation.READ.value):
+    ...
 ```
+
+### Using regex, or wildcards, on data object matching
+
+An example of using regex for data objects could be to apply a rule to all files of a specific type.
+To support this, we need to update the model to allow regex matching, but we do need to be careful to not accidentally
+allow operations on endpoints.
+
+```
+# model.conf
+...
+m = r.sub == p.sub && regexMatch(r.obj, p.obj) && regexMatch(r.act, p.act) 
+```
+    
+Then we can set policies thus:
+```
+# policy.conf
+...
+# Allow test_user to read any file that does not start with a leading '/'
+p, test_user, [^/].*, READ
+# But other_user can only read pdf files
+p, other_user, .*pdf, READ
+```
+
+And check permissions thus:
+
+```python
+# route.py
+...
+if authz_service.enforce(request.user.username, file, OperationType.READ.value):
+    # User has permission
+    ...
+
+```
+
 
 ### Using dependency injection to get the requesting user
 
@@ -133,16 +183,26 @@ Assuming the casbin middleware and auth backend are in place (see above), we can
 ```python
 # dependencies.py
 import fastapi, starlette
+
+
 def request_user_dep(request: fastapi.requests.Request) -> starlette.authentication.BasicUser:
     return request.user
 
+
 # routers/endpoint.py
-from src.services.authz_service import AuthzServiceSingleton
+from src.services import authz_service
+
 router = fastapi.APIRouter()
+
+
 @router.get('/retrieve_file')
-async def retrieve_file(client_user = fastapi.params.Depends(request_user_dep), file:str = fastapi.params.Query(None, min_length=1)):
-    if not AuthzServiceSingleton().check_permission(client_user.username, file, 'action-name'):
-        raise fastapi.HTTPException(status_code=403, detail='Permission denied')
+async def retrieve_file(
+        client_user=fastapi.Depends(request_user_dep),
+        file: str = fastapi.Query(None, min_length=1)
+    ):
+    if authz_service.enforce(client_user.username, file, 'action-name'):
+        # User has permission
+        ...
     # ...
 ```
 
@@ -150,7 +210,7 @@ async def retrieve_file(client_user = fastapi.params.Depends(request_user_dep), 
 
 Casbin has an [editor](https://casbin.org/editor/) which can be used to check the policy rules and the model.
 
-Logging can be quite detailed, and is controlled by setting the `LOGGING_LEVEL_CASBIN` environment variable. If not set,
-casbin will not emit any logs.
+Logging can be quite detailed, and is controlled by setting the `LOGGING_LEVEL_CASBIN` environment variable in SDS.
+If not set, casbin will not emit any logs.
 
 Remember the policy rules do not support special strings or combinations without support from the model.

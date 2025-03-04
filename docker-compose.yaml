@@ -22,13 +22,15 @@ services:
       - CLAMD_HOST=laa-clamav
       - CASBIN_POLICY=/authz/any_authenticated_access.csv
       - CASBIN_MODEL=/authz/any_authenticated_access.conf
+      - CONFIG_DIR=/app/clientconfigs
+      - CONFIG_SOURCES=db,file
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb_local
     ports:
       - "8100:8000"
   localstack:
-    image: localstack/localstack:3.0
+    image: localstack/localstack:3.8
     ports:
       - '4566:4566' # LocalStack endpoint
       - '4510-4559:4510-4559' # external services port range

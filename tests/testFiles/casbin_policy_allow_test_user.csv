@@ -1,3 +1,8 @@
 
 p, test_user, /, GET
 p, test_user, /health, GET
+
+p, test_user, /retrieve_file, ((GET)|(POST))
+p, test_user, /retrieve_file/, ((GET)|(POST))
+p, test_user, /save_file, ((GET)|(POST))
+p, test_user, /save_file/, ((GET)|(POST))

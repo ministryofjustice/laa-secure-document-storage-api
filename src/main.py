@@ -17,7 +17,7 @@ from src.middleware.auth import BearerTokenAuthBackend
 from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
 from src.routers import save_file as save_router
-from src.services.authz_service import AuthzServiceSingleton
+from src.services.authz_service import AuthzService
 
 
 def add_correlation(
@@ -65,7 +65,7 @@ structlog.configure(
 
 logging.config.dictConfig(logging_config.config)
 # Order matters here: Casbin middleware first, then the auth backend
-app.add_middleware(CasbinMiddleware, enforcer=AuthzServiceSingleton().enforcer)
+app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
 app.add_middleware(AuthenticationMiddleware, backend=BearerTokenAuthBackend())
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)

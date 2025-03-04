@@ -1,20 +1,12 @@
 from io import BytesIO
 from unittest.mock import patch
 
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from starlette.middleware import Middleware
-
 from src.models.validation_response import ValidationResponse
-from src.main import app
-
-test_client = TestClient(app)
 
 
-@patch("src.routers.save_file.saveToS3", return_value=True)
+@patch("src.routers.save_file.s3_service.save", return_value=True)
 @patch("src.routers.save_file.validate_request")
-def test_save_file_with_valid_data(validator_mock, save_mock):
-    remove_middleware(app, )
+def test_save_file_with_valid_data(validator_mock, save_mock, config_service_mock, audit_service_mock, test_client):
     validator_mock.return_value = ValidationResponse(status_code=200, message="")
 
     data = {
@@ -29,11 +21,14 @@ def test_save_file_with_valid_data(validator_mock, save_mock):
 
     assert response.status_code == 200
     assert response.json()['success'] == 'Files Saved successfully in test_bucket with key test_file.txt '
+
+    validator_mock.assert_called()
+    config_service_mock.assert_called()
     save_mock.assert_called_once()
+    audit_service_mock.assert_called()
 
 
-def test_save_file_with_no_file():
-    remove_middleware(app, )
+def test_save_file_with_no_file(test_client):
     data = {
         "body": '{"bucketName": "test_bucket"}'
     }
@@ -45,8 +40,7 @@ def test_save_file_with_no_file():
     assert response.json() == {'detail': ['File is required']}
 
 
-def test_save_file_with_invalid_data():
-    remove_middleware(app, )
+def test_save_file_with_invalid_data(test_client):
     data = {
         "body": 'bad body'
     }
@@ -62,8 +56,7 @@ def test_save_file_with_invalid_data():
     print(content)
 
 
-def test_save_file_with_missing_bucket_name():
-    remove_middleware(app, )
+def test_save_file_with_missing_bucket_name(test_client):
     data = {
         "body": '{}'
     }
@@ -76,10 +69,3 @@ def test_save_file_with_missing_bucket_name():
 
     assert response.status_code == 400
     assert response.content == b'{"detail":{"bucketName":"Field required"}}'
-
-
-def remove_middleware(app: FastAPI) -> FastAPI:
-    new_middlewares: list[Middleware] = []
-    app.user_middleware = new_middlewares
-    app.middleware_stack = app.build_middleware_stack()
-    return app

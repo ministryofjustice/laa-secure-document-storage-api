@@ -25,6 +25,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
             if scheme.lower() != "bearer":
                 logger.info(f'Incorrect authorisation scheme {scheme}')
                 raise HTTPException(status_code=403, detail="Not authenticated")
+
             is_valid, payload = validate_token(param, os.getenv('AUDIENCE'), os.getenv('TENANT_ID'))
         except JWTError as e:
             logger.error(f"Invalid JWT token: {str(e)}")
@@ -34,7 +35,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
             raise HTTPException(status_code=500, detail="Something went wrong")
         if not is_valid:
             raise HTTPException(status_code=403, detail="Not authenticated")
-        username: str = payload.get("sub")
+        username: str = payload.get("azp")
         auth_creds = AuthCredentials(scopes=[])
         user = SimpleUser(username)
         return auth_creds, user
@@ -52,6 +53,7 @@ def fetch_jwks(jwks_uri):
 
 
 def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
+
     # Fetch the OpenID configuration to get the JWK URI
     oidc_config = fetch_oidc_config(tenant_id)
     jwks_uri = oidc_config['jwks_uri']
@@ -83,6 +85,16 @@ def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
             is_valid = True
 
         except Exception as error:
-            logger.debug(f'The token is invalid: {error.__class__.__name__} {error}')
+            logger.error(f"The token is invalid: {error.__class__.__name__} {error}")
+
+            token_aud = jwt.get_unverified_claims(token).get('aud')
+            if token_aud != aud:
+                logger.error(f"The token audience does not match the expected audience: {token_aud} != {aud}")
+
+        # We use the azp claim as the client username
+        if payload.get('azp') is None:
+            unverified_claims = jwt.get_unverified_claims(token).keys()
+            logger.error(f"No azp claim. Verified claims {payload.keys()}, Unverified claims {unverified_claims}")
+            is_valid = False
 
     return is_valid, payload
