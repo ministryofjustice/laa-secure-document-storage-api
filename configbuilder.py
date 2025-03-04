@@ -44,12 +44,12 @@ class ConfigSource:
     def client_exists(self, client: str) -> bool:
         return client in self.config_entries()
 
-    def find_in_configs(self, needle: str) -> List[ConfigEntry]:
+    def find_in_configs(self, sub: str) -> List[ConfigEntry]:
         config_entries = []
         for client, entry in self.config_entries().items():
-            if client.find(needle) != -1 \
-                    or entry.config.azure_display_name.find(needle) != -1 \
-                    or entry.config.bucket_name.find(needle) != -1:
+            if client.find(sub) != -1 \
+                    or entry.config.azure_display_name.find(sub) != -1 \
+                    or entry.config.bucket_name.find(sub) != -1:
                 config_entries.append(entry)
         return config_entries
 
