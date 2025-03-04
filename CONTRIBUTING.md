@@ -5,7 +5,7 @@ See the [README.md](README.md) for instructions on setting up the project.
 
 ## Process outline
 
-1. Branch off from `master` and name your branch after the task number and with a short title: `SDS-xx-short-title-here`.
+1. Branch off from `main` and name your branch after the task number and with a short title: `SDS-xx-short-title-here`.
 2. Make your changes:
     * Unit tests: Add and run unit tests for your changes: `pipenv run pytest`
     * Postman tests: Make sure to get the appropriate client credentials and tokens to run the tests
