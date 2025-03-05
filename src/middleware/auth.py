@@ -32,7 +32,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
             raise HTTPException(status_code=401, detail="Invalid or expired token")
         except Exception as e:
             logger.error(f"Error processing bearer token: {str(e)}")
-            raise HTTPException(status_code=500, detail="Something went wrong")
+            raise HTTPException(status_code=403, detail="Not authenticated")
         if not is_valid:
             raise HTTPException(status_code=403, detail="Not authenticated")
         username: str = payload.get("azp")
