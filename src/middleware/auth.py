@@ -32,7 +32,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
             raise HTTPException(status_code=401, detail="Invalid or expired token")
         except Exception as e:
             logger.error(f"Error processing bearer token: {str(e)}")
-            raise HTTPException(status_code=500, detail="Something went wrong")
+            raise HTTPException(status_code=403, detail="Not authenticated")
         if not is_valid:
             raise HTTPException(status_code=403, detail="Not authenticated")
         username: str = payload.get("azp")
@@ -82,7 +82,12 @@ def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
                 audience=aud,
                 issuer=f"https://login.microsoftonline.com/{tenant_id}/v2.0"
             )
-            is_valid = True
+            roles = payload.get('roles', [])
+            if 'LAA_SDS.ALL' in roles or 'SDS.READ' in roles:
+                is_valid = True
+            else:
+                logger.error(f"Token validates, but is missing required LAA_SDS.ALL or SDS.READ roles. Got {roles}")
+                is_valid = False
 
         except Exception as error:
             logger.error(f"The token is invalid: {error.__class__.__name__} {error}")
