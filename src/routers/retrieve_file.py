@@ -33,4 +33,4 @@ async def retrieve_file(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Error retrieving file: {e.__class__.__name__} {str(e)}")
-        raise HTTPException(status_code=500, detail='An error occurred while retrieving the file')
+        raise HTTPException(status_code=599, detail='An error occurred while retrieving the file')
