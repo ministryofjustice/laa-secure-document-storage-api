@@ -82,7 +82,11 @@ def validate_token(token: str, aud: str, tenant_id: str) -> Tuple[bool, dict]:
                 audience=aud,
                 issuer=f"https://login.microsoftonline.com/{tenant_id}/v2.0"
             )
-            is_valid = True
+            if 'LAA_SDS.ALL' not in payload.get('roles', []):
+                logger.error(f"Token validates, but is missing required LAA_SDS.ALL role")
+                is_valid = False
+            else:
+                is_valid = True
 
         except Exception as error:
             logger.error(f"The token is invalid: {error.__class__.__name__} {error}")
