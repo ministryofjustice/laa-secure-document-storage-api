@@ -7,11 +7,30 @@ from fastapi import HTTPException
 from fastapi.security import HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import jwt, jwk, JWTError
-from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCredentials, BaseUser
+from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCredentials, BaseUser, AuthenticationError
+from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
+from starlette.responses import PlainTextResponse, Response
 
 security = HTTPBearer()
 logger = structlog.get_logger()
+
+
+class DetailedAuthenticationError(AuthenticationError):
+    def __init__(self, status_code: int, detail: str) -> None:
+        self.status_code = status_code
+        self.detail = detail
+
+    def __str__(self) -> str:
+        return f"{self.status_code} {self.detail}"
+
+
+class BearerTokenMiddleware(AuthenticationMiddleware):
+    @staticmethod
+    def default_on_error(conn: HTTPConnection, exc: Exception) -> Response:
+        if isinstance(exc, AuthenticationError) and hasattr(exc, "status_code"):
+            return PlainTextResponse(str(exc), status_code=exc.status_code)
+        return PlainTextResponse(str(exc), status_code=401)
 
 
 class BearerTokenAuthBackend(AuthenticationBackend):
@@ -24,7 +43,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
         scheme, param = get_authorization_scheme_param(authorization)
         if scheme.lower() != "bearer":
             logger.info(f'Incorrect authorisation scheme {scheme}')
-            raise HTTPException(status_code=401, detail="Incorrect authorisation scheme")
+            raise DetailedAuthenticationError(status_code=401, detail="Incorrect authorisation scheme")
 
         payload = validate_token(param, os.getenv('AUDIENCE'), os.getenv('TENANT_ID'))
         username: str = payload.get("azp")
@@ -61,12 +80,9 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
             rsa_key_data = key
             break
 
-    is_valid = False
-    payload = {}
-
     if not rsa_key_data:
         logger.error(f"No rsa key found")
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise DetailedAuthenticationError(status_code=401, detail="Invalid or expired token")
 
     try:
         rsa_key = jwk.construct(rsa_key_data, 'RS256')
@@ -79,16 +95,16 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
         )
     except Exception as error:
         logger.error(f"The token is invalid: {error.__class__.__name__} {error}")
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise DetailedAuthenticationError(status_code=401, detail="Invalid or expired token")
 
     # Ensure token has `azp` claim which is used to identify the client
     if payload.get('azp') is None:
         logger.error(f"No verified azp claim. Verified claims {payload.keys()}")
-        raise HTTPException(status_code=403, detail="Not authenticated")
+        raise DetailedAuthenticationError(status_code=403, detail="Not authenticated")
 
     roles = payload.get('roles', [])
     if 'LAA_SDS.ALL' not in roles and 'SDS.READ' not in roles:
         logger.error(f"Token validates, but is missing required LAA_SDS.ALL or SDS.READ roles. Got {roles}")
-        raise HTTPException(status_code=403, detail="Not authenticated")
+        raise DetailedAuthenticationError(status_code=403, detail="Not authenticated")
 
     return payload
