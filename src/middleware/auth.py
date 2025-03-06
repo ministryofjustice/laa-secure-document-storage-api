@@ -1,12 +1,10 @@
 import os
-from typing import Tuple
 import requests
 import structlog
 from cachetools import cached, TTLCache
-from fastapi import HTTPException
 from fastapi.security import HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
-from jose import jwt, jwk, JWTError
+from jose import jwt, jwk
 from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCredentials, BaseUser, AuthenticationError
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
@@ -81,7 +79,7 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
             break
 
     if not rsa_key_data:
-        logger.error(f"No rsa key found")
+        logger.error("No rsa key found")
         raise DetailedAuthenticationError(status_code=401, detail="Invalid or expired token")
 
     try:
