@@ -8,7 +8,7 @@ from jose import jwt, jwk
 from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCredentials, BaseUser, AuthenticationError
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
-from starlette.responses import PlainTextResponse, Response
+from starlette.responses import Response, JSONResponse
 
 security = HTTPBearer()
 logger = structlog.get_logger()
@@ -26,9 +26,9 @@ class _AuthenticationError(AuthenticationError):
 class BearerTokenMiddleware(AuthenticationMiddleware):
     @staticmethod
     def default_on_error(conn: HTTPConnection, exc: Exception) -> Response:
-        if hasattr(exc, "status_code"):
-            return PlainTextResponse(str(exc), status_code=exc.status_code)
-        return PlainTextResponse(str(exc), status_code=401)
+        if hasattr(exc, "status_code") and hasattr(exc, "detail"):
+            return JSONResponse({"detail": str(exc.detail)}, status_code=exc.status_code)
+        return JSONResponse({"detail": str(exc)}, status_code=401)
 
 
 class BearerTokenAuthBackend(AuthenticationBackend):
