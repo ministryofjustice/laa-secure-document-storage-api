@@ -98,11 +98,11 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
     # Ensure token has `azp` claim which is used to identify the client
     if payload.get('azp') is None:
         logger.error(f"No verified azp claim. Verified claims {payload.keys()}")
-        raise _AuthenticationError(status_code=403, detail="Not authenticated")
+        raise _AuthenticationError(status_code=403, detail="Forbidden")
 
     roles = payload.get('roles', [])
     if 'LAA_SDS.ALL' not in roles and 'SDS.READ' not in roles:
         logger.error(f"Token validates, but is missing required LAA_SDS.ALL or SDS.READ roles. Got {roles}")
-        raise _AuthenticationError(status_code=403, detail="Not authenticated")
+        raise _AuthenticationError(status_code=403, detail="Forbidden")
 
     return payload
