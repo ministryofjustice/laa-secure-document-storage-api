@@ -68,6 +68,67 @@
 			"response": []
 		},
 		{
+			"name": "sds-client-token-invalid",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let jsonData = pm.response.json();",
+							"pm.environment.set(\"bearerTokenInvalid\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "api://laa-sds-dev/.default",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"c6874728-71e6-41fe-a9e1-2e8c36776ad8",
+						"oauth2",
+						"v2.0",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Retrieve File",
 			"event": [
 				{
@@ -113,6 +174,77 @@
 					{
 						"key": "Authorization",
 						"value": "bearer {{bearerToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README.md",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"retrieve_file"
+					],
+					"query": [
+						{
+							"key": "file_key",
+							"value": "README.md"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Invalid scope token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test invalid scope token",
+							"pm.test(\"response code is 401\", function() {",
+							"    pm.response.to.have.status(401);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "bearer {{bearerTokenInvalid}}",
 						"type": "text"
 					}
 				],
