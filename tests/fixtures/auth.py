@@ -6,9 +6,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi_authz import CasbinMiddleware
 from starlette.authentication import AuthCredentials, SimpleUser
-from starlette.middleware.authentication import AuthenticationMiddleware
 
-from src.middleware.auth import BearerTokenAuthBackend
+from src.middleware.auth import BearerTokenAuthBackend, BearerTokenMiddleware
 from src.models.client_config import ClientConfig
 from src.services.authz_service import AuthzService
 from src.services import client_config_service
@@ -35,7 +34,7 @@ class TestAuthBackend(BearerTokenAuthBackend):
 
 
 @pytest.fixture(autouse=True)
-def app_with_test_auth(test_user_credentials) -> FastAPI:
+def app_with_test_auth(request, test_user_credentials) -> FastAPI:
     from src.main import app
     test_files_model: str = 'casbin_model_acl.conf'
     test_files_policy: str = 'casbin_policy_allow_test_user.csv'
@@ -47,7 +46,10 @@ def app_with_test_auth(test_user_credentials) -> FastAPI:
     if len(app.user_middleware) > 0:
         app.user_middleware.clear()
     app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
-    app.add_middleware(AuthenticationMiddleware, backend=TestAuthBackend(test_user_credentials))
+    if "normal_auth" in request.keywords:
+        app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
+    else:
+        app.add_middleware(BearerTokenMiddleware, backend=TestAuthBackend(test_user_credentials))
     app.middleware_stack = app.build_middleware_stack()
     return app
 
