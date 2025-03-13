@@ -25,8 +25,8 @@ async def retrieve_file(
 
         logger.info("calling retrieve file operation")
         response = s3_service.retrieve_file_url(client_config, file_key)
-        if response is None or response.status_code != 200:
-            logger.error(f"Error whilst retrieving file from S3: {response}")
+        if response is None:
+            logger.error(f"Error whilst retrieving file from S3, got None response")
             raise FileNotFoundException(
                 f"File not found for client {client_config.azure_client_id}", file_key
             )
