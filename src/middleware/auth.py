@@ -62,17 +62,19 @@ def fetch_jwks(jwks_uri):
 
 
 def validate_token(token: str, aud: str, tenant_id: str) -> dict:
+    try:
+        # Fetch the OpenID configuration to get the JWK URI
+        oidc_config = fetch_oidc_config(tenant_id)
+        jwks_uri = oidc_config['jwks_uri']
 
-    # Fetch the OpenID configuration to get the JWK URI
-    oidc_config = fetch_oidc_config(tenant_id)
-    jwks_uri = oidc_config['jwks_uri']
-
-    jwks = fetch_jwks(jwks_uri)
-
-    unverified_header = jwt.get_unverified_header(token)
+        jwks = fetch_jwks(jwks_uri)
+        unverified_header = jwt.get_unverified_header(token)
+    except Exception as error:
+        logger.error(f"Error processing token: {error.__class__.__name__} {error}")
+        # Raise any token processing errors as 401 to the client to avoid leaking information
+        raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
 
     rsa_key_data = None
-
     for key in jwks['keys']:
         if key['kid'] == unverified_header['kid']:
             rsa_key_data = key
