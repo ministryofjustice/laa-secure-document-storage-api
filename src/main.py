@@ -8,12 +8,12 @@ from asgi_correlation_id.context import correlation_id
 from fastapi import FastAPI
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
-from starlette.middleware.authentication import AuthenticationMiddleware
+
 from structlog.stdlib import LoggerFactory
 from fastapi_authz import CasbinMiddleware
 
 from src.config import logging_config
-from src.middleware.auth import BearerTokenAuthBackend
+from src.middleware.auth import BearerTokenAuthBackend, BearerTokenMiddleware
 from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
 from src.routers import save_file as save_router
@@ -66,7 +66,8 @@ structlog.configure(
 logging.config.dictConfig(logging_config.config)
 # Order matters here: Casbin middleware first, then the auth backend
 app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
-app.add_middleware(AuthenticationMiddleware, backend=BearerTokenAuthBackend())
+app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
+
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
 app.include_router(save_router.router)
