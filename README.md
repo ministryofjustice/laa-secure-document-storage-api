@@ -110,6 +110,14 @@ with the invalid token test.
   - include: `SecureDocStoreAPI.postman_collection.json` and all the files ending `*.postman_environment.json`
 - Configure your Postman working directory location through settings > General > Working directory and set it as **~/Postman**
 
+##### Secrets
+
+- Contact a team member to request secrets
+- We store these in a shared secure vault, you will need to add them to your local Postman vault
+- Click the list icon next to the environment dropdown
+- Open the vault via the red 'vault' link
+- Add secrets using the naming convention from the shared vault
+
 #### Running
 
 - If testing locally, launch the API locally as described above
