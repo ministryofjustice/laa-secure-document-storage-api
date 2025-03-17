@@ -118,6 +118,10 @@ with the invalid token test.
 - Click the list icon next to the environment dropdown
 - Open the vault via the red 'vault' link
 - Add secrets using the naming convention from the shared vault
+- Enable secret usage in tests
+  - From the vault, go to settings
+  - On the first page, tick enable usage in scripts
+  - When you first run a request, enable secret usage in the collection
 
 #### Running
 

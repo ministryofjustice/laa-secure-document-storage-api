@@ -212,7 +212,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "bearer {{bearerTokenInvalid}}",
+								"value": "bearer {{bearerToken}}",
 								"type": "text"
 							}
 						],
