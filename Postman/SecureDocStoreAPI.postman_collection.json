@@ -381,7 +381,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "SecureDocStorage/testclamavvirusfile.txt"
+									"src": "SecureDocStorage/eicar.txt"
 								},
 								{
 									"key": "body",
