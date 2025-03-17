@@ -1,874 +1,835 @@
 {
 	"info": {
-		"_postman_id": "317d662c-91e2-46a8-ae54-3ea11ad5b0e6",
+		"_postman_id": "504da8bb-9001-4cef-913e-d66c5722a6bc",
 		"name": "SecureDocStoreAPI",
+		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "15947674"
+		"_exporter_id": "20091732"
 	},
 	"item": [
 		{
-			"name": "sds-client-token",
-			"event": [
+			"name": "SDSHealthCheckTests",
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"let jsonData = pm.response.json();",
-							"pm.environment.set(\"bearerToken\", jsonData.access_token);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
+					"name": "Health Check",
+					"event": [
 						{
-							"key": "grant_type",
-							"value": "client_credentials",
-							"type": "text"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to check the health of the API",
+									"pm.test(\"Response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body shows health status\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('Health', 'OK');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
 						{
-							"key": "client_id",
-							"value": "{{client_id}}",
-							"type": "text"
-						},
-						{
-							"key": "client_secret",
-							"value": "{{client_secret}}",
-							"type": "text"
-						},
-						{
-							"key": "scope",
-							"value": "api://laa-sds-local/.default",
-							"type": "text"
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
-					]
-				},
-				"url": {
-					"raw": "https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token",
-					"protocol": "https",
-					"host": [
-						"login",
-						"microsoftonline",
-						"com"
 					],
-					"path": [
-						"c6874728-71e6-41fe-a9e1-2e8c36776ad8",
-						"oauth2",
-						"v2.0",
-						"token"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "sds-client-token-invalid",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"let jsonData = pm.response.json();",
-							"pm.environment.set(\"bearerTokenInvalid\", jsonData.access_token);"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/health",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Expect a 200 OK response from /health"
+					},
+					"response": []
 				}
 			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
+			"description": "Tests on the /health endpoint"
+		},
+		{
+			"name": "SDSAuthTests",
+			"item": [
+				{
+					"name": "Missing token",
+					"event": [
 						{
-							"key": "grant_type",
-							"value": "client_credentials",
-							"type": "text"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"response code is 403\", function() {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"",
+									"pm.test(\"response message is not authenticated\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.eql(\"Forbidden\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
 						{
-							"key": "client_id",
-							"value": "{{client_id}}",
-							"type": "text"
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "README.md"
+								}
+							]
+						},
+						"description": "Expect a 403 FORBIDDEN with no bearer token"
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid scope token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// resolve variables from the environment",
+									"const tokenUrl = 'https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token';",
+									"const clientId = pm.environment.get('SDSClientID')",
+									"const scope = pm.environment.get('InvalidScope')",
+									"var envSecret = pm.environment.get('SDSClientSecret')",
+									"",
+									"// locally resolve secret from vault, in pipeline use env var",
+									"var secret = ''",
+									"if (envSecret.startsWith('{{vault:')){",
+									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+									"    secret = await pm.vault.get(secretKey)",
+									"}",
+									"else{",
+									"    secret = envSecret",
+									"}",
+									"",
+									"const postRequest = {",
+									"    url: tokenUrl,",
+									"    method: 'POST',",
+									"    header: {",
+									"        'Content-Type': 'application/x-www-form-urlencoded'",
+									"    },",
+									"    body: {",
+									"        mode: 'urlencoded',",
+									"        urlencoded:",
+									"            [",
+									"                { key: 'grant_type', value: 'client_credentials' },",
+									"                { key: 'client_id', value: clientId},",
+									"                { key: 'client_secret', value: secret },",
+									"                { key: 'scope', value: scope }",
+									"            ]",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(postRequest, (error, response) => {",
+									"    let jsonData = response.json();",
+									"    pm.variables.set(\"bearerTokenInvalid\", jsonData.access_token);",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
 						{
-							"key": "client_secret",
-							"value": "{{client_secret}}",
-							"type": "text"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test invalid scope token",
+									"pm.test(\"response code is 401\", function() {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response body shows Invalid Token\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('detail', 'Invalid or expired token');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerTokenInvalid}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "README.md"
+								}
+							]
+						},
+						"description": "Expect a 403 FORBIDDEN when using a token with the wrong scope (resolved in pre-request)"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests to ensure auth fails on invalid requests"
+		},
+		{
+			"name": "SDSSaveFileTests",
+			"item": [
+				{
+					"name": "Save File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('success', 'Files Saved successfully in sds-local with key test_file.md ');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
 						{
-							"key": "scope",
-							"value": "api://laa-sds-dev/.default",
-							"type": "text"
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
-					]
-				},
-				"url": {
-					"raw": "https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token",
-					"protocol": "https",
-					"host": [
-						"login",
-						"microsoftonline",
-						"com"
 					],
-					"path": [
-						"c6874728-71e6-41fe-a9e1-2e8c36776ad8",
-						"oauth2",
-						"v2.0",
-						"token"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Retrieve File",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test retrieve file",
-							"pm.test(\"response code is 200\", function() {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"response contains fileURL key\", function() {",
-							"    const responseJson = pm.response.json();",
-							"    pm.expect(responseJson).to.have.property('fileURL');",
-							"});",
-							"",
-							"pm.test(\"fileURL is a string\", function() {",
-							"    const responseJson = pm.response.json();",
-							"    pm.expect(responseJson).to.have.property('fileURL').that.is.a('string');",
-							"});"
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {}
-					}
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "SecureDocStorage/test_file.md"
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 200 OK when saving a file. See repo README for instructions related to the file"
+					},
+					"response": []
+				},
+				{
+					"name": "Save file with virus",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Check response detail for Virus Found\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.eql({\"detail\": [\"Virus Found\"]});",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "SecureDocStorage/testclamavvirusfile.txt"
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
+					},
+					"response": []
+				},
+				{
+					"name": "Save file with missing bucket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"pm.test(\"Response has required fields\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('detail');",
+									"    pm.expect(responseBody.detail).to.have.property('bucketName');",
+									"    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md"
+								},
+								{
+									"key": "body",
+									"value": "{\"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 400 BAD REQUEST when no bucket is defined in the save request"
+					},
+					"response": []
+				},
+				{
+					"name": "Save file without file",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"",
+									"});",
+									"",
+									"pm.test(\"Response has required fields\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('detail');",
+									"    pm.expect(responseBody.detail).to.include('File is required');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 400 BAD REQUEST when calling save_file without a file"
+					},
+					"response": []
 				}
 			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README.md",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"retrieve_file"
-					],
-					"query": [
-						{
-							"key": "file_key",
-							"value": "README.md"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Invalid scope token",
+			"description": "Tests on the /save_file endpoint",
 			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test invalid scope token",
-							"pm.test(\"response code is 401\", function() {",
-							"    pm.response.to.have.status(401);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerTokenInvalid}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README.md",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"retrieve_file"
-					],
-					"query": [
-						{
-							"key": "file_key",
-							"value": "README.md"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Retrieve File from CRM14 Folder",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test to verify retrieving a file from the CRM14 folder",
-							"pm.test(\"response code is 200\", function() {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"response contains fileURL key\", function() {",
-							"    const responseBody = pm.response.json();",
-							"    pm.expect(responseBody).to.have.property('fileURL');",
-							"});",
-							"",
-							"pm.test(\"fileURL is a string\", function() {",
-							"    const responseJson = pm.response.json();",
-							"    pm.expect(responseJson).to.have.property('fileURL').that.is.a('string');",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=CRM14/README.md",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"retrieve_file"
-					],
-					"query": [
-						{
-							"key": "file_key",
-							"value": "CRM14/README.md"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Retrieve Non-Existent File",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test to verify getting a 404 response for a non-existent file",
-							"pm.test(\"Status code is 404\", function () {",
-							"    pm.response.to.have.status(404);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=non_existent",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"retrieve_file"
-					],
-					"query": [
-						{
-							"key": "file_key",
-							"value": "non_existent"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Health Check",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test to check the health of the API",
-							"pm.test(\"Response code is 200\", function() {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Response body shows health status\", function() {",
-							"    var responseBody = pm.response.json();",
-							"    pm.expect(responseBody).to.be.an('object');",
-							"    pm.expect(responseBody).to.have.property('Health', 'OK');",
-							"});",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
 				{
 					"listen": "prerequest",
 					"script": {
+						"type": "text/javascript",
+						"packages": {},
 						"exec": [
 							""
-						],
-						"type": "text/javascript",
-						"packages": {}
+						]
 					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
 				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://127.0.0.1:8000/health",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"health"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Not Authenticated",
-			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"exec": [
-							"pm.test(\"response code is 403\", function() {",
-							"    pm.response.to.have.status(403);",
-							"});",
-							"",
-							"",
-							"pm.test(\"response message is not authenticated\", function() {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData).to.eql(\"Forbidden\");",
-							"});"
-						],
 						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://127.0.0.1:8000/retrieve_file?file_key=README.md",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"retrieve_file"
-					],
-					"query": [
-						{
-							"key": "file_key",
-							"value": "README.md"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "save_file",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
+						"packages": {},
 						"exec": [
 							""
-						],
-						"type": "text/javascript",
-						"packages": {}
+						]
 					}
 				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+			]
+		},
+		{
+			"name": "SDSRetrieveFileTests",
+			"item": [
+				{
+					"name": "Retrieve File",
+					"event": [
 						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"type": "file",
-							"src": "test_file.md"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test retrieve file",
+									"pm.test(\"response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response contains fileURL key\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
 						{
-							"key": "body",
-							"value": "{\"bucketName\":\"sds-local\", \"folder\":\"testmult\"} ",
-							"type": "text"
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const sdsTokenService = pm.require('sds-token-service');",
+									"",
+									"await sdsTokenService.getValidToken();"
+								],
+								"type": "text/javascript",
+								"packages": {
+									"sds-token-service": {
+										"id": "01958f97-8740-7df4-a6c8-215dbb021013"
+									}
+								}
+							}
 						}
-					]
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/save_file",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
 					],
-					"port": "8000",
-					"path": [
-						"save_file"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "save_file_virus",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"",
-							"pm.test(\"Check response detail for Virus Found\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData).to.eql({\"detail\": [\"Virus Found\"]});",
-							"});"
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {}
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=test_file.md",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "test_file.md"
+								}
+							]
+						},
+						"description": "Run 'Save File' request first then expect 200 OK"
+					},
+					"response": []
 				},
 				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "Retrieve Non-Existent File",
+					"event": [
 						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"type": "file",
-							"src": "eicar.txt"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to verify getting a 404 response for a non-existent file",
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response body shows file not found\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('detail', 'The file non_existent could not be found.');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						},
 						{
-							"key": "body",
-							"value": "{\"bucketName\":\"sds-local\", \"folder\":\"testmult\"} ",
-							"type": "text"
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const sdsTokenService = pm.require('sds-token-service');",
+									"",
+									"await sdsTokenService.getValidToken();"
+								],
+								"type": "text/javascript",
+								"packages": {
+									"sds-token-service": {
+										"id": "01958f97-8740-7df4-a6c8-215dbb021013"
+									}
+								}
+							}
 						}
-					]
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/save_file",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
 					],
-					"port": "8000",
-					"path": [
-						"save_file"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "save_file_missing_bucket",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"pm.test(\"Response has required fields\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData).to.have.property('detail');",
-							"    pm.expect(jsonData.detail).to.have.property('bucketName');",
-							"    pm.expect(jsonData.detail.bucketName).to.eql('Field required');",
-							"});"
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
 						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=non_existent",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "non_existent"
+								}
+							]
+						},
+						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+					},
+					"response": []
 				}
 			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"type": "file",
-							"src": "test_file.md"
-						},
-						{
-							"key": "body",
-							"value": "{\"folder\":\"testmult\"} ",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/save_file",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"save_file"
-					]
-				}
-			},
-			"response": []
+			"description": "Test on the /retrieve_file endpoint"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"    // Always runs before every request",
+					"    ",
+					"    // resolve variables from the environment",
+					"    const tokenUrl = 'https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token';",
+					"    const clientId = pm.environment.get('SDSClientID')",
+					"    const scope = pm.environment.get('ValidScope')",
+					"    var envSecret = pm.environment.get('SDSClientSecret')",
+					"",
+					"    // locally resolve secret from vault, in pipeline use env var",
+					"    var secret = ''",
+					"    if (envSecret.startsWith('{{vault:')){",
+					"        secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+					"        secret = await pm.vault.get(secretKey)",
+					"    }",
+					"    else{",
+					"        secret = envSecret",
+					"    }",
+					"",
+					"    const postRequest = {",
+					"        url: tokenUrl,",
+					"        method: 'POST',",
+					"        header: {",
+					"            'Content-Type': 'application/x-www-form-urlencoded'",
+					"        },",
+					"        body: {",
+					"            mode: 'urlencoded',",
+					"            urlencoded:",
+					"                [",
+					"                    { key: 'grant_type', value: 'client_credentials' },",
+					"                    { key: 'client_id', value: clientId},",
+					"                    { key: 'client_secret', value: secret },",
+					"                    { key: 'scope', value: scope }",
+					"                ]",
+					"        }",
+					"    };",
+					"",
+					"    pm.sendRequest(postRequest, (error, response) => {",
+					"        let jsonData = response.json();",
+					"        pm.variables.set(\"bearerToken\", jsonData.access_token);",
+					"    })"
+				]
+			}
 		},
 		{
-			"name": "save_file_nofile",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"",
-							"});",
-							"",
-							"pm.test(\"Response has required fields\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData).to.have.property('detail');",
-							"    pm.expect(jsonData.detail).to.include('File is required');",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "bearer {{bearerToken}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"type": "file",
-							"src": []
-						},
-						{
-							"key": "body",
-							"value": "{\"bucketName\":\"sds-local\", \"folder\":\"testmult\"} ",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "http://127.0.0.1:8000/save_file",
-					"protocol": "http",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "8000",
-					"path": [
-						"save_file"
-					]
-				}
-			},
-			"response": []
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }
