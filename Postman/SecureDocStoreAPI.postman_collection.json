@@ -127,44 +127,48 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
+									"// Runs before invalid scope test",
+									"",
+									"function postRequest(secret) {",
+									"    const postRequest = {",
+									"        url: tokenUrl,",
+									"        method: 'POST',",
+									"        header: {",
+									"            'Content-Type': 'application/x-www-form-urlencoded'",
+									"        },",
+									"        body: {",
+									"            mode: 'urlencoded',",
+									"            urlencoded:",
+									"                [",
+									"                    { key: 'grant_type', value: 'client_credentials' },",
+									"                    { key: 'client_id', value: clientId },",
+									"                    { key: 'client_secret', value: secret },",
+									"                    { key: 'scope', value: scope }",
+									"                ]",
+									"        }",
+									"    };",
+									"",
+									"    pm.sendRequest(postRequest, (error, response) => {",
+									"        let jsonData = response.json()",
+									"        pm.variables.set(\"bearerToken\", jsonData.access_token)",
+									"    })",
+									"}",
+									"",
 									"// resolve variables from the environment",
-									"const tokenUrl = 'https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token';",
+									"const tokenUrl = 'https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token'",
 									"const clientId = pm.environment.get('SDSClientID')",
 									"const scope = pm.environment.get('InvalidScope')",
 									"var envSecret = pm.environment.get('SDSClientSecret')",
 									"",
-									"// locally resolve secret from vault, in pipeline use env var",
-									"var secret = ''",
-									"if (envSecret.startsWith('{{vault:')){",
+									"// locally resolve secret from vault, in pipeline use env var\",",
+									"if (envSecret.startsWith('{{vault:')) {",
 									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
-									"    secret = await pm.vault.get(secretKey)",
+									"    // use .then() in place of await to support newman runner",
+									"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
 									"}",
-									"else{",
-									"    secret = envSecret",
-									"}",
-									"",
-									"const postRequest = {",
-									"    url: tokenUrl,",
-									"    method: 'POST',",
-									"    header: {",
-									"        'Content-Type': 'application/x-www-form-urlencoded'",
-									"    },",
-									"    body: {",
-									"        mode: 'urlencoded',",
-									"        urlencoded:",
-									"            [",
-									"                { key: 'grant_type', value: 'client_credentials' },",
-									"                { key: 'client_id', value: clientId},",
-									"                { key: 'client_secret', value: secret },",
-									"                { key: 'scope', value: scope }",
-									"            ]",
-									"    }",
-									"};",
-									"",
-									"pm.sendRequest(postRequest, (error, response) => {",
-									"    let jsonData = response.json();",
-									"    pm.variables.set(\"bearerTokenInvalid\", jsonData.access_token);",
-									"})"
+									"else {",
+									"    postRequest(envSecret)",
+									"}"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -303,7 +307,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "SecureDocStorage/test_file.md"
+									"src": "test_file.md"
 								},
 								{
 									"key": "body",
@@ -381,7 +385,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "SecureDocStorage/eicar.txt"
+									"src": "eicar.txt"
 								},
 								{
 									"key": "body",
@@ -615,16 +619,10 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const sdsTokenService = pm.require('sds-token-service');",
-									"",
-									"await sdsTokenService.getValidToken();"
+									""
 								],
 								"type": "text/javascript",
-								"packages": {
-									"sds-token-service": {
-										"id": "01958f97-8740-7df4-a6c8-215dbb021013"
-									}
-								}
+								"packages": {}
 							}
 						}
 					],
@@ -704,16 +702,10 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const sdsTokenService = pm.require('sds-token-service');",
-									"",
-									"await sdsTokenService.getValidToken();"
+									""
 								],
 								"type": "text/javascript",
-								"packages": {
-									"sds-token-service": {
-										"id": "01958f97-8740-7df4-a6c8-215dbb021013"
-									}
-								}
+								"packages": {}
 							}
 						}
 					],
@@ -778,46 +770,48 @@
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
-					"    // Always runs before every request",
-					"    ",
-					"    // resolve variables from the environment",
-					"    const tokenUrl = 'https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token';",
-					"    const clientId = pm.environment.get('SDSClientID')",
-					"    const scope = pm.environment.get('ValidScope')",
-					"    var envSecret = pm.environment.get('SDSClientSecret')",
+					"// Always runs before every request",
 					"",
-					"    // locally resolve secret from vault, in pipeline use env var",
-					"    var secret = ''",
-					"    if (envSecret.startsWith('{{vault:')){",
-					"        secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
-					"        secret = await pm.vault.get(secretKey)",
-					"    }",
-					"    else{",
-					"        secret = envSecret",
-					"    }",
-					"",
+					"function postRequest(secret) {",
 					"    const postRequest = {",
-					"        url: tokenUrl,",
-					"        method: 'POST',",
-					"        header: {",
-					"            'Content-Type': 'application/x-www-form-urlencoded'",
-					"        },",
-					"        body: {",
-					"            mode: 'urlencoded',",
-					"            urlencoded:",
-					"                [",
-					"                    { key: 'grant_type', value: 'client_credentials' },",
-					"                    { key: 'client_id', value: clientId},",
-					"                    { key: 'client_secret', value: secret },",
-					"                    { key: 'scope', value: scope }",
-					"                ]",
-					"        }",
-					"    };",
+					"    url: tokenUrl,",
+					"    method: 'POST',",
+					"    header: {",
+					"        'Content-Type': 'application/x-www-form-urlencoded'",
+					"    },",
+					"    body: {",
+					"        mode: 'urlencoded',",
+					"        urlencoded:",
+					"            [",
+					"                { key: 'grant_type', value: 'client_credentials' },",
+					"                { key: 'client_id', value: clientId},",
+					"                { key: 'client_secret', value: secret },",
+					"                { key: 'scope', value: scope }",
+					"            ]",
+					"    }",
+					"};",
 					"",
-					"    pm.sendRequest(postRequest, (error, response) => {",
-					"        let jsonData = response.json();",
-					"        pm.variables.set(\"bearerToken\", jsonData.access_token);",
-					"    })"
+					"pm.sendRequest(postRequest, (error, response) => {",
+					"    let jsonData = response.json()",
+					"    pm.variables.set(\"bearerToken\", jsonData.access_token)",
+					"})",
+					"}",
+					"",
+					"// resolve variables from the environment",
+					"const tokenUrl = 'https://login.microsoftonline.com/c6874728-71e6-41fe-a9e1-2e8c36776ad8/oauth2/v2.0/token'",
+					"const clientId = pm.environment.get('SDSClientID')",
+					"const scope = pm.environment.get('ValidScope')",
+					"var envSecret = pm.environment.get('SDSClientSecret')",
+					"",
+					"// locally resolve secret from vault, in pipeline use env var\",",
+					"if (envSecret.startsWith('{{vault:')){",
+					"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+					"    // use .then() in place of await to support newman runner",
+					"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+					"}",
+					"else{",
+					"    postRequest(envSecret)",
+					"}"
 				]
 			}
 		},
