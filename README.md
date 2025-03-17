@@ -98,6 +98,7 @@ with the invalid token test.
 #### Setup
 
 - Install [Postman](https://www.postman.com/downloads/) on your Mac or other device.
+  - You will require an account, create one with your `@digital.justice.gov.uk` email address
 - If it doesn't exist already, create the following directory: `~/Postman` (note capital P at start)
 - On Mac and other devices, Microsoft Defender may quarantine the test virus file
   - Open Micosoft Defender 
