@@ -66,7 +66,7 @@ jobs:
       - name: Run Postman Tests
         run: |
           cd ./Postman
-          newman run ./SecureDocStoreAPI.postman_collection.json --env-var client_id=$CLIENT_ID --env-var client_secret=$CLIENT_SECRET
+          newman run ./SecureDocStoreAPI.postman_collection.json --environment ./SDSPipeline.postman_environment.json --env-var SDSClientSecret=$CLIENT_SECRET
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}

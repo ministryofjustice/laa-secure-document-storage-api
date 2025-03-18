@@ -86,20 +86,48 @@ Run by invoking pytest
 pipenv run pytest
 ```
 
-### API
+### API with Postman
+
+#### Summary
+
+We have a number of tests against this API which can run locally, in the pipeline or against any of our non-production
+environments. We have pre-request scripts configured to obtain authentication tokens. A valid token is obtained before
+all tests via a pre-request script on the collection. An invalid token is obtained via a pre-request script associated 
+with the invalid token test.
 
 #### Setup
 
 - Install [Postman](https://www.postman.com/downloads/) on your Mac or other device.
-- If it doesn't exist already, create the following directory: **~/Postman** (note capital P at start)
-- Copy the files from this repo's **tests/postman** folder into the above directory.
-- Start Postman and import the `SecureDocStoreAPI.postman_collection.json`json file from the **tests/postman** directory
-  via import button or menu `File > Import`.
+  - You will require an account, create one with your `@digital.justice.gov.uk` email address
+- If it doesn't exist already, create the following directory: `~/Postman` (note capital P at start)
+- On Mac and other devices, Microsoft Defender may quarantine the test virus file
+  - Open Micosoft Defender 
+  - Open manage Virus & Threat detection settings
+  - Add/Remove exclusion
+  - Add folder type exclusion for this repos `/Postman` folder, and your `~/Postman` folder
+  - Restore the quarantined eicar.txt file
+- Copy the `eicar.txt` and `test_file.md` files from this repo's `/Postman` folder into the `~/Postman` directory.
+- Start Postman and import the postman files from the `/Postman` directory via import button or menu `File > Import`.
+  - include: `SecureDocStoreAPI.postman_collection.json` and all the files ending `*.postman_environment.json`
+- Configure your Postman working directory location through settings > General > Working directory and set it as **~/Postman**
+
+##### Secrets
+
+- Contact a team member to request secrets
+- We store these in a shared secure vault, you will need to add them to your local Postman vault
+- Click the list icon next to the environment dropdown
+- Open the vault via the red 'vault' link
+- Add secrets using the naming convention from the shared vault
+- Enable secret usage in tests
+  - From the vault, go to settings
+  - On the first page, tick enable usage in scripts
+  - When you first run a request, enable secret usage in the collection
 
 #### Running
 
-- Launch the API locally as described above
-- "Send" the imported requests from within Postman
+- If testing locally, launch the API locally as described above
+- Select the environment you want to test in the top right dropdown menu within the Postman UI
+- "Send" the imported requests from within Postman one at a time, or right-click the collection and run the collection
 - Observe the test results within Postman
 
 ### Cloud Platform
