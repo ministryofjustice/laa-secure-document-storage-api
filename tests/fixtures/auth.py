@@ -19,7 +19,7 @@ def test_user_credentials() -> tuple[AuthCredentials, SimpleUser]:
 
 
 @pytest.fixture
-def test_user_client_config(test_user_credentials):
+def test_user_client_config(test_user_credentials) -> ClientConfig:
     return ClientConfig(
         azure_client_id=test_user_credentials[1].username, bucket_name='test_bucket', azure_display_name='test'
     )
@@ -29,7 +29,7 @@ class TestAuthBackend(BearerTokenAuthBackend):
     def __init__(self, user_credentials: tuple[AuthCredentials, SimpleUser]):
         self.user_credentials = user_credentials
 
-    async def authenticate(self, request):
+    async def authenticate(self, request) -> tuple[AuthCredentials, SimpleUser]:
         return self.user_credentials
 
 
