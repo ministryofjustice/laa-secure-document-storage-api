@@ -27,7 +27,8 @@ def s3_service():
                 return_value=ClientConfig(
                     azure_client_id='test_user',
                     bucket_name=os.getenv('BUCKET_NAME'),
-                    azure_display_name='test'
+                    azure_display_name='test',
+                    file_validators=[]
                 )
             ) as mock_config:
         instance = S3Service.get_instance('test_user')
