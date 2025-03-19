@@ -28,6 +28,19 @@ def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
     return all_specs
 
 
+def generate_recommended_filavalidatorspecs() -> List[FileValidatorSpec]:
+    return [
+        FileValidatorSpec(
+            name='DisallowedFileExtensions',
+            validator_kwargs={'extensions': ['', ]}
+        ),
+        FileValidatorSpec(
+            name='DisallowedMimeTypes',
+            validator_kwargs={'mime_types': ['application/x-msdownload', 'application/x-sh', '']}
+        )
+    ]
+
+
 def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, Any]:
     if isinstance(validator, str):
         for validator_cls in FileValidator.__subclasses__():
@@ -238,7 +251,7 @@ class ClientBundle(BaseModel):
                     azure_client_id=self.azure_client_id,
                     azure_display_name=self.azure_display_name,
                     bucket_name=bucket_name if bucket_name is not None else f"{self.azure_display_name}-bucket",
-                    file_validators=generate_all_filevalidatorspecs()
+                    file_validators=generate_recommended_filavalidatorspecs()
                 )
         return self.clientconfig
 
@@ -278,7 +291,7 @@ class ClientBundle(BaseModel):
         return self.clientacl
 
 
-def print_obj(obj: ClientBundle | List[ClientBundle]):
+def print_obj(obj: ClientBundle | List | Dict):
     if hasattr(obj, 'model_dump_json'):
         print(obj.model_dump_json(indent=2))
     else:
@@ -389,8 +402,12 @@ def cmd_add(args: argparse.Namespace, **kwargs):
         else input("Azure display name: ")
     bucket_name = args.bucket_name if args.bucket_name not in (None, '') \
         else input("Bucket name: ")
+    service_name = args.service_name if args.service_name not in (None, '') \
+        else input("Service name: ")
 
-    client_bundle = ClientBundle(azure_client_id=azure_client_id, azure_display_name=azure_display_name)
+    client_bundle = ClientBundle(
+        azure_client_id=azure_client_id, azure_display_name=azure_display_name, service_name=service_name
+    )
     client_bundle.get_or_create_clientconfig(bucket_name)
     client_bundle.get_or_create_clientacl()
     client_bundle.write()
@@ -428,6 +445,7 @@ def main():
     add_parser = subparsers.add_parser('add', help='Add a new client configuration with ACL and file ')
     add_parser.add_argument('--azure-client-id', type=str, default=None, help='Azure client ID')
     add_parser.add_argument('--azure-display-name', type=str, default=None, help='Used for labelling and logging')
+    add_parser.add_argument('--service-name', type=str, help='CP or repo name of application using the client')
     add_parser.add_argument('--bucket-name', type=str, default=None, help='Bucket name')
     add_parser.set_defaults(func=cmd_add)
 
