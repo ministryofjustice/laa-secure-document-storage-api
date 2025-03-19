@@ -193,7 +193,40 @@ def test_file_validator(
         make_uploadfile(name="test.dll"),
         415, "File mimetype not allowed",
         "Microsoft executable mimetype includes .dll files"
-    )
+    ),
+    (
+        make_config([
+            make_validatorspec(
+                "DisallowedMimetypes",
+                content_types=["application/x-sh", "application/x-msdownload"]
+            ),
+        ]),
+        make_uploadfile(name="test.sh"),
+        415, "File mimetype not allowed",
+        "Exclude shell scripts"
+    ),
+    (
+        make_config([
+            make_validatorspec(
+                "DisallowedMimetypes",
+                content_types=["application/x-sh", "application/x-msdownload"]
+            ),
+        ]),
+        make_uploadfile(name="test.MISSING"),
+        400, "File mimetype is required",
+        "Always exclude files with missing mimetype if mimetype is required"
+    ),
+    (
+        make_config([
+            make_validatorspec(
+                "DisallowedFileExtensions",
+                extensions=["", ]
+            ),
+        ]),
+        make_uploadfile(name="no-extension-exe"),
+        415, "File extension not allowed",
+        "Exclude any files with no extension"
+    ),
 ])
 async def test_file_validator_from_config(
             validator_config: ClientConfig, file_object: UploadFile,
