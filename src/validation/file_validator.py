@@ -19,7 +19,7 @@ class InvalidValidatorArgumentsError(Exception):
 class FileValidator(abc.ABC):
     def validate(self, file_object: UploadFile, **kwargs) -> Tuple[int, str]:
         """
-        Runs the validator on the file object and returns a boolean and a message.
+        Runs the validator on the file object and returns a status code and a message.
 
         :param file_object:
         :param kwargs:
@@ -120,7 +120,7 @@ class DisallowedMimetypes(FileValidator):
         Returns 400 if the file object does not have a content_type attribute.
 
         :param file_object: Must have content_type attribute.
-        :param mimetypes: List of mimetypes to disallow.
+        :param content_types: List of mimetypes to disallow.
         :param kwargs:
         :return: status_code: int, detail: str
         """
