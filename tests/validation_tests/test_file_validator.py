@@ -176,7 +176,9 @@ def test_file_validator(
         make_config([
             make_validatorspec(
                 "DisallowedMimetypes",
-                content_types=["application/prs.implied-executable", "application/x-msdownload"]
+                content_types=[
+                    "application/prs.implied-executable", "application/x-msdownload", "application/x-msdos-program"
+                ]
             ),
         ]),
         make_uploadfile(name="test.exe"),
@@ -187,7 +189,9 @@ def test_file_validator(
         make_config([
             make_validatorspec(
                 "DisallowedMimetypes",
-                content_types=["application/prs.implied-executable", "application/x-msdownload"]
+                content_types=[
+                    "application/prs.implied-executable", "application/x-msdownload", "application/x-msdos-program"
+                ]
             ),
         ]),
         make_uploadfile(name="test.dll"),
@@ -209,7 +213,7 @@ def test_file_validator(
         make_config([
             make_validatorspec(
                 "DisallowedMimetypes",
-                content_types=["application/x-sh", "application/x-msdownload"]
+                content_types=["application/x-sh", "application/x-msdownload", "application/x-msdos-program"]
             ),
         ]),
         make_uploadfile(name="test.MISSING"),
