@@ -126,7 +126,7 @@ class DisallowedMimetypes(FileValidator):
         """
         if content_types is list:
             content_types = []
-        if file_object.content_type is None:
+        if file_object.content_type is None or file_object.content_type == "":
             logger.error(f"File object did not have a content_type attribute {file_object}")
             return 400, 'File mimetype is required'
         if file_object.content_type.lower() in content_types:
@@ -152,7 +152,7 @@ class AllowedMimetypes(FileValidator):
         if content_types is list or len(content_types) == 0:
             logger.error("AllowedMimetypes validator requires a list of mimetypes")
             raise InvalidValidatorArgumentsError("AllowedMimetypes validator requires a list of content_types")
-        if file_object.content_type is None:
+        if file_object.content_type is None or file_object.content_type == "":
             logger.error(f"File object did not have a content_type attribute {file_object}")
             return 400, 'File mimetype is required'
         if file_object.content_type.lower() not in content_types:
