@@ -202,7 +202,7 @@ def test_file_validator(
         make_config([
             make_validatorspec(
                 "DisallowedMimetypes",
-                content_types=["application/x-sh", "application/x-msdownload"]
+                content_types=["application/x-sh", "text/x-sh", "application/x-msdownload"]
             ),
         ]),
         make_uploadfile(name="test.sh"),
@@ -213,7 +213,7 @@ def test_file_validator(
         make_config([
             make_validatorspec(
                 "DisallowedMimetypes",
-                content_types=["application/x-sh", "application/x-msdownload", "application/x-msdos-program"]
+                content_types=["application/x-sh", "text/x-sh", "application/x-msdownload", "application/x-msdos-program"]
             ),
         ]),
         make_uploadfile(name="test.MISSING"),
