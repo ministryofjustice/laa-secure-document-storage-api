@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "504da8bb-9001-4cef-913e-d66c5722a6bc",
+		"_postman_id": "a451724a-5da3-49bb-87b6-c04e0c6ea9df",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "20091732"
+		"_exporter_id": "43175045"
 	},
 	"item": [
 		{
@@ -404,6 +404,84 @@
 							]
 						},
 						"description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
+					},
+					"response": []
+				},
+				{
+					"name": "Save disallowed file type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 415\", function () {",
+									"    pm.response.to.have.status(415);",
+									"});",
+									"",
+									"pm.test(\"File mimetype not allowed\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.eql({\"detail\": \"File mimetype not allowed\"});",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.exe"
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 415 UNSUPPORTED MEDIA TYPE when saving a mock executable file as disallowed by client config."
 					},
 					"response": []
 				},
