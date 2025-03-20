@@ -2,12 +2,13 @@
 
 ## Model
 
-The client configuration links a backing storage (S3 bucket) and any storage preferences (such as file filters) to an 
+The client configuration links a backing storage (S3 bucket) and any storage preferences (such as file validators) to an 
 authenticated client.
 
 * `azure_client_id` - Unique identifier to the requesting application, the `username` of the client.
 * `azure_display_name` - Human readable label for the requesting client, may be duplicated.
 * `bucket_name` - The S3 bucket name configured for the client.
+* `file_validators` - A list of file validators to apply to files saved by the client.
 
 `Azure Client ID` This is the key by which the authenticated application is linked to the configuration.
 This is the ID labelled `Application (client) ID` in the Azure portal, and is available as the `azp` field in the auth 
@@ -22,15 +23,22 @@ duplicates are expected.
 namespace, as specified in the SDS integration documentation.
 Buckets may be shared between clients, so duplicates are expected.
 
+`File Validators` This is a list of file validators to apply to files saved by the client. The file is only saved if 
+all validators pass. The validators are specified as a list of objects, which contain the name of the validator and any
+arguments required by the validator.
+
+For convenience, we organise the client configurations into directories based on the requesting service (such as
+`laa-sds`), then the `azure_display_name` value, and finally the files are named with the `azure_client_id` value.
+
 ## Storage
 
-The current implementation can load configurations from a datastore (DynamoDB), from JSON files, or a single-client 
-local mode from environment variables. The stores used are configured via the `CONFIG_STORES` environment variable, and
-will cascade in order of `db`, `file`, then `env`. Multiple stores can be specified by comma-separating the values, for
-example `CONFIG_STORES=db,file`.
+The current implementation can load configurations from from JSON files or a single-client local mode from environment
+variables. The stores used are configured via the `CONFIG_STORES` environment variable, and will cascade in order of
+`file`, then `env`. Multiple stores can be specified by comma-separating the values, for example
+`CONFIG_STORES=file,env`.
 
-The current preferred store is `file`, and we manage configured clients by managing the configuration files in the
-`clientconfigs` directory. We also have a helper CLI tool `configbuilder.py` for viewing and adding configs.
+We manage configured clients by managing the configuration files in the `clientconfigs` directory. 
+We also have a helper CLI tool `configbuilder.py` for viewing and adding configs.
 The files (and related ACL file) may be placed in a separate configuration repository in the future.
 
 The ClientConfigService will return `None` if a config is not found, so we also have a helper method
@@ -40,68 +48,65 @@ The result (a `ClientConfig` or `None`) is cached by the service for a configura
 
 ### `file` store
 
-The file store loads JSON format files from `CONFIG_DIR` (defaults to `/app/clientconfigs/`). Files are named with the
-`azure_client_id` value (so `abc-123-def.json`), and should be organised in sub-directories below the configured root,
-one for each requesting service.
+The file store loads JSON format files from `CONFIG_DIR` (defaults to `/app/clientconfigs/`).
+Files are organised into directories based on the requesting parent service (such as `laa-sds`), then the
+`azure_display_name` value, and finally the files are named with the `azure_client_id` value (so `abc-123-def.json`).
 
 For ease of use, we have a helper CLI tool `configbuilder.py` which can be used to view and add client configurations.
 
-To list all client configurations, run
+To list all client configurations, run:
 ```shell
 $ ./configbuilder.py list
 ```
 
-To view the current configuration for a specific client, get the Azure application (client) ID and run:
+To view the current configuration for a specific client, get the Azure application (client) ID (or the start of the ID)
+and run:
 ```shell   
 $ ./configbuilder.py get {client-id}
 ```
 
-If you have a value (such as a service or bucket name), you can find all clients which contain that value in their
-configuration by running
+If you have a value (such as a service name or bucket name), you can find all clients which contain that value in their
+configuration by running:
 ```shell
 $ ./configbuilder.py find {value}
 ```
 
-To add a new client interactively, run
+To add a new client interactively, run:
 ```shell
 $ ./configbuilder.py add
 ```
 
-To add a new client configuration where you already know the values, run
+To add a new client configuration where you already know the values, run:
 ```shell
 $ ./configbuilder.py add --azure-client-id {client} \
   --bucket-name {bucket} \
   --azure-display-name {service} \
-  --subdir {subdir}
+  --service-name {service_name}
 ```
+This will add a new client configuration with the recommended file validators for the service.
 
-### `db` store
-
-The `db` store is a DynamoDB table specified via the environment variable `CONFIG_TABLE` and a local instance can be 
-initialised and have a config inserted using the `configdb.sh` script.
-
-To initialise a table, run 
-```shell
-$ ./configdb.sh init
+The config files are plain JSON and can be edited in any text editor. The structure is as follows:
+```json
+{
+  "azure_client_id": "000-000-000",
+  "azure_display_name": "Service Name",
+  "bucket_name": "bucket-name",
+  "service_name": "service-name",
+  "file_validators": [
+    {
+      "name": "file_validator_name",
+      "validator_kwargs": {
+        "arg1": "value1",
+        "arg2": "value2"
+      }
+    }
+  ]
+}
 ```
-and to add a client config run
+However, we also provide an interactive editor in the configbuilder tool which can be used to reset routes and file
+file filters. To interactively edit a client configuration, run:
 ```shell
-$ ./configdb.sh client {client} {bucket} {service}
-```
-When adding a client config, if values are not provided the script will prompt:
-```shell
-$ ./configdb.sh client
-Enter Azure application (client) id : abc-def-ghi
-Enter bucket name : local-test-bucket
-Enter Azure display name (default: abc-def-ghi): laa-test-service
-
-Azure client ID    : abc-def-ghi
-Azure display name : laa-test-service
-Bucket             : local-test-bucket
-
-Adding client config to LOCAL_CONFIG_TABLENAME --region=eu-west-2 --endpoint-url http://localhost:8100
-Continue? (y/n) y
-$ 
+$ ./configbuilder.py edit {client-id}
 ```
 
 ### `env` store
@@ -123,9 +128,10 @@ terms of configuration and ACL.
 
    * An EntraID app registration
 
-     * The application must have the `LAA_SDS_ALL` API permission assigned
+     * The app registration must have the `LAA_SDS.ALL` API permission assigned
      * The `Application (client) ID` must be provided
      * The `Display Name` must be provided
+     * The repo or Cloud Platform name of the requesting service should be provided
 
    * An S3 bucket which will be the backing store for SDS API access
 
