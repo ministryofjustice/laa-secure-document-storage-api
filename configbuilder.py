@@ -35,7 +35,7 @@ def generate_recommended_filavalidatorspecs() -> List[FileValidatorSpec]:
             validator_kwargs={'extensions': ['', ]}
         ),
         FileValidatorSpec(
-            name='DisallowedMimeTypes',
+            name='DisallowedMimetypes',
             validator_kwargs={
                 'content_types': [
                     'application/x-sh', 'text/x-sh', 'application/x-msdownload', 'application/x-msdos-program'
