@@ -1,0 +1,5 @@
+p, 474e0f8b-fa95-47e0-89be-1af812acff4a, /health, GET
+p, 474e0f8b-fa95-47e0-89be-1af812acff4a, /, GET
+p, 474e0f8b-fa95-47e0-89be-1af812acff4a, /retrieve_file, GET
+p, 474e0f8b-fa95-47e0-89be-1af812acff4a, /save_file, POST
+p, 474e0f8b-fa95-47e0-89be-1af812acff4a, laa-sds-equiniti-development, (CREATE)|(READ)
