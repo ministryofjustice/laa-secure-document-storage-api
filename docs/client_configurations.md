@@ -104,10 +104,12 @@ The config files are plain JSON and can be edited in any text editor. The struct
 }
 ```
 However, we also provide an interactive editor in the configbuilder tool which can be used to reset routes and file
-file filters. To interactively edit a client configuration, run:
+validators. To interactively edit a client configuration, run:
 ```shell
 $ ./configbuilder.py edit {client-id}
 ```
+
+
 
 ### `env` store
 
