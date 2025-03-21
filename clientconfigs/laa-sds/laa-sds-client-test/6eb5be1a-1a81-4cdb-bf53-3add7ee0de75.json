@@ -1,0 +1,26 @@
+{
+  "azure_client_id": "6eb5be1a-1a81-4cdb-bf53-3add7ee0de75",
+  "azure_display_name": "laa-sds-client-test",
+  "bucket_name": "laa-sds-internal-uat",
+  "file_validators": [
+    {
+      "name": "DisallowedFileExtensions",
+      "validator_kwargs": {
+        "extensions": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "DisallowedMimetypes",
+      "validator_kwargs": {
+        "content_types": [
+          "application/x-sh",
+          "text/x-sh",
+          "application/x-msdownload",
+          "application/x-msdos-program"
+        ]
+      }
+    }
+  ]
+}

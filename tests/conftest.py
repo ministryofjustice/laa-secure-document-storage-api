@@ -12,6 +12,12 @@ pytest_plugins = [
 ]
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "normal_auth: mark test to run using normal auth middleware checks"
+    )
+
+
 @pytest.fixture()
 def get_file() -> BufferedReader:
     test_file_path = os.path.join(

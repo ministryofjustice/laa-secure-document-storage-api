@@ -1,0 +1,5 @@
+p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /health, GET
+p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /, GET
+p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /retrieve_file, GET
+p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /save_file, POST
+p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, laa-sds-internal-uat, (CREATE)|(READ)

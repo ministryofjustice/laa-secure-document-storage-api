@@ -1,0 +1,26 @@
+{
+  "azure_client_id": "474e0f8b-fa95-47e0-89be-1af812acff4a",
+  "azure_display_name": "laa-crime-equinity-historical-data-frontend-oauthproxy",
+  "bucket_name": "laa-sds-equiniti-development",
+  "file_validators": [
+    {
+      "name": "DisallowedFileExtensions",
+      "validator_kwargs": {
+        "extensions": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "DisallowedMimetypes",
+      "validator_kwargs": {
+        "content_types": [
+          "application/x-sh",
+          "text/x-sh",
+          "application/x-msdownload",
+          "application/x-msdos-program"
+        ]
+      }
+    }
+  ]
+}
