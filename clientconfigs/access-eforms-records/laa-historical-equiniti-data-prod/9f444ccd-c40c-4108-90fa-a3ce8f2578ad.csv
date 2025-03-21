@@ -1,5 +1,2 @@
-p, 9f444ccd-c40c-4108-90fa-a3ce8f2578ad, /health, GET
-p, 9f444ccd-c40c-4108-90fa-a3ce8f2578ad, /, GET
 p, 9f444ccd-c40c-4108-90fa-a3ce8f2578ad, /retrieve_file, GET
-p, 9f444ccd-c40c-4108-90fa-a3ce8f2578ad, /save_file, POST
 p, 9f444ccd-c40c-4108-90fa-a3ce8f2578ad, laa-sds-equiniti-production, (CREATE)|(READ)
