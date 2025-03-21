@@ -7,7 +7,7 @@ import pytest
 from fastapi import UploadFile
 
 from src.models.client_config import ClientConfig, FileValidatorSpec
-from src.services.file_validation_service import get_validator, validate
+from src.services.client_configured_validation_service import get_validator, validate
 from src.validation.file_validator import InvalidValidatorArgumentsError
 
 
