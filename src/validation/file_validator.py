@@ -25,6 +25,7 @@ class FileValidator(abc.ABC):
         :param kwargs:
         :return: status_code: int, detail: str
         """
+        # This method should be overridden by subclasses, so raise an error if this is called
         raise NotImplementedError()
 
 
