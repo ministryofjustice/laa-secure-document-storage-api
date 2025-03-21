@@ -28,7 +28,7 @@ def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
     return all_specs
 
 
-def generate_recommended_filavalidatorspecs() -> List[FileValidatorSpec]:
+def generate_recommended_filevalidatorspecs() -> List[FileValidatorSpec]:
     return [
         FileValidatorSpec(
             name='DisallowedFileExtensions',
@@ -255,7 +255,7 @@ class ClientBundle(BaseModel):
                     azure_client_id=self.azure_client_id,
                     azure_display_name=self.azure_display_name,
                     bucket_name=bucket_name if bucket_name is not None else f"{self.azure_display_name}-bucket",
-                    file_validators=generate_recommended_filavalidatorspecs()
+                    file_validators=generate_recommended_filevalidatorspecs()
                 )
         return self.clientconfig
 
