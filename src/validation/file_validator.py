@@ -30,7 +30,7 @@ class FileValidator(abc.ABC):
 
 
 class MaxFileSize(FileValidator):
-    def validate(self, file_object, size: int = 0, **kwargs) -> Tuple[int, str]:
+    def validate(self, file_object, size: int = 1, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file is at most a certain size.
 
@@ -39,7 +39,7 @@ class MaxFileSize(FileValidator):
         :param kwargs:
         :return: status_code: int, detail: str
         """
-        if size < 0:
+        if size <= 0:
             logger.error("MaxFileSize validator requires a positive size")
             raise InvalidValidatorArgumentsError("MaxFileSize validator requires a positive size")
         if file_object.size is None:
@@ -51,7 +51,7 @@ class MaxFileSize(FileValidator):
 
 
 class MinFileSize(FileValidator):
-    def validate(self, file_object, size: int = 0, **kwargs) -> Tuple[int, str]:
+    def validate(self, file_object, size: int = 1, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file is at least a certain size.
 
@@ -60,7 +60,7 @@ class MinFileSize(FileValidator):
         :param kwargs:
         :return: status_code: int, detail: str
         """
-        if size < 0:
+        if size <= 0:
             logger.error("MinFileSize validator requires a positive size")
             raise InvalidValidatorArgumentsError("MinFileSize validator requires a positive size")
         if file_object.size is None:
