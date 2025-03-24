@@ -116,7 +116,7 @@
 								}
 							]
 						},
-						"description": "Expect a 403 FORBIDDEN with no bearer token"
+						"description": "Expect a 403 FORBIDDEN with no authentication token (hence anonymous)"
 					},
 					"response": []
 				},
@@ -241,6 +241,130 @@
 							]
 						},
 						"description": "Expect a 403 FORBIDDEN when using a token with the wrong scope (resolved in pre-request)"
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Runs before invalid scope test",
+									"",
+									"function postRequest(secret) {",
+									"    const postRequest = {",
+									"        url: tokenUrl,",
+									"        method: 'POST',",
+									"        header: {",
+									"            'Content-Type': 'application/x-www-form-urlencoded'",
+									"        },",
+									"        body: {",
+									"            mode: 'urlencoded',",
+									"            urlencoded:",
+									"                [",
+									"                    { key: 'grant_type', value: 'client_credentials' },",
+									"                    { key: 'client_id', value: clientId },",
+									"                    { key: 'client_secret', value: secret },",
+									"                    { key: 'scope', value: scope }",
+									"                ]",
+									"        }",
+									"    };",
+									"",
+									"    pm.sendRequest(postRequest, (error, response) => {",
+									"        let jsonData = response.json()",
+									"        pm.variables.set(\"bearerToken\", \"invalid token\")",
+									"    })",
+									"}",
+									"",
+									"// resolve variables from the environment",
+									"const tokenUrl = pm.environment.get('AzureTokenUrl')",
+									"const clientId = pm.environment.get('SDSClientID')",
+									"const scope = pm.environment.get('InvalidScope')",
+									"var envSecret = pm.environment.get('SDSClientSecret')",
+									"",
+									"// locally resolve secret from vault, in pipeline use env var\",",
+									"if (envSecret.startsWith('{{vault:')) {",
+									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+									"    // use .then() in place of await to support newman runner",
+									"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+									"}",
+									"else {",
+									"    postRequest(envSecret)",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test invalid scope token",
+									"pm.test(\"response code is 401\", function() {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response body shows Invalid Token\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('detail', 'Invalid or expired token');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "README.md"
+								}
+							]
+						},
+						"description": "Expect a 401 UNAUTHORIZED when using an invalid token."
 					},
 					"response": []
 				}
