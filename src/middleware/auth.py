@@ -5,6 +5,7 @@ from cachetools import cached, TTLCache
 from fastapi.security import HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import jwt, jwk
+from jose.exceptions import JWTClaimsError, JWTError, ExpiredSignatureError
 from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCredentials, BaseUser, AuthenticationError
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
@@ -93,8 +94,14 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
             audience=aud,
             issuer=f"https://login.microsoftonline.com/{tenant_id}/v2.0"
         )
-    except Exception as error:
-        logger.error(f"The token is invalid: {error.__class__.__name__} {error}")
+    except ExpiredSignatureError as signature_error:
+        logger.error(f"Error processing token: Signature invalid {signature_error}")
+        raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
+    except JWTClaimsError as cerror:
+        logger.error(f"Error processing token: Claims error {cerror}")
+        raise _AuthenticationError(status_code=403, detail="Forbidden")
+    except JWTError as error:
+        logger.error(f"Unexpected error processing token: {error.__class__.__name__} {error}")
         raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
 
     # Ensure token has `azp` claim which is used to identify the client

@@ -179,14 +179,14 @@
 							"script": {
 								"exec": [
 									"// Test invalid scope token",
-									"pm.test(\"response code is 401\", function() {",
-									"    pm.response.to.have.status(401);",
+									"pm.test(\"response code is 403\", function() {",
+									"    pm.response.to.have.status(403);",
 									"});",
 									"",
 									"pm.test(\"Response body shows Invalid Token\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'Invalid or expired token');",
+									"    pm.expect(responseBody).to.have.property('detail', 'Forbidden');",
 									"});"
 								],
 								"type": "text/javascript",
