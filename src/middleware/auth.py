@@ -97,8 +97,8 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
     except ExpiredSignatureError as signature_error:
         logger.error(f"Error processing token: Signature invalid {signature_error}")
         raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
-    except JWTClaimsError as cerror:
-        logger.error(f"Error processing token: Claims error {cerror}")
+    except JWTClaimsError as claims_error:
+        logger.error(f"Error processing token: Claims error {claims_error}")
         raise _AuthenticationError(status_code=403, detail="Forbidden")
     except JWTError as error:
         logger.error(f"Unexpected error processing token: {error.__class__.__name__} {error}")
