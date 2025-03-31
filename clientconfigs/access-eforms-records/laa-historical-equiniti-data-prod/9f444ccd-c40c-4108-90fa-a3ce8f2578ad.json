@@ -2,25 +2,5 @@
   "azure_client_id": "9f444ccd-c40c-4108-90fa-a3ce8f2578ad",
   "azure_display_name": "laa-historical-equiniti-data-prod",
   "bucket_name": "laa-sds-equiniti-production",
-  "file_validators": [
-    {
-      "name": "DisallowedFileExtensions",
-      "validator_kwargs": {
-        "extensions": [
-          ""
-        ]
-      }
-    },
-    {
-      "name": "DisallowedMimetypes",
-      "validator_kwargs": {
-        "content_types": [
-          "application/x-sh",
-          "text/x-sh",
-          "application/x-msdownload",
-          "application/x-msdos-program"
-        ]
-      }
-    }
-  ]
+  "file_validators": []
 }
