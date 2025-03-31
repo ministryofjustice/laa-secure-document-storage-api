@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "504da8bb-9001-4cef-913e-d66c5722a6bc",
+		"_postman_id": "a451724a-5da3-49bb-87b6-c04e0c6ea9df",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "20091732"
+		"_exporter_id": "43175045"
 	},
 	"item": [
 		{
@@ -116,7 +116,7 @@
 								}
 							]
 						},
-						"description": "Expect a 403 FORBIDDEN with no bearer token"
+						"description": "Expect a 403 FORBIDDEN with no authentication token (hence anonymous)"
 					},
 					"response": []
 				},
@@ -151,6 +151,130 @@
 									"    pm.sendRequest(postRequest, (error, response) => {",
 									"        let jsonData = response.json()",
 									"        pm.variables.set(\"bearerToken\", jsonData.access_token)",
+									"    })",
+									"}",
+									"",
+									"// resolve variables from the environment",
+									"const tokenUrl = pm.environment.get('AzureTokenUrl')",
+									"const clientId = pm.environment.get('SDSClientID')",
+									"const scope = pm.environment.get('InvalidScope')",
+									"var envSecret = pm.environment.get('SDSClientSecret')",
+									"",
+									"// locally resolve secret from vault, in pipeline use env var\",",
+									"if (envSecret.startsWith('{{vault:')) {",
+									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+									"    // use .then() in place of await to support newman runner",
+									"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+									"}",
+									"else {",
+									"    postRequest(envSecret)",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test invalid scope token",
+									"pm.test(\"response code is 403\", function() {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response body shows Invalid Token\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('detail', 'Forbidden');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "README.md"
+								}
+							]
+						},
+						"description": "Expect a 403 FORBIDDEN when using a token with the wrong scope (resolved in pre-request)"
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Runs before invalid scope test",
+									"",
+									"function postRequest(secret) {",
+									"    const postRequest = {",
+									"        url: tokenUrl,",
+									"        method: 'POST',",
+									"        header: {",
+									"            'Content-Type': 'application/x-www-form-urlencoded'",
+									"        },",
+									"        body: {",
+									"            mode: 'urlencoded',",
+									"            urlencoded:",
+									"                [",
+									"                    { key: 'grant_type', value: 'client_credentials' },",
+									"                    { key: 'client_id', value: clientId },",
+									"                    { key: 'client_secret', value: secret },",
+									"                    { key: 'scope', value: scope }",
+									"                ]",
+									"        }",
+									"    };",
+									"",
+									"    pm.sendRequest(postRequest, (error, response) => {",
+									"        let jsonData = response.json()",
+									"        pm.variables.set(\"bearerToken\", \"invalid token\")",
 									"    })",
 									"}",
 									"",
@@ -240,7 +364,7 @@
 								}
 							]
 						},
-						"description": "Expect a 403 FORBIDDEN when using a token with the wrong scope (resolved in pre-request)"
+						"description": "Expect a 401 UNAUTHORIZED when using an invalid token."
 					},
 					"response": []
 				}
@@ -404,6 +528,84 @@
 							]
 						},
 						"description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
+					},
+					"response": []
+				},
+				{
+					"name": "Save disallowed file type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 415\", function () {",
+									"    pm.response.to.have.status(415);",
+									"});",
+									"",
+									"pm.test(\"File mimetype not allowed\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.eql({\"detail\": \"File mimetype not allowed\"});",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.exe"
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 415 UNSUPPORTED MEDIA TYPE when saving a mock executable file as disallowed by client config."
 					},
 					"response": []
 				},

@@ -3,7 +3,7 @@ import pytest
 import structlog
 from fastapi.testclient import TestClient
 from jose import jwt, JWTError
-from jose.exceptions import JWTClaimsError
+from jose.exceptions import JWTClaimsError, ExpiredSignatureError
 
 from src.main import app
 
@@ -133,6 +133,30 @@ def test_token_decode_jwtclaimserror(
     key_construct_mock.return_value = MOCK_KEY
 
     decode_mock.side_effect = JWTClaimsError()
+    decode_mock.return_value = {
+        'sub': 'test_user', 'iss': 'https://login.microsoftonline.com/123456', 'azp': 'test_user'
+    }
+
+    response = test_client.get('/retrieve_file?file_key=README.md', headers={'Authorization': 'Bearer token'})
+    decode_mock.assert_called_once()
+    assert response.status_code == 403
+
+
+@pytest.mark.normal_auth
+@patch('src.middleware.auth.jwt.decode')
+@patch('src.middleware.auth.jwk.construct')
+@patch('src.middleware.auth.jwt.get_unverified_header')
+@patch('src.middleware.auth.fetch_jwks')
+@patch('src.middleware.auth.fetch_oidc_config')
+def test_token_decode_invalid_siognature(
+            oidc_mock, jwks_mock, unv_header_mock, key_construct_mock, decode_mock, audit_service_mock
+        ):
+    oidc_mock.return_value = MOCK_OIDC_CONFIG
+    jwks_mock.return_value = MOCK_JWKS
+    unv_header_mock.return_value = MOCK_HEADER
+    key_construct_mock.return_value = MOCK_KEY
+
+    decode_mock.side_effect = ExpiredSignatureError()
     decode_mock.return_value = {
         'sub': 'test_user', 'iss': 'https://login.microsoftonline.com/123456', 'azp': 'test_user'
     }

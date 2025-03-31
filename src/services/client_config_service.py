@@ -3,7 +3,6 @@ import pathlib
 import datetime
 from typing import Dict
 
-import boto3
 from fastapi import HTTPException
 
 from src.models.client_config import ClientConfig
@@ -71,10 +70,6 @@ class ClientConfigService:
             ClientConfigService._config_sources = os.getenv('CONFIG_SOURCES', 'file').lower().split(',')
 
         loaded_config = None
-
-        if 'db' in ClientConfigService._config_sources:
-            logger.info(f"Looking for ClientConfig for '{self.username}' from DynamoDB")
-            loaded_config = self.load_from_db()
 
         if 'file' in ClientConfigService._config_sources \
                 and loaded_config is None:
@@ -148,48 +143,6 @@ class ClientConfigService:
             loaded_config = None
 
         return loaded_config
-
-    def load_from_db(self) -> ClientConfig | None:
-        """
-        Attempts to load a ClientConfig for the current username from the CONFIG_TABLE DynamoDB table, returning None
-        if the table does not exist.
-
-        :return: ClientConfig instance if found and loaded, else None
-        """
-        loaded_config = None
-        try:
-            dynamodb = self.get_dynamodb()
-            table = dynamodb.Table(os.getenv('CONFIG_TABLE'))
-            response = table.get_item(Key={'azure_client_id': self.username})
-            if 'Item' in response:
-                logger.info(f"Retrieved ClientConfig for '{self.username}'")
-                loaded_config = ClientConfig.model_validate(response['Item'])
-            else:
-                logger.error(f"ClientConfig for '{self.username}' not found")
-        except Exception as e:
-            logger.error(f"Error {e.__class__.__name__} during load of config for '{self.username}': {e}")
-            loaded_config = None
-
-        return loaded_config
-
-    def get_dynamodb(self) -> boto3.resource:
-        if os.getenv('ENV') == 'local':
-            logger.info("Using local DynamoDB client to load ClientConfig")
-            dynamodb = boto3.resource(
-                'dynamodb',
-                region_name=os.getenv('AWS_REGION'),
-                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-                endpoint_url=os.getenv('DYNAMODB_ENDPOINT_URL')
-            )
-        else:
-            logger.info("Using production DynamoDB client to load ClientConfig")
-            dynamodb = boto3.resource(
-                'dynamodb',
-                region_name=os.getenv('AWS_REGION')
-            )
-
-        return dynamodb
 
 
 def get_config_for_client(username: str) -> ClientConfig | None:

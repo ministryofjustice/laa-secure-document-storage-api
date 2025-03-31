@@ -9,14 +9,14 @@ load_dotenv()
 logger = structlog.get_logger()
 
 
-class AvCheckService:
+class ClamAVService:
     _instance = None
 
     def __init__(self):
-        if AvCheckService._instance is not None:
+        if ClamAVService._instance is not None:
             raise Exception("This class a singleton!")
         else:
-            AvCheckService._instance = self
+            ClamAVService._instance = self
             _host = os.getenv('CLAMD_HOST', 'localhost')
             _port = int(os.getenv('CLAMD_PORT', '3310'))
             _clamd = clamd.ClamdNetworkSocket()
@@ -25,9 +25,9 @@ class AvCheckService:
 
     @staticmethod
     def get_instance():
-        if AvCheckService._instance is None:
-            AvCheckService()
-        return AvCheckService._instance
+        if ClamAVService._instance is None:
+            ClamAVService()
+        return ClamAVService._instance
 
     # documentation used for this https://docs.clamav.net/manual/Usage/Scanning.html
     async def check(self, file: BytesIO):
@@ -48,5 +48,5 @@ class AvCheckService:
 
 
 async def virus_check(file: BytesIO):
-    clamAv = AvCheckService.get_instance()
+    clamAv = ClamAVService.get_instance()
     return await clamAv.check(file)
