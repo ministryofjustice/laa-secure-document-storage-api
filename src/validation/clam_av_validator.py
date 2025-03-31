@@ -3,10 +3,10 @@ import io
 
 from fastapi import Header, UploadFile
 from src.models.validation_response import ValidationResponse
-from src.services.av_check_service import virus_check
+from src.services.clam_av_service import virus_check
 
 
-async def validate_request(headers: Header, file: UploadFile):
+async def scan_request(headers: Header, file: UploadFile):
     messages = []
     status_code = None
     validator_sequence = [content_length_is_present,

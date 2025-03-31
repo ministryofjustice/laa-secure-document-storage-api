@@ -11,7 +11,7 @@ from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload
 from src.services import audit_service, s3_service, client_configured_validation_service
 from src.utils.operation_types import OperationType
-from src.validation import av_validator
+from src.validation import clam_av_validator
 router = APIRouter()
 logger = structlog.get_logger()
 
@@ -34,7 +34,7 @@ async def save_file(
             body: FileUpload = Depends(validate_json(FileUpload)),
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
-    validation_result = await av_validator.validate_request(request.headers, file)
+    validation_result = await clam_av_validator.scan_request(request.headers, file)
     if validation_result.status_code != 200:
         raise HTTPException(status_code=validation_result.status_code, detail=validation_result.message)
 
