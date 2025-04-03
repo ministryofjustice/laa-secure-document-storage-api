@@ -23,7 +23,8 @@ class MultiFileAdapter(casbin.FileAdapter):
             logger.info(f"Loading policy from single file {self._file_path}")
             return super()._load_policy_file(model)
 
-        candidates = [p for p in pathlib.Path(self._file_path).rglob("*.csv", case_sensitive=False)]
+        # Case-insensitive extension in rglob: To be replaced with `case_sensitive=False` from Python 3.12
+        candidates = [p for p in pathlib.Path(self._file_path).rglob("*.[Cc][Ss][Vv]")]
         for policy_path in candidates:
             logger.info(f"Loading policy from {policy_path}")
             with open(policy_path, "rb") as file:
