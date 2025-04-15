@@ -20,8 +20,8 @@ services:
       - TENANT_ID=$TENANT_ID
       - AUDIENCE=$AUDIENCE_ID
       - CLAMD_HOST=laa-clamav
-      - CASBIN_POLICY=/authz/any_authenticated_access.csv
-      - CASBIN_MODEL=/authz/any_authenticated_access.conf
+      - CASBIN_POLICY='/authz/casbin_policy_open_routes.csv:/app/clientconfigs'
+      - CASBIN_MODEL=/authz/casbin_model_acl_with_authenticated.conf
       - CONFIG_DIR=/app/clientconfigs
       - CONFIG_SOURCES=db,file
   dynamodb:
