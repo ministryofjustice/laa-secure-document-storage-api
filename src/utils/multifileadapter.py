@@ -20,9 +20,13 @@ class MultiFileAdapter(casbin.FileAdapter):
     def _load_policy_file(self, model):
         # List of policy files to be used for loading
         policy_file_paths = []
-        # We may have been given a string or a Path for a single directory or file, but for multiple dirs or files only
-        # a string will work. So here we create a list of string paths to be checked.
-        candidate_paths = self._file_path.split(':') if isinstance(self._file_path, str) else [self._file_path, ]
+        # We may receive a Path or a string in _file_path, but we will only get multiples in a str.
+        # So here we ensure we are always processing a list of strings.
+        if isinstance(self._file_path, str):
+            # Combined paths may need to be quoted, so also strip those here
+            candidate_paths = [c.strip("'").strip('"') for c in self._file_path.split(':')]
+        else:
+            candidate_paths = [self._file_path, ]
         for candidate in candidate_paths:
             if os.path.isfile(candidate) and os.path.splitext(candidate)[1].lower() == '.csv':
                 # Candidate is a CSV file

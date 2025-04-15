@@ -106,3 +106,22 @@ def test_multifile_adapter_case_insensitive(tmp_path, casbin_acl_model):
     )
     assert enforcer.enforce('test_user', '/fake_route_a', 'GET') \
            and enforcer.enforce('test_user', '/fake_route_b', 'GET')
+
+
+def test_multifile_adapter_strips_quotes(tmp_path, casbin_acl_model):
+    policy_path_a = tmp_path / "policy_a.csv"
+    policy_path_b = tmp_path / "policy_b.csv"
+    with open(policy_path_a, "w") as f:
+        f.write("p,test_user,/fake_route_a,GET\n")
+    with open(policy_path_b, "w") as f:
+        f.write("p,test_user,/fake_route_b,GET\n")
+
+    # Note the extra quote marks surrounding the joined pair
+    combined_paths = f"'{policy_path_a}:{policy_path_b}'"
+
+    enforcer = casbin.Enforcer(
+        model=casbin_acl_model,
+        adapter=MultiFileAdapter(combined_paths),
+    )
+    assert enforcer.enforce('test_user', '/fake_route_a', 'GET') \
+           and enforcer.enforce('test_user', '/fake_route_b', 'GET')
