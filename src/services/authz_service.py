@@ -5,6 +5,8 @@ import casbin
 from fastapi import HTTPException
 from casbin.util.log import configure_logging
 
+from src.utils.multifileadapter import MultiFileAdapter
+
 logger = structlog.get_logger()
 
 DEFAULT_ACL_MODEL = casbin.Model()
@@ -36,6 +38,7 @@ class AuthzService:
                 if policy == DENY_ALL_POLICY:
                     logger.warning("No CASBIN_POLICY specified, using default deny-all policy")
                 else:
+                    policy = MultiFileAdapter(policy)
                     logger.info(f"Using policy {policy}")
                 # Use an Enforcer that will poll for changes to the specified model and policy files.
                 enforcer = casbin.SyncedEnforcer(

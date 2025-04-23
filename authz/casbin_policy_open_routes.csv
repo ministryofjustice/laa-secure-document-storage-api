@@ -1,0 +1,8 @@
+# Allow any user to access the automated documentation
+p, *, /docs, GET
+p, *, /docs/*, GET
+p, *, /openapi.json, GET
+
+# Allow any user to access the health check
+p, *, /, GET
+p, *, /health, GET

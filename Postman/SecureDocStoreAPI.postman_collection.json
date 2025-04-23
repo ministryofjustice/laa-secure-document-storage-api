@@ -67,6 +67,62 @@
 			"description": "Tests on the /health endpoint"
 		},
 		{
+			"name": "SDSDocsTests",
+			"item": [
+				{
+					"name": "Swagger Docs Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to check the health of the API",
+									"pm.test(\"Response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body includes Swagger UI elements\", function() {",
+									"    pm.expect(pm.response.text()).to.include(\"Swagger UI\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/docs",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"docs"
+							]
+						},
+						"description": "Expect a 200 OK response from Swagger route /docs, and for content to include Swagger elements."
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "SDSAuthTests",
 			"item": [
 				{
