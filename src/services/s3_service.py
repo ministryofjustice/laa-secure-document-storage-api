@@ -101,6 +101,21 @@ class S3Service:
             logger.error(f"{e.__class__.__name__} uploading file to S3: {str(e)}")
             raise e
 
+    def file_exists_in_bucket(self, key: str) -> bool:
+        try:
+            self.s3_client.head_object(Bucket=self.client_config.bucket_name, Key=key)
+            return True
+        except ClientError as e:
+            if e.response["ResponseMetadata"]["HTTPStatusCode"] == 404:
+                return False  # file doesn't exist
+            else:
+                raise e  # something else went wrong (e.g. permissions)
+
+
+def file_exists(client: str | ClientConfig, file_name: str) -> bool:
+    s3_service = S3Service.get_instance(client)
+    return s3_service.file_exists_in_bucket(file_name)
+
 
 def retrieve_file(client: str | ClientConfig, file_name: str):
     s3_service = S3Service.get_instance(client)

@@ -431,34 +431,34 @@
 			"name": "SDSSaveFileTests",
 			"item": [
 				{
-					"name": "Save File",
+					"name": "Save File – New File (Expect 201)",
 					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'Files Saved successfully in ' + pm.environment.get('SDSBucket') + ' with key test_file.md ');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									""
+									"const timestamp = new Date().getTime();",
+									"const uniqueFilename = `test_file_${timestamp}.md`;",
+									"pm.environment.set(\"unique_filename\", uniqueFilename);"
 								],
-								"type": "text/javascript",
-								"packages": {}
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function () {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
+									"});"
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -473,7 +473,7 @@
 								}
 							]
 						},
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Authorization",
@@ -487,11 +487,12 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								},
 								{
 									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\"} ",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\"}",
 									"type": "text"
 								}
 							]
@@ -504,13 +505,85 @@
 							"path": [
 								"save_file"
 							]
-						},
-						"description": "Expect a 200 OK when saving a file. See repo README for instructions related to the file"
+						}
 					},
 					"response": []
 				},
 				{
-					"name": "Save file with virus",
+					"name": "Save File – Existing File (Expect 200)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function () {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property(",
+									"        'success',",
+									"        'File saved successfully in ' + pm.environment.get('SDSBucket') +",
+									"        ' with key ' + pm.environment.get('unique_filename')",
+									"    );",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}",
+									"description": "uploads the file with the same name as in previous test (Save File – New File) to simulate overwriting a file"
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\": \"\"}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save File With Virus",
 					"event": [
 						{
 							"listen": "test",
@@ -551,7 +624,7 @@
 								}
 							]
 						},
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Authorization",
@@ -588,7 +661,7 @@
 					"response": []
 				},
 				{
-					"name": "Save disallowed file type",
+					"name": "Save Disallowed File Type",
 					"event": [
 						{
 							"listen": "test",
@@ -629,7 +702,7 @@
 								}
 							]
 						},
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Authorization",
@@ -666,7 +739,7 @@
 					"response": []
 				},
 				{
-					"name": "Save file with missing bucket",
+					"name": "Save File With Missing Bucket",
 					"event": [
 						{
 							"listen": "test",
@@ -708,7 +781,7 @@
 								}
 							]
 						},
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Authorization",
@@ -745,7 +818,7 @@
 					"response": []
 				},
 				{
-					"name": "Save file without file",
+					"name": "Save File Without File",
 					"event": [
 						{
 							"listen": "test",
@@ -788,7 +861,7 @@
 								}
 							]
 						},
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Authorization",
@@ -916,7 +989,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=test_file.md",
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}.md",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -926,7 +999,7 @@
 							"query": [
 								{
 									"key": "file_key",
-									"value": "test_file.md"
+									"value": "{{unique_filename}}"
 								}
 							]
 						},
@@ -1019,6 +1092,511 @@
 				}
 			],
 			"description": "Test on the /retrieve_file endpoint"
+		},
+		{
+			"name": "SDSUploadFileTests",
+			"item": [
+				{
+					"name": "Upload File - New File (Expect 201)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const timestamp = new Date().getTime();",
+									"const uniqueFilename = `test_file_${timestamp}.md`;",
+									"pm.environment.set(\"unique_filename\", uniqueFilename);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "body",
+									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+									"type": "text"
+								  },
+								  {
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/upload_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"upload_file"
+							]
+						},
+						"description": "Expect a 201 OK when uploading a new file."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload File - Existing File (Expect 409)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 409\", function () {",
+									"    pm.response.to.have.status(409);",
+									"});",
+									"",
+									"pm.test(\"Response has required fields\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('detail');",
+									"    pm.expect(responseBody.detail).to.include('File ' + pm.environment.get('unique_filename') + ' already exists and cannot be overwritten via the /upload_file endpoint. Use PUT endpoint /save_file to overwrite.');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							  }
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "body",
+									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+									"type": "text"
+								  },
+								  {
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/upload_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"upload_file"
+							]
+						},
+						"description": "Expect a 409 when uploading a file that already exists in bucket ."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload File With Virus",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Check response detail for Virus Found\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.eql({\"detail\": [\"Virus Found\"]});",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "eicar.txt"
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/upload_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"upload_file"
+							]
+						},
+						"description": "Expect a 400 BAD REQUEST when uploading the eicar mock virus file"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Disallowed File Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 415\", function () {",
+									"    pm.response.to.have.status(415);",
+									"});",
+									"",
+									"pm.test(\"File mimetype not allowed\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.eql({\"detail\": \"File mimetype not allowed\"});",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.exe"
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/upload_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"upload_file"
+							]
+						},
+						"description": "Expect a 415 UNSUPPORTED MEDIA TYPE when uploading a mock executable file as disallowed by client config."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload File With Missing Bucket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"pm.test(\"Response has required fields\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('detail');",
+									"    pm.expect(responseBody.detail).to.have.property('bucketName');",
+									"    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md"
+								},
+								{
+									"key": "body",
+									"value": "{\"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/upload_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"upload_file"
+							]
+						},
+						"description": "Expect a 400 BAD REQUEST when no bucket is defined in the upload request"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload File Without File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"",
+									"});",
+									"",
+									"pm.test(\"Response has required fields\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('detail');",
+									"    pm.expect(responseBody.detail).to.include('File is required');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/upload_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"upload_file"
+							]
+						},
+						"description": "Expect a 400 BAD REQUEST when calling upload_file without a file"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests on the /upload_file endpoint",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
 		}
 	],
 	"event": [

@@ -5,7 +5,7 @@ p, anonymous, /health, GET
 
 p, test_user, /retrieve_file, GET
 p, test_user, /retrieve_file/, GET
-p, test_user, /save_file, POST
-p, test_user, /save_file/, POST
+p, test_user, /save_file, PUT
+p, test_user, /upload_file, POST
 
 p, test_user, test_bucket, (CREATE)|(READ)

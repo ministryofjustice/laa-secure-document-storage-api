@@ -145,7 +145,10 @@ terms of configuration and ACL.
 
      * GET /retrieve_file
 
-     * POST /save_file
+     * PUT /save_file
+
+     * POST /upload_file
+
 
 2. Use the `configbuilder.py` CLI helper to add a client config.
  
@@ -159,7 +162,7 @@ terms of configuration and ACL.
     Sample fragment of ACL allowing client `000-000-000` to save and retrieve from the bucket named `abc-def-hij`: 
     ```csv
     p, 000-000-000, /retrieve_file, GET
-    p, 000-000-000, /save_file, POST
+    p, 000-000-000, /save_file, PUT
     p, 000-000-000, abc-def-hij, (READ)|(CREATE)
     ```
 
@@ -185,7 +188,7 @@ specify which locally available buckets should be used.
     Sample fragment of ACL allowing client `000-000-000` to save and retrieve from `local-test-bucket`: 
     ```csv
     p, 000-000-000, /retrieve_file, GET
-    p, 000-000-000, /save_file, POST
+    p, 000-000-000, /save_file, PUT
     p, 000-000-000, local-test-bucket, (READ)|(CREATE)
     ```
 
