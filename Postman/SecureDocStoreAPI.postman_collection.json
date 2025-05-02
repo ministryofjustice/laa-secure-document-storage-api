@@ -999,7 +999,7 @@
 							"query": [
 								{
 									"key": "file_key",
-									"value": "{{unique_filename}}.md"
+									"value": "{{unique_filename}}"
 								}
 							]
 						},
