@@ -1,5 +1,6 @@
 p, authenticated, /retrieve_file, GET
-p, authenticated, /save_file, POST
+p, authenticated, /save_file, PUT
+p, authenticated, /upload_file, POST
 
 # Allow any user to access the automated documentation
 p, *, /docs, GET
