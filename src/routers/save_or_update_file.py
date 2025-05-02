@@ -16,8 +16,8 @@ router = APIRouter()
 logger = structlog.get_logger()
 
 
-@router.put("/save_file")
-async def save_file(
+@router.put("/save_or_update_file")
+async def save_or_update_file(
     request: Request,
     file: Optional[UploadFile] = UploadFile(None),
     body: FileUpload = Depends(validate_json(FileUpload)),

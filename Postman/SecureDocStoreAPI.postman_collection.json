@@ -428,10 +428,10 @@
 			"description": "Tests to ensure auth fails on invalid requests"
 		},
 		{
-			"name": "SDSSaveFileTests",
+			"name": "SDSSaveOrUpdateFileTests",
 			"item": [
 				{
-					"name": "Save File – New File (Expect 201)",
+					"name": "Save Or Update File – New File (Expect 201)",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -498,19 +498,19 @@
 							]
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
+							"raw": "{{SDSBaseUrl}}/save_or_update_file",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
-								"save_file"
+								"save_or_update_file"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Save File – Existing File (Expect 200)",
+					"name": "Save Or Update File – Existing File (Expect 200)",
 					"event": [
 						{
 							"listen": "test",
@@ -561,7 +561,7 @@
 									"type": "file",
 									"src": "test_file.md",
 									"fileName": "{{unique_filename}}",
-									"description": "uploads the file with the same name as in previous test (Save File – New File) to simulate overwriting a file"
+									"description": "uploads the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file"
 								},
 								{
 									"key": "body",
@@ -571,19 +571,19 @@
 							]
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
+							"raw": "{{SDSBaseUrl}}/save_or_update_file",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
-								"save_file"
+								"save_or_update_file"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Save File With Virus",
+					"name": "Save Or Update File With Virus",
 					"event": [
 						{
 							"listen": "test",
@@ -648,12 +648,12 @@
 							]
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
+							"raw": "{{SDSBaseUrl}}/save_or_update_file",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
-								"save_file"
+								"save_or_update_file"
 							]
 						},
 						"description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
@@ -661,7 +661,7 @@
 					"response": []
 				},
 				{
-					"name": "Save Disallowed File Type",
+					"name": "Save Or Update Disallowed File Type",
 					"event": [
 						{
 							"listen": "test",
@@ -726,12 +726,12 @@
 							]
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
+							"raw": "{{SDSBaseUrl}}/save_or_update_file",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
-								"save_file"
+								"save_or_update_file"
 							]
 						},
 						"description": "Expect a 415 UNSUPPORTED MEDIA TYPE when saving a mock executable file as disallowed by client config."
@@ -739,7 +739,7 @@
 					"response": []
 				},
 				{
-					"name": "Save File With Missing Bucket",
+					"name": "Save Or Update File With Missing Bucket",
 					"event": [
 						{
 							"listen": "test",
@@ -805,20 +805,20 @@
 							]
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
+							"raw": "{{SDSBaseUrl}}/save_or_update_file",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
-								"save_file"
+								"save_or_update_file"
 							]
 						},
-						"description": "Expect a 400 BAD REQUEST when no bucket is defined in the save request"
+						"description": "Expect a 400 BAD REQUEST when no bucket is defined in the save-or-update request"
 					},
 					"response": []
 				},
 				{
-					"name": "Save File Without File",
+					"name": "Save Or Update File Without File",
 					"event": [
 						{
 							"listen": "test",
@@ -885,20 +885,20 @@
 							]
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
+							"raw": "{{SDSBaseUrl}}/save_or_update_file",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
-								"save_file"
+								"save_or_update_file"
 							]
 						},
-						"description": "Expect a 400 BAD REQUEST when calling save_file without a file"
+						"description": "Expect a 400 BAD REQUEST when calling save_or_update_file without a file"
 					},
 					"response": []
 				}
 			],
-			"description": "Tests on the /save_file endpoint",
+			"description": "Tests on the /save_or_update_file endpoint",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -1003,7 +1003,7 @@
 								}
 							]
 						},
-						"description": "Run 'Save File' request first then expect 200 OK"
+						"description": "Run 'Save Or Update File' request first then expect 200 OK"
 					},
 					"response": []
 				},
@@ -1192,7 +1192,7 @@
 									"pm.test(\"Response has required fields\", function () {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.have.property('detail');",
-									"    pm.expect(responseBody.detail).to.include('File ' + pm.environment.get('unique_filename') + ' already exists and cannot be overwritten via the /upload_file endpoint. Use PUT endpoint /save_file to overwrite.');",
+									"    pm.expect(responseBody.detail).to.include('File ' + pm.environment.get('unique_filename') + ' already exists and cannot be overwritten via the /upload_file endpoint. Use PUT endpoint /save_or_update_file to overwrite.');",
 									"});"
 								],
 								"type": "text/javascript",

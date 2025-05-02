@@ -24,7 +24,7 @@ from src.utils.request_types import RequestType
             409,
             (
                 "File test_file.txt already exists and cannot be overwritten via the "
-                "/upload_file endpoint. Use PUT endpoint /save_file to overwrite."
+                "/upload_file endpoint. Use PUT endpoint /save_or_update_file to overwrite."
             ),
         ),
     ],

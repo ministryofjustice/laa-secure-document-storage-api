@@ -81,7 +81,7 @@ Then all we need are policy rules for accessing endpoints. Here are some generic
 
 # Control a specific rest action on an endpoint
 p, client-username, /retrieve_file, GET
-p, client-username, /save_file, PUT
+p, client-username, /save_or_update_file, PUT
 
 # Allow unauthenticated access to an endpoint
 # This works because the middleware sets unauthenticated user object usernames to 'anonymous', so no model changes

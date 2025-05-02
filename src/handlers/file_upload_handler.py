@@ -54,7 +54,7 @@ async def handle_file_upload_logic(
                     status_code=409,
                     detail=(
                         f"File {full_filename} already exists and cannot be overwritten "
-                        "via the /upload_file endpoint. Use PUT endpoint /save_file to overwrite."
+                        "via the /upload_file endpoint. Use PUT endpoint /save_or_update_file to overwrite."
                     )
                 )
 
