@@ -24,7 +24,7 @@ from src.utils.request_types import RequestType
             409,
             (
                 "File test_file.txt already exists and cannot be overwritten via the "
-                "/upload_file endpoint. Use PUT endpoint /save_or_update_file to overwrite."
+                "/save_file endpoint. Use PUT endpoint /save_or_update_file to overwrite."
             ),
         ),
     ],
@@ -169,7 +169,7 @@ async def test_handle_file_upload_save_failure(
         )
 
     assert exc_info.value.status_code == 500
-    assert "failed to upload" in str(exc_info.value.detail)
+    assert "failed to save" in str(exc_info.value.detail)
 
     scan_request_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()

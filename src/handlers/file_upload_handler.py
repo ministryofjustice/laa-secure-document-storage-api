@@ -54,7 +54,7 @@ async def handle_file_upload_logic(
                     status_code=409,
                     detail=(
                         f"File {full_filename} already exists and cannot be overwritten "
-                        "via the /upload_file endpoint. Use PUT endpoint /save_or_update_file to overwrite."
+                        "via the /save_file endpoint. Use PUT endpoint /save_or_update_file to overwrite."
                     )
                 )
 
@@ -68,7 +68,7 @@ async def handle_file_upload_logic(
         if not success:
             raise HTTPException(
                 status_code=500,
-                detail=f"File {full_filename} failed to upload for an unknown reason."
+                detail=f"File {full_filename} failed to save for an unknown reason."
             )
 
         return {
@@ -78,5 +78,5 @@ async def handle_file_upload_logic(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"An {e.__class__.__name__} occurred while uploading the file: {e}")
-        raise HTTPException(status_code=500, detail=f"The file {full_filename} could not be uploaded")
+        logger.error(f"An {e.__class__.__name__} occurred while saving the file: {e}")
+        raise HTTPException(status_code=500, detail=f"The file {full_filename} could not be saved")

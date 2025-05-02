@@ -2,5 +2,5 @@ p, a5c1da6b-caac-48fe-834f-76a10012665f, /health, GET
 p, a5c1da6b-caac-48fe-834f-76a10012665f, /, GET
 p, a5c1da6b-caac-48fe-834f-76a10012665f, /retrieve_file, GET
 p, a5c1da6b-caac-48fe-834f-76a10012665f, /save_or_update_file, PUT
-p, a5c1da6b-caac-48fe-834f-76a10012665f, /upload_file, POST
+p, a5c1da6b-caac-48fe-834f-76a10012665f, /save_file, POST
 p, a5c1da6b-caac-48fe-834f-76a10012665f, laa-sds-internal-staging, (CREATE)|(READ)

@@ -147,7 +147,7 @@ terms of configuration and ACL.
 
      * PUT /save_or_update_file
 
-     * POST /upload_file
+     * POST /save_file
 
 
 2. Use the `configbuilder.py` CLI helper to add a client config.

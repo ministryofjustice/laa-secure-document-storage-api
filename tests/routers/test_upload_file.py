@@ -6,8 +6,8 @@ from fastapi import HTTPException
 # =========================== SUCCESS =========================== #
 
 
-@patch("src.routers.upload_file.handle_file_upload_logic")
-def test_upload_file_success(handler_mock, test_client):
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_success(handler_mock, test_client):
     handler_mock.return_value = (
         {"success": "File saved successfully in test_bucket with key test_file.txt"},
         False
@@ -20,7 +20,7 @@ def test_upload_file_success(handler_mock, test_client):
         "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
     }
 
-    response = test_client.post("/upload_file", data=data, files=files)
+    response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 201
     assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
@@ -31,8 +31,8 @@ def test_upload_file_success(handler_mock, test_client):
 # =========================== FAILURE =========================== #
 
 
-@patch("src.routers.upload_file.handle_file_upload_logic")
-def test_upload_file_with_virus(handler_mock, test_client):
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_with_virus(handler_mock, test_client):
     handler_mock.side_effect = HTTPException(status_code=400, detail="Virus detected")
 
     data = {
@@ -42,7 +42,7 @@ def test_upload_file_with_virus(handler_mock, test_client):
         "file": ("infected_file.txt", BytesIO(b"malicious content"), "text/plain")
     }
 
-    response = test_client.post("/upload_file", data=data, files=files)
+    response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Virus detected"}
@@ -50,8 +50,8 @@ def test_upload_file_with_virus(handler_mock, test_client):
     handler_mock.assert_called_once()
 
 
-@patch("src.routers.upload_file.handle_file_upload_logic", return_value=({}, False))
-def test_upload_file_no_file(handler_mock, test_client):
+@patch("src.routers.save_file.handle_file_upload_logic", return_value=({}, False))
+def test_save_file_no_file(handler_mock, test_client):
 
     handler_mock.side_effect = HTTPException(
         status_code=400,
@@ -64,7 +64,7 @@ def test_upload_file_no_file(handler_mock, test_client):
         "file": ("", BytesIO(), "text/plain")
     }
 
-    response = test_client.post("/upload_file", data=data, files=files)
+    response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 400
     assert response.json() == {'detail': 'File is required'}
@@ -72,8 +72,8 @@ def test_upload_file_no_file(handler_mock, test_client):
     handler_mock.assert_called_once()
 
 
-@patch("src.routers.upload_file.handle_file_upload_logic")
-def test_upload_file_invalid_data(handler_mock, test_client):
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_invalid_data(handler_mock, test_client):
     data = {
         "body": "bad body"
     }
@@ -81,15 +81,15 @@ def test_upload_file_invalid_data(handler_mock, test_client):
         "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
     }
 
-    response = test_client.post("/upload_file", data=data, files=files)
+    response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 400
 
     handler_mock.assert_not_called()  # bad JSON fails before calling handler
 
 
-@patch("src.routers.upload_file.handle_file_upload_logic")
-def test_upload_file_missing_bucket_name(handler_mock, test_client):
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_missing_bucket_name(handler_mock, test_client):
     data = {
         "body": "{}"
     }
@@ -97,7 +97,7 @@ def test_upload_file_missing_bucket_name(handler_mock, test_client):
         "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
     }
 
-    response = test_client.post("/upload_file", data=data, files=files)
+    response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 400
     assert response.content == b'{"detail":{"bucketName":"Field required"}}'
@@ -105,8 +105,8 @@ def test_upload_file_missing_bucket_name(handler_mock, test_client):
     handler_mock.assert_not_called()  # validation error
 
 
-@patch("src.routers.upload_file.handle_file_upload_logic")
-def test_upload_file_existing_file(handler_mock, test_client):
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_existing_file(handler_mock, test_client):
 
     handler_mock.side_effect = HTTPException(
         status_code=409,
@@ -120,7 +120,7 @@ def test_upload_file_existing_file(handler_mock, test_client):
         "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
     }
 
-    response = test_client.post("/upload_file", data=data, files=files)
+    response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 409
     assert response.json()["detail"] == "File already exists"
