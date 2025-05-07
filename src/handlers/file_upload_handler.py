@@ -70,9 +70,9 @@ async def handle_file_upload_logic(
                 status_code=500,
                 detail=f"File {full_filename} failed to save for an unknown reason."
             )
-
+        actioned = "updated" if file_existed else "saved"
         return {
-            "success": f"File saved successfully in {client_config.bucket_name} with key {full_filename}"
+            "success": f"File {actioned} successfully in {client_config.bucket_name} with key {full_filename}"
         }, file_existed
 
     except HTTPException:

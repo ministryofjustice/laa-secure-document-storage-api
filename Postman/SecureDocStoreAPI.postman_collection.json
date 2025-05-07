@@ -525,7 +525,7 @@
 									"    pm.expect(responseBody).to.be.an('object');",
 									"    pm.expect(responseBody).to.have.property(",
 									"        'success',",
-									"        'File saved successfully in ' + pm.environment.get('SDSBucket') +",
+									"        'File updated successfully in ' + pm.environment.get('SDSBucket') +",
 									"        ' with key ' + pm.environment.get('unique_filename')",
 									"    );",
 									"});"

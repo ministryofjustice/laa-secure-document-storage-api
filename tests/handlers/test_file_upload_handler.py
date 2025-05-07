@@ -16,7 +16,7 @@ from src.utils.request_types import RequestType
     "request_type, file_existed, expected_success_message",
     [
         (RequestType.PUT, False, "File saved successfully in test_bucket with key test_file.txt"),
-        (RequestType.PUT, True, "File saved successfully in test_bucket with key test_file.txt"),
+        (RequestType.PUT, True, "File updated successfully in test_bucket with key test_file.txt"),
         (RequestType.POST, False, "File saved successfully in test_bucket with key test_file.txt"),
     ],
     # IDs make test output more readable for parametrized tests
