@@ -29,7 +29,8 @@ from src.utils.request_types import RequestType
 @patch("src.handlers.file_upload_handler.s3_service.save", return_value=True)
 @patch("src.handlers.file_upload_handler.s3_service.file_exists")
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
-@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request", return_value=ValidationResponse(status_code=200, message=""))
+@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
+       return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
 async def test_handle_file_upload_success(
     validate_or_error_mock,
@@ -56,7 +57,7 @@ async def test_handle_file_upload_success(
     response, file_existed_return = await handle_file_upload_logic(
         request=request,
         file=file,
-        body=body,            
+        body=body,
         client_config=client_config,
         request_type=request_type,
         )
@@ -73,7 +74,8 @@ async def test_handle_file_upload_success(
 # =========================== FAILURE =========================== #
 
 @pytest.mark.asyncio
-@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request", return_value=ValidationResponse(status_code=200, message=""))
+@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
+       return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.s3_service.file_exists", return_value=True)
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
 async def test_handle_file_upload_POST_existing_file_failure(
@@ -91,16 +93,17 @@ async def test_handle_file_upload_POST_existing_file_failure(
     client_config.bucket_name = "test_bucket"
     client_config.azure_display_name = "Test Client"
 
-    with pytest.raises(HTTPException) as exc_info: await handle_file_upload_logic(
+    with pytest.raises(HTTPException) as exc_info:
+        await handle_file_upload_logic(
             request=request,
             file=file,
-            body=body,            
+            body=body,
             client_config=client_config,
             request_type=RequestType.POST,
             )
 
     assert exc_info.value.status_code == 409
-    assert f"File {file.filename} already exists and cannot be overwritten via the /save_file endpoint." in str(exc_info.value.detail)
+    assert f"File {file.filename} already exists and cannot be overwritten" in str(exc_info.value.detail)
     scan_request_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     file_exists_mock.assert_called_once()
