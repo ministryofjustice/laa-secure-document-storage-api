@@ -4,7 +4,7 @@ p, anonymous, /health, GET
 
 p, anonymous, /retrieve_file, ((GET)|(POST))
 p, anonymous, /retrieve_file/, ((GET)|(POST))
-p, anonymous, /save_file, ((GET)|(POST))
-p, anonymous, /save_file/, ((GET)|(POST))
-p, test_user, /upload_file, ((GET)|(POST)|(PUT))
-p, test_user, /upload_file/, ((GET)|(POST)|(PUT))
+p, anonymous, /save_or_update_file, ((GET)|(POST))
+p, anonymous, /save_or_update_file/, ((GET)|(POST))
+p, test_user, /save_file, ((GET)|(POST)|(PUT))
+p, test_user, /save_file/, ((GET)|(POST)|(PUT))

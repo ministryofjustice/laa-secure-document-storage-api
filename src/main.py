@@ -16,8 +16,8 @@ from src.config import logging_config
 from src.middleware.auth import BearerTokenAuthBackend, BearerTokenMiddleware
 from src.routers import health as health_router
 from src.routers import retrieve_file as retrieve_router
+from src.routers import save_or_update_file as save_or_update_router
 from src.routers import save_file as save_router
-from src.routers import upload_file as upload_router
 from src.services.authz_service import AuthzService
 
 
@@ -71,5 +71,5 @@ app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
 
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
+app.include_router(save_or_update_router.router)
 app.include_router(save_router.router)
-app.include_router(upload_router.router)
