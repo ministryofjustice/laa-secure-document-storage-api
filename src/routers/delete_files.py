@@ -52,7 +52,7 @@ async def delete_files(
             # ...therefore this was a success
             outcomes[file_key] = 204  # NO CONTENT, delete was successful
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             logger.error(f"File to be deleted {file_key} not found for client {client_config.azure_client_id}")
             outcomes[file_key] = 404  # NOT FOUND
         except Exception as e:
