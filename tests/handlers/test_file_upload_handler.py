@@ -1,5 +1,5 @@
 from io import BytesIO
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 import pytest
 from fastapi import HTTPException
 
@@ -43,7 +43,7 @@ async def test_handle_file_upload_success(
     expected_success_message,
 ):
     request = MagicMock(headers={})
-    file = MagicMock()
+    file = AsyncMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
     body = MagicMock()
@@ -84,7 +84,7 @@ async def test_handle_file_upload_POST_existing_file_failure(
     scan_request_mock
 ):
     request = MagicMock(headers={})
-    file = MagicMock()
+    file = AsyncMock()
     file.filename = "preexisting_test_file.txt"
     file.file = BytesIO(b"Test content")
     body = MagicMock()
@@ -116,7 +116,7 @@ async def test_handle_file_upload_antivirus_failure(scan_request_mock):
     scan_request_mock.return_value = ValidationResponse(status_code=400, message="Virus detected")
 
     request = MagicMock(headers={})
-    file = MagicMock()
+    file = AsyncMock()
     file.filename = "infected_file.txt"
     file.file = BytesIO(b"Bad content")
 
@@ -158,7 +158,7 @@ async def test_handle_file_upload_save_failure(
     scan_request_mock.return_value = ValidationResponse(status_code=200, message="")
 
     request = MagicMock(headers={})
-    file = MagicMock()
+    file = AsyncMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
 
