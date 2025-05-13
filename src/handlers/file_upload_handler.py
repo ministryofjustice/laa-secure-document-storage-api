@@ -68,7 +68,7 @@ async def handle_file_upload_logic(
             OperationType.CREATE
         )
 
-        success = s3_service.save(client_config, file.file, full_filename, metadata)
+        success = s3_service.save(client_config, file_contents, full_filename, metadata)
         if not success:
             raise HTTPException(
                 status_code=500,
