@@ -20,6 +20,10 @@ async def handle_file_upload_logic(
     client_config: ClientConfig,
     request_type: RequestType,
 ) -> Tuple[Dict, bool]:
+    
+    # Read contents of file. Only works once - get nothing if try a second time.  
+    file_contents = await file.read()
+    
     # Antivirus scan
     validation_result = await clam_av_validator.scan_request(request.headers, file)
     if validation_result.status_code != 200:
