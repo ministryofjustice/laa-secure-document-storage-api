@@ -25,7 +25,7 @@ async def handle_file_upload_logic(
     file_contents = await file.read()
     
     # Antivirus scan
-    validation_result = await clam_av_validator.scan_request(request.headers, file)
+    validation_result = await clam_av_validator.scan_request(request.headers, file, file_contents)
     if validation_result.status_code != 200:
         raise HTTPException(
             status_code=validation_result.status_code,

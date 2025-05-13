@@ -6,7 +6,7 @@ from src.models.validation_response import ValidationResponse
 from src.services.clam_av_service import virus_check
 
 
-async def scan_request(headers: Header, file: UploadFile):
+async def scan_request(headers: Header, file: UploadFile, file_contents: bytes):
     messages = []
     status_code = None
     validator_sequence = [content_length_is_present,
@@ -15,9 +15,9 @@ async def scan_request(headers: Header, file: UploadFile):
 
     for validator in validator_sequence:
         if inspect.iscoroutinefunction(validator):
-            code, message = await validator(headers, file)
+            code, message = await validator(headers, file, file_contents)
         else:
-            code, message = validator(headers, file)
+            code, message = validator(headers, file, file_contents)
 
         if code != 200:
             messages.append(message)
@@ -29,23 +29,22 @@ async def scan_request(headers: Header, file: UploadFile):
     return ValidationResponse(status_code=status_code, message=messages)
 
 
-def content_length_is_present(headers: Header, file: UploadFile):
+def content_length_is_present(headers: Header, file: UploadFile, file_contents: bytes):
     if headers.get('content-length') is not None:
         return 200, ""
     else:
         return 411, "content-length header not found"
 
 
-def check_file_exists(headers: Header, file: UploadFile):
+def check_file_exists(headers: Header, file: UploadFile, file_contents: bytes):
     if file is None or not file.filename:
         return 400, "File is required"
     else:
         return 200, ""
 
 
-async def check_antivirus(headers: Header, file: UploadFile):
-    file_content = await file.read()
-    response, status = await virus_check(io.BytesIO(file_content))
+async def check_antivirus(headers: Header, file: UploadFile, file_contents: bytes):
+    response, status = await virus_check(io.BytesIO(file_contents))
     if status == 200:
         return 200, ""
     else:
