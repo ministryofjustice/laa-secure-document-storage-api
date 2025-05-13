@@ -75,19 +75,19 @@ def test_upload_file_obj_success(s3_service, mocker):
     # Arrange
     mock_put_object = mocker.patch.object(s3_service.s3_client, 'put_object')
 
-    file = BytesIO(b"Test data")
+    file_contents = b"Test data"
     bucket_name = 'test_bucket'
     filename = 'test_file'
     metadata = {'key1': 'value1'}
 
     # Act
-    s3_service.upload_file_obj(file, filename, metadata)
+    s3_service.upload_file_obj(file_contents, filename, metadata)
 
     # Assert
     mock_put_object.assert_called_once_with(
         Bucket=bucket_name,
         Key=filename,
-        Body=file.getvalue(),
+        Body=file_contents,
         Metadata=metadata
     )
 
