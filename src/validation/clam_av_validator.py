@@ -46,6 +46,8 @@ def check_file_exists(headers: Header, file: UploadFile):
 async def check_antivirus(headers: Header, file: UploadFile):
     file_content = await file.read()
     response, status = await virus_check(io.BytesIO(file_content))
+    # Return file reference point to start to make subsequent read possible
+    await file.seek(0)
     if status == 200:
         return 200, ""
     else:
