@@ -30,7 +30,7 @@ services:
     ports:
       - "8100:8000"
   localstack:
-    image: localstack/localstack:3.8
+    image: localstack/localstack:4.4
     ports:
       - '4566:4566' # LocalStack endpoint
       - '4510-4559:4510-4559' # external services port range

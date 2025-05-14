@@ -136,3 +136,16 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str, metadata: di
     s3_service.upload_file_obj(file, file_name, metadata)
 
     return True
+
+
+def delete_file(client: str | ClientConfig, file_name: str):
+    """
+    Deletes the specified file from the client's configured bucket.
+
+    :raises: FileNotFoundError if file does not exist.
+    :param client:
+    :param file_name:
+    :return:
+    """
+    logger.warning(f"Deleting file {file_name} NOT IMPLEMENTED")
+    raise NotImplementedError()

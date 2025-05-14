@@ -54,7 +54,7 @@ def test_save_or_update_file_update_existing(handler_mock, test_client):
 
 
 @patch("src.routers.save_or_update_file.handle_file_upload_logic")
-def test_save__or_update_file_with_virus(handler_mock, test_client):
+def test_save_or_update_file_with_virus(handler_mock, test_client):
     handler_mock.side_effect = HTTPException(status_code=400, detail="Virus detected")
 
     data = {

@@ -185,11 +185,12 @@ specify which locally available buckets should be used.
 3. Update the ACL policy to allow the new client to access the routes they need. For purely local development, you can
    use the special username authenticated to the ACL found in the authz directory.
 
-    Sample fragment of ACL allowing client `000-000-000` to save and retrieve from `local-test-bucket`: 
+    Sample fragment of ACL allowing client `000-000-000` to save, retrieve and delete from `local-test-bucket`: 
     ```csv
     p, 000-000-000, /retrieve_file, GET
     p, 000-000-000, /save_or_update_file, PUT
-    p, 000-000-000, local-test-bucket, (READ)|(CREATE)
+    p, 000-000-000, /delete_files, DELETE
+    p, 000-000-000, local-test-bucket, (READ)|(CREATE)|(DELETE)
     ```
 
 ### Remove production client

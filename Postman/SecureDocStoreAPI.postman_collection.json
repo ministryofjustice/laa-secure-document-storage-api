@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a451724a-5da3-49bb-87b6-c04e0c6ea9df",
+		"_postman_id": "fbf41a7a-ffb4-4247-8641-2e78cf5f2079",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -1582,6 +1582,634 @@
 						"type": "text/javascript",
 						"packages": {},
 						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "SDSDeleteFilesTests",
+			"item": [
+				{
+					"name": "Save A File For Deleting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is CREATED\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_a'));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "body",
+									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_a}}"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 201 OK when saving a new file."
+					},
+					"response": []
+				},
+				{
+					"name": "Save B File For Deleting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is CREATED\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_b'));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "body",
+									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_b}}"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 201 OK when saving a new file."
+					},
+					"response": []
+				},
+				{
+					"name": "Save C File For Deleting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is CREATED\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_c'));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "body",
+									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_c}}"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 201 OK when saving a new file."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Single File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"response code is ACCEPTED\", function() {",
+									"    pm.response.to.have.status(202);",
+									"});",
+									"",
+									"pm.test(\"response contains filename key\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_a'));",
+									"});",
+									"",
+									"pm.test(\"response contains expected deletion status for file\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    //pm.expect(responseBody[pm.environment.get('unique_filename_a')]).to.equal(204);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_a}}",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"delete_files"
+							],
+							"query": [
+								{
+									"key": "file_keys",
+									"value": "{{unique_filename_a}}"
+								}
+							]
+						},
+						"description": "Run 'Save Or Update File' request first then expect 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve Deleted File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"/*",
+									"pm.test(\"Status code is NOT FOUND\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response body shows file not found\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('detail', 'The file '+pm.environment.get('unique_filename_a')+' could not be found.');",
+									"});",
+									"*/",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename_a}}",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "{{unique_filename_a}}"
+								}
+							]
+						},
+						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve Non-Deleted File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"/*",
+									"pm.test(\"Status code is SUCCESS\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response contains fileURL key\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
+									"});",
+									"*/"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename_b}}",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"retrieve_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "{{unique_filename_b}}"
+								}
+							]
+						},
+						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Multiple Files",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"response code is ACCEPTED\", function() {",
+									"    pm.response.to.have.status(202);",
+									"});",
+									"",
+									"pm.test(\"response contains filename key\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_b'));",
+									"});",
+									"",
+									"pm.test(\"response contains expected deletion status for file\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    //pm.expect(responseBody[pm.environment.get('unique_filename_b')]).to.equal(204);",
+									"});",
+									"",
+									"pm.test(\"response contains filename key\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_c'));",
+									"});",
+									"",
+									"pm.test(\"response contains expected deletion status for file\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    //pm.expect(responseBody[pm.environment.get('unique_filename_c')]).to.equal(204);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_b}}&file_keys={{unique_filename_c}}",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"delete_files"
+							],
+							"query": [
+								{
+									"key": "file_keys",
+									"value": "{{unique_filename_b}}"
+								},
+								{
+									"key": "file_keys",
+									"value": "{{unique_filename_c}}"
+								}
+							]
+						},
+						"description": "Run 'Save Or Update File' request first then expect 200 OK"
+					},
+					"response": []
+				}
+			],
+			"description": "Test the /delete_files endpoint",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"const timestamp = new Date().getTime();",
+							"const uniqueFilenameA = `test_file_${timestamp}_a.md`;",
+							"const uniqueFilenameB = `test_file_${timestamp}_b.md`;",
+							"const uniqueFilenameC = `test_file_${timestamp}_c.md`;",
+							"",
+							"pm.environment.set(\"unique_filename_a\", uniqueFilenameA);",
+							"pm.environment.set(\"unique_filename_b\", uniqueFilenameB);",
+							"pm.environment.set(\"unique_filename_c\", uniqueFilenameC);",
 							""
 						]
 					}
