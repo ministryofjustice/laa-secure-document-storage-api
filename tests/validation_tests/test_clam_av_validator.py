@@ -32,3 +32,13 @@ async def test_expected_failure_for_virus_found(virus_check, av_msg, status_code
 
     result = await scan_request(test_header, get_default_mock_file)
     assert result.status_code == status_code and result.message == expected_msg
+    
+
+@pytest.mark.asyncio    
+async def test_expected_pass_for_good_file(get_default_mock_file):
+    test_header = {'content-length': 1235}
+    result = await scan_request(test_header, get_default_mock_file)
+    file_calls = [str(c) for c in get_default_mock_file.mock_calls]
+    assert result.status_code == 200
+    assert await get_default_mock_file.read() == b'test_file_content' # Not useful as the mock always returns this value
+    assert file_calls == ["call.read()", "call.seek(0)"] 
