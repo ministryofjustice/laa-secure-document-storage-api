@@ -1,7 +1,7 @@
-FROM python:3.10-slim
+FROM python:3.13-alpine
 WORKDIR /app/src
 RUN addgroup --gid 1000 --system appgroup
-RUN adduser --uid 1000 --system appuser --gid 1000
+RUN adduser -u 1000 -S appuser -G 1000
 COPY ./Pipfile* /app/
 RUN pip install --upgrade pip
 RUN pip install pipenv
