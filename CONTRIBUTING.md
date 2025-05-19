@@ -112,6 +112,11 @@ def test_route_with_user(test_client, test_user_client_config):
     ...
 ```
 
+### Localstack S3 storage
+
+To check the files stored in the local development bucket, run `aws --endpoint-url=http://localhost:4566 s3 ls s3://sds-local`
+
+
 ## Making changes: Linting
 
 Linting ensures the typed code is consistent and follows best practices for ease of understanding.
