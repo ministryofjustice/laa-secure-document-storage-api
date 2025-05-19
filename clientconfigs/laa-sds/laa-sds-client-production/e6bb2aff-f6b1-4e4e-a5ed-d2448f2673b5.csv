@@ -4,4 +4,5 @@ p, e6bb2aff-f6b1-4e4e-a5ed-d2448f2673b5, /retrieve_file, GET
 p, e6bb2aff-f6b1-4e4e-a5ed-d2448f2673b5, /save_or_update_file, PUT
 p, e6bb2aff-f6b1-4e4e-a5ed-d2448f2673b5, /save_file, POST
 p, e6bb2aff-f6b1-4e4e-a5ed-d2448f2673b5, /delete_files, DELETE
+p, e6bb2aff-f6b1-4e4e-a5ed-d2448f2673b5, /virus_check_file, PUT
 p, e6bb2aff-f6b1-4e4e-a5ed-d2448f2673b5, laa-sds-internal-production, (CREATE)|(READ)|(DELETE)
