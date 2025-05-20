@@ -39,7 +39,6 @@ class AuthzService:
                     logger.warning("No CASBIN_POLICY specified, using default deny-all policy")
                 else:
                     policy = MultiFileAdapter(policy)
-                    logger.info(f"Using policy {policy}")
                 # Use an Enforcer that will poll for changes to the specified model and policy files.
                 enforcer = casbin.SyncedEnforcer(
                     model=os.environ.get('CASBIN_MODEL', DEFAULT_ACL_MODEL),

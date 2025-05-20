@@ -4,4 +4,5 @@ p, 6e664670-3d35-4b40-ad86-273822b7edf3, /retrieve_file, GET
 p, 6e664670-3d35-4b40-ad86-273822b7edf3, /save_or_update_file, PUT
 p, 6e664670-3d35-4b40-ad86-273822b7edf3, /save_file, POST
 p, 6e664670-3d35-4b40-ad86-273822b7edf3, /delete_files, DELETE
+p, 6e664670-3d35-4b40-ad86-273822b7edf3, /virus_check_file, PUT
 p, 6e664670-3d35-4b40-ad86-273822b7edf3, sds-local, (CREATE)|(READ)|(DELETE)

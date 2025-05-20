@@ -41,10 +41,15 @@ class MultiFileAdapter(casbin.FileAdapter):
                 continue
 
         # Load policy lines from each of the found file paths
+        total_loaded = 0
         for policy_path in policy_file_paths:
-            logger.info(f"Loading policy from {policy_path}")
-            with open(policy_path, "rb") as file:
-                line = file.readline()
-                while line:
-                    load_policy_line(line.decode().strip(), model)
+            try:
+                with open(policy_path, "rb") as file:
                     line = file.readline()
+                    while line:
+                        load_policy_line(line.decode().strip(), model)
+                        line = file.readline()
+                    total_loaded += 1
+            except Exception as e:
+                logger.error(f"Failed to load policy file {policy_path}: {e.__class__.__name__} {e}")
+        logger.info(f"Loaded {total_loaded} policy files")

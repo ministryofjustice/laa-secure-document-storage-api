@@ -4,4 +4,5 @@ p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /retrieve_file, GET
 p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /save_or_update_file, PUT
 p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /save_file, POST
 p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /delete_files, DELETE
+p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, /virus_check_file, PUT
 p, 6eb5be1a-1a81-4cdb-bf53-3add7ee0de75, laa-sds-internal-uat, (CREATE)|(READ)|(DELETE)
