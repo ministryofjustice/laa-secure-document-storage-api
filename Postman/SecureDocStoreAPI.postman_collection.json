@@ -2236,7 +2236,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
+									"pm.test(\"Status code is BAD REQUEST\", function () {",
 									"    pm.response.to.have.status(400);",
 									"});",
 									"",
@@ -2253,7 +2253,9 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									""
+									"const uuid = require(\"uuid\");",
+									"const uniqueFilename = 'test_file_'+uuid.v4()+'.md';",
+									"pm.environment.set(\"unique_filename\", uniqueFilename);"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -2285,12 +2287,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "eicar.txt"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
-									"type": "text"
+									"src": "eicar.txt",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
@@ -2308,14 +2306,14 @@
 					"response": []
 				},
 				{
-					"name": "Virus check with clean file",
+					"name": "Check file without virus",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const timestamp = new Date().getTime();",
-									"const uniqueFilename = `test_file_${timestamp}.md`;",
+									"const uuid = require(\"uuid\");",
+									"const uniqueFilename = 'test_file_'+uuid.v4()+'.md';",
 									"pm.environment.set(\"unique_filename\", uniqueFilename);"
 								],
 								"type": "text/javascript"
@@ -2366,11 +2364,6 @@
 									"type": "file",
 									"src": "test_file.md",
 									"fileName": "{{unique_filename}}"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\"}",
-									"type": "text"
 								}
 							]
 						},
