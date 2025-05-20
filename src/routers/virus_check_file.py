@@ -18,6 +18,11 @@ async def virus_check_file(
             file: Optional[UploadFile] = UploadFile(None),
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
+    """
+    Scans the provided file for known viruses using a regularly updated internal ClamAV service, responding with:
+    * 200 If no known viruses were detected
+    * 400 If known viruses were detected
+    """
     validation_result = await clam_av_validator.scan_request(request.headers, file)
     if validation_result.status_code != 200:
         raise HTTPException(

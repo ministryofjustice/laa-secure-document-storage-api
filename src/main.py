@@ -49,7 +49,10 @@ if sentry_dsn:
         ]
     )
 
-app = FastAPI()
+app = FastAPI(
+    title='LAA Secure Document Storage API',
+    version='0.6.0'
+)
 
 structlog.configure(
     logger_factory=LoggerFactory(), processors=[
