@@ -1,0 +1,3 @@
+p, a1626f73-c0b7-4a68-8739-8ddf81dc0e7b, /health, GET
+p, a1626f73-c0b7-4a68-8739-8ddf81dc0e7b, /, GET
+p, a1626f73-c0b7-4a68-8739-8ddf81dc0e7b, /virus_check_file, PUT
