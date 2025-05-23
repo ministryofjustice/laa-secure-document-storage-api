@@ -23,7 +23,7 @@ services:
       - CASBIN_POLICY='/authz/casbin_policy_open_routes.csv:/app/clientconfigs'
       - CASBIN_MODEL=/authz/casbin_model_acl_with_authenticated.conf
       - CONFIG_DIR=/app/clientconfigs
-      - CONFIG_SOURCES=db,file
+      - CONFIG_SOURCES=file
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb_local

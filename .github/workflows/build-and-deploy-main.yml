@@ -21,6 +21,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Checkout configs
+      uses: actions/checkout@v4
+      with:
+        repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
+        path: './remoteclientconfigs'
+        token: '${{ secrets.CLIENT_CONFIGS_TOKEN }}'
+        persist-credentials: 'false'
+
+    - name: Move client configs into place
+      run: |
+        mv ./remoteclientconfigs/clientconfigs ./clientconfigs
+        rm -R ./remoteclientconfigs
+
     - name: Build Docker Image
       run:
         docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
