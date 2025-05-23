@@ -21,14 +21,13 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
-        path: './remoteclientconfigs'
+        path: './clientconfigs'
         token: '${{ secrets.CLIENT_CONFIGS_TOKEN }}'
         persist-credentials: 'false'
+        sparse-checkout: 'clientconfigs'
 
-    - name: Move client configs into place
+    - name: Check configs
       run: |
-        mv ./remoteclientconfigs/clientconfigs ./clientconfigs
-        rm -R ./remoteclientconfigs
         ls ./
         ls ./clientconfigs/
 
