@@ -22,6 +22,7 @@ jobs:
         with:
           repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
           path: './clientconfigs'
+          ref: 'main'
           token: '${{ secrets.CLIENT_CONFIGS_TOKEN }}'
           persist-credentials: 'false'
           sparse-checkout: 'clientconfigs'
