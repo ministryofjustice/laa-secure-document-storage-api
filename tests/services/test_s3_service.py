@@ -114,3 +114,62 @@ def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
         'An error occurred (NoSuchBucket) when calling the PutObject operation: '
         'The specified bucket does not exist'
     )
+
+
+def test_delete_file_obj_success(s3_service, mocker):
+    mock_delete_object = mocker.patch.object(s3_service.s3_client, 'delete_object')
+
+    filename = 'test_file.md'
+
+    s3_service.delete_file_obj(filename)
+
+    mock_delete_object.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Key=filename
+    )
+
+
+def test_delete_file_obj_file_not_found(s3_service, mocker):
+    mocker.patch.object(
+        s3_service.s3_client, 
+        'delete_object',
+        side_effect=ClientError(
+            error_response={"Error": {"Code": "NoSuchKey", "Message": "Not Found"}},
+            operation_name='DeleteObject'
+        )
+    )
+
+    with pytest.raises(FileNotFoundError) as exc_info:
+        s3_service.delete_file_obj('missing_file.md')
+
+    assert "not found" in str(exc_info.value).lower()
+
+
+def test_delete_file_obj_permission_denied(s3_service, mocker):
+    mocker.patch.object(
+        s3_service.s3_client,
+        'delete_object',
+        side_effect=ClientError(
+            error_response={"Error": {"Code": "AccessDenied", "Message": "Forbidden"}},
+            operation_name='DeleteObject'
+        )
+    )
+
+    with pytest.raises(PermissionError) as exc_info:
+        s3_service.delete_file_obj('private_file.md')
+
+    assert "access denied" in str(exc_info.value).lower()
+
+
+def test_delete_file_obj_unexpected_error(s3_service, mocker):
+    mocker.patch.object(
+        s3_service.s3_client,
+        'delete_object',
+        side_effect=RuntimeError("Something went wrong")
+    )
+
+    with pytest.raises(RuntimeError) as exc_info:
+        s3_service.delete_file_obj('any_file.md')
+
+    assert "something went wrong" in str(exc_info.value).lower()
+
