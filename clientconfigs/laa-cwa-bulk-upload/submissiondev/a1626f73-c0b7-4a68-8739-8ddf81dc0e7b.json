@@ -1,0 +1,26 @@
+{
+  "azure_client_id": "a1626f73-c0b7-4a68-8739-8ddf81dc0e7b",
+  "azure_display_name": "submissiondev",
+  "bucket_name": "-",
+  "file_validators": [
+    {
+      "name": "DisallowedFileExtensions",
+      "validator_kwargs": {
+        "extensions": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "DisallowedMimetypes",
+      "validator_kwargs": {
+        "content_types": [
+          "application/x-sh",
+          "text/x-sh",
+          "application/x-msdownload",
+          "application/x-msdos-program"
+        ]
+      }
+    }
+  ]
+}
