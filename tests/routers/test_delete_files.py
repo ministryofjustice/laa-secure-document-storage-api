@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from fastapi import HTTPException
 
 
 def test_delete_files_missing_key(test_client):
@@ -8,16 +9,14 @@ def test_delete_files_missing_key(test_client):
     assert 'detail' in response.json()
     assert response.json()['detail'] == 'File key is missing'
 
-@patch("src.routers.delete_files.s3_service.delete_file")
-def test_delete_files_permission_denied(s3_delete_mock, test_client, audit_service_mock):
-    s3_delete_mock.side_effect = PermissionError()
+@patch("src.services.authz_service.enforce_or_error")
+def test_delete_files_permission_denied(authz_mock, test_client):
+    authz_mock.side_effect = HTTPException(status_code=403, detail="Forbidden")
     file_key = 'test_file.md'
 
     response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
-    assert response.status_code == 202
-    assert file_key in response.json()
-    assert response.json()[file_key] == 403
+    assert response.status_code == 403
 
 @patch("src.routers.delete_files.s3_service.delete_file")
 def test_delete_files_missing_file(s3_delete_mock, test_client, audit_service_mock):

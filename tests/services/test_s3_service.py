@@ -145,22 +145,6 @@ def test_delete_file_obj_file_not_found(s3_service, mocker):
     assert "not found" in str(exc_info.value).lower()
 
 
-def test_delete_file_obj_permission_denied(s3_service, mocker):
-    mocker.patch.object(
-        s3_service.s3_client,
-        'delete_object',
-        side_effect=ClientError(
-            error_response={"Error": {"Code": "AccessDenied", "Message": "Forbidden"}},
-            operation_name='DeleteObject'
-        )
-    )
-
-    with pytest.raises(PermissionError) as exc_info:
-        s3_service.delete_file_obj('private_file.md')
-
-    assert "access denied" in str(exc_info.value).lower()
-
-
 def test_delete_file_obj_unexpected_error(s3_service, mocker):
     mocker.patch.object(
         s3_service.s3_client,

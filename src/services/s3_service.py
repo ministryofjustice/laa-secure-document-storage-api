@@ -114,9 +114,6 @@ class S3Service:
             if error_code == "NoSuchKey":
                 logger.warning(f"File {filename} not found in bucket {self.client_config.bucket_name}")
                 raise FileNotFoundError(f"File {filename} not found in bucket {self.client_config.bucket_name}")
-            elif error_code in {"AccessDenied", "AllAccessDisabled"}:
-                logger.warning(f"Access denied trying to delete {filename} from bucket {self.client_config.bucket_name}")
-                raise PermissionError(f"Access denied to delete {filename}")
             else:
                 logger.error(f"{e.__class__.__name__} deleting file from S3: {str(e)}")
                 raise
@@ -159,8 +156,6 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str, metadata: di
 
 
 def delete_file(client: str | ClientConfig, file_name: str):
-    if not file_name:
-        raise ValueError("file_name must be provided")
     s3_service = S3Service.get_instance(client)
     s3_service.delete_file_obj(file_name)
     
