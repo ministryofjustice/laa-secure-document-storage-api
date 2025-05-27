@@ -52,11 +52,19 @@ async def delete_files(
             # ...therefore this was a success
             outcomes[file_key] = 204  # NO CONTENT, delete was successful
 
+        except ValueError:
+            logger.error("File name not provided")
+            outcomes[file_key] = 400 # BAD REQUEST
+        except PermissionError:
+            logger.error(f"Access denied to delete {file_key}")
+            outcomes[file_key] = 403 # FORBIDDEN
         except FileNotFoundError:
             logger.error(f"File to be deleted {file_key} not found for client {client_config.azure_client_id}")
             outcomes[file_key] = 404  # NOT FOUND
         except Exception as e:
-            logger.error(f"Error deleting file: {e.__class__.__name__} {str(e)}")
-            outcomes[file_key] = 500  # SERVER ERROR
+            msg = f"Unexpected error deleting {file_key}: {e.__class__.__name__} - {str(e)}"
+            logger.exception(msg)
+            outcomes[file_key] = 500 # SERVER ERROR
+
 
     return JSONResponse(outcomes, status_code=202)  # ACCEPTED
