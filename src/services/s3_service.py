@@ -159,6 +159,8 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str, metadata: di
 
 
 def delete_file(client: str | ClientConfig, file_name: str):
+    if not file_name:
+        raise ValueError("file_name must be provided")
     s3_service = S3Service.get_instance(client)
     s3_service.delete_file_obj(file_name)
     
