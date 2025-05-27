@@ -102,7 +102,6 @@ class S3Service:
             raise e
     
     def delete_file_obj(self, filename: str):
-    
         try:
             logger.debug(f"Attempting to delete file {filename} from S3 bucket {self.client_config.bucket_name}")
             self.s3_client.delete_object(
@@ -115,10 +114,12 @@ class S3Service:
             if error_code == "NoSuchKey":
                 logger.warning(f"File {filename} not found in bucket {self.client_config.bucket_name}")
                 raise FileNotFoundError(f"File {filename} not found in bucket {self.client_config.bucket_name}")
+            elif error_code in {"AccessDenied", "AllAccessDisabled"}:
+                logger.warning(f"Access denied trying to delete {filename} from bucket {self.client_config.bucket_name}")
+                raise PermissionError(f"Access denied to delete {filename}")
             else:
                 logger.error(f"{e.__class__.__name__} deleting file from S3: {str(e)}")
                 raise
-
 
     def file_exists_in_bucket(self, key: str) -> bool:
         try:
