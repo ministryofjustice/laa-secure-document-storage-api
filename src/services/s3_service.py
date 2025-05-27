@@ -100,7 +100,7 @@ class S3Service:
         except Exception as e:
             logger.error(f"{e.__class__.__name__} uploading file to S3: {str(e)}")
             raise e
-    
+
     def delete_file_obj(self, filename: str):
         try:
             logger.debug(f"Attempting to delete file {filename} from S3 bucket {self.client_config.bucket_name}")
@@ -158,5 +158,5 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str, metadata: di
 def delete_file(client: str | ClientConfig, file_name: str):
     s3_service = S3Service.get_instance(client)
     s3_service.delete_file_obj(file_name)
-    
+
     return True

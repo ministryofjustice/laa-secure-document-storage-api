@@ -9,6 +9,7 @@ def test_delete_files_missing_key(test_client):
     assert 'detail' in response.json()
     assert response.json()['detail'] == 'File key is missing'
 
+
 @patch("src.services.authz_service.enforce_or_error")
 def test_delete_files_permission_denied(authz_mock, test_client):
     authz_mock.side_effect = HTTPException(status_code=403, detail="Forbidden")
@@ -17,6 +18,7 @@ def test_delete_files_permission_denied(authz_mock, test_client):
     response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
     assert response.status_code == 403
+
 
 @patch("src.routers.delete_files.s3_service.delete_file")
 def test_delete_files_missing_file(s3_delete_mock, test_client, audit_service_mock):

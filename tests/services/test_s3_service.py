@@ -131,7 +131,7 @@ def test_delete_file_obj_success(s3_service, mocker):
 
 def test_delete_file_obj_file_not_found(s3_service, mocker):
     mocker.patch.object(
-        s3_service.s3_client, 
+        s3_service.s3_client,
         'delete_object',
         side_effect=ClientError(
             error_response={"Error": {"Code": "NoSuchKey", "Message": "Not Found"}},
@@ -156,4 +156,3 @@ def test_delete_file_obj_unexpected_error(s3_service, mocker):
         s3_service.delete_file_obj('any_file.md')
 
     assert "something went wrong" in str(exc_info.value).lower()
-

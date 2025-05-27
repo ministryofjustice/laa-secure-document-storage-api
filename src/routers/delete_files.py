@@ -58,7 +58,6 @@ async def delete_files(
         except Exception as e:
             msg = f"Unexpected error deleting {file_key}: {e.__class__.__name__} - {str(e)}"
             logger.exception(msg)
-            outcomes[file_key] = 500 # SERVER ERROR
-
+            outcomes[file_key] = 500  # SERVER ERROR
 
     return JSONResponse(outcomes, status_code=202)  # ACCEPTED
