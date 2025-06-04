@@ -104,6 +104,7 @@ class S3Service:
     def delete_file_obj(self, filename: str):
         try:
             logger.debug(f"Attempting to delete file {filename} from S3 bucket {self.client_config.bucket_name}")
+            self.s3_client.head_object(Bucket=self.client_config.bucket_name, Key=filename)
             self.s3_client.delete_object(
                 Bucket=self.client_config.bucket_name,
                 Key=filename,
@@ -111,7 +112,7 @@ class S3Service:
             logger.info(f"File {filename} successfully deleted from bucket {self.client_config.bucket_name}")
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "")
-            if error_code == "NoSuchKey":
+            if error_code == "NoSuchKey" or error_code == "404":
                 logger.warning(f"File {filename} not found in bucket {self.client_config.bucket_name}")
                 raise FileNotFoundError(f"File {filename} not found in bucket {self.client_config.bucket_name}")
             else:

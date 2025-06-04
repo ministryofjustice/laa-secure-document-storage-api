@@ -1615,7 +1615,7 @@
 									"pm.test(\"Response body shows success\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_a'));",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_a'));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1695,7 +1695,7 @@
 									"pm.test(\"Response body shows success\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_b'));",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_b'));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1775,7 +1775,7 @@
 									"pm.test(\"Response body shows success\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_c'));",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_c'));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1855,7 +1855,7 @@
 									"pm.test(\"Response body shows success\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_d'));",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_d'));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1935,12 +1935,12 @@
 									"",
 									"pm.test(\"response contains filename key\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_a'));",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_a'));",
 									"});",
 									"",
 									"pm.test(\"response contains expected deletion status for file\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    //pm.expect(responseBody[pm.environment.get('unique_filename_a')]).to.equal(204);",
+									"    pm.expect(responseBody[pm.variables.get('unique_filename_a')]).to.equal(204);",
 									"});",
 									""
 								],
@@ -2217,12 +2217,12 @@
 									"",
 									"pm.test(\"Response contains filename key\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.environment.get('non_existent_file'));",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('non_existent_file'));",
 									"});",
 									"",
 									"pm.test(\"Outcome code for file is 404 - FILE NOT FOUND\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    //pm.expect(responseBody[pm.environment.get('non_existent_file')]).to.equal(404);",
+									"    pm.expect(responseBody[pm.variables.get('non_existent_file')]).to.equal(404);",
 									"});",
 									""
 								],
@@ -2302,7 +2302,7 @@
 									"pm.test(\"Response body shows file not found\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'The file '+pm.environment.get('unique_filename_a')+' could not be found.');",
+									"    pm.expect(responseBody).to.have.property('detail', 'The file '+pm.variables.get('unique_filename_a')+' could not be found.');",
 									"});",
 									""
 								],
@@ -2378,7 +2378,6 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"/*",
 									"pm.test(\"Status code is SUCCESS\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});",
@@ -2387,7 +2386,7 @@
 									"    const responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
 									"});",
-									"*/"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -2468,22 +2467,22 @@
 									"",
 									"pm.test(\"response contains filename key\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_b'));",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_b'));",
 									"});",
 									"",
 									"pm.test(\"response contains expected deletion status for file\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody[pm.environment.get('unique_filename_b')]).to.equal(204);",
+									"    pm.expect(responseBody[pm.variables.get('unique_filename_b')]).to.equal(204);",
 									"});",
 									"",
 									"pm.test(\"response contains filename key\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_c'));",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_c'));",
 									"});",
 									"",
 									"pm.test(\"response contains expected deletion status for file\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody[pm.environment.get('unique_filename_c')]).to.equal(204);",
+									"    pm.expect(responseBody[pm.variables.get('unique_filename_c')]).to.equal(204);",
 									"});",
 									""
 								],
@@ -2562,19 +2561,15 @@
 						"type": "text/javascript",
 						"packages": {},
 						"exec": [
-							"const timestamp = new Date().getTime();",
-							"const uniqueFilenameA = `test_file_${timestamp}_a.md`;",
-							"const uniqueFilenameB = `test_file_${timestamp}_b.md`;",
-							"const uniqueFilenameC = `test_file_${timestamp}_c.md`;",
-							"const uniqueFilenameD = `test_file_${timestamp}_d.md`;",
-							"const nonExistentFile = `non_existent_file.md`;",
-			
-							"",
-							"pm.environment.set(\"unique_filename_a\", uniqueFilenameA);",
-							"pm.environment.set(\"unique_filename_b\", uniqueFilenameB);",
-							"pm.environment.set(\"unique_filename_c\", uniqueFilenameC);",
-							"pm.environment.set(\"unique_filename_d\", uniqueFilenameD);",
-							"pm.environment.set(\"non_existent_file\", nonExistentFile);",
+							"// Scope vars to the run",
+							"if ( ! pm.variables.has(\"unique_filename_a\") ) {",
+							"    const timestamp = new Date().getTime();",
+							"    pm.variables.set(\"unique_filename_a\", `test_file_${timestamp}_a.md`);",
+							"    pm.variables.set(\"unique_filename_b\", `test_file_${timestamp}_b.md`);",
+							"    pm.variables.set(\"unique_filename_c\", `test_file_${timestamp}_c.md`);",
+							"    pm.variables.set(\"unique_filename_d\", `test_file_${timestamp}_d.md`);",
+							"    pm.variables.set(\"non_existent_file\", `non_existent_file_${timestamp}.md`);",
+							"}",
 							""
 						]
 					}
