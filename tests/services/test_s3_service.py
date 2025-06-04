@@ -118,7 +118,7 @@ def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
 
 def test_delete_file_obj_success(s3_service, mocker):
     mock_delete_object = mocker.patch.object(s3_service.s3_client, 'delete_object')
-
+    mock_head_object = mocker.patch.object(s3_service.s3_client, 'head_object')
     filename = 'test_file.md'
 
     s3_service.delete_file_obj(filename)
@@ -127,9 +127,38 @@ def test_delete_file_obj_success(s3_service, mocker):
         Bucket=s3_service.client_config.bucket_name,
         Key=filename
     )
+    mock_head_object.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Key=filename
+    )
 
 
 def test_delete_file_obj_file_not_found(s3_service, mocker):
+    mock_head_object = mocker.patch.object(s3_service.s3_client, 'head_object')
+    mocker.patch.object(
+        s3_service.s3_client,
+        'delete_object',
+        side_effect=ClientError(
+            error_response={"Error": {"Code": "NoSuchKey", "Message": "Not Found"}},
+            operation_name='DeleteObject'
+        )
+    )
+
+    with pytest.raises(FileNotFoundError) as exc_info:
+        s3_service.delete_file_obj('missing_file.md')
+
+    assert "not found" in str(exc_info.value).lower()
+
+
+def test_delete_file_obj_file_not_found_via_head(s3_service, mocker):
+    mock_head_object = mocker.patch.object(
+        s3_service.s3_client,
+        'head_object',
+        side_effect=ClientError(
+            error_response={"Error": {"Code": "404", "Message": "Not Found"}},
+            operation_name='HeadObject'
+        )
+    )
     mocker.patch.object(
         s3_service.s3_client,
         'delete_object',
@@ -146,6 +175,7 @@ def test_delete_file_obj_file_not_found(s3_service, mocker):
 
 
 def test_delete_file_obj_unexpected_error(s3_service, mocker):
+    mock_head_object = mocker.patch.object(s3_service.s3_client, 'head_object')
     mocker.patch.object(
         s3_service.s3_client,
         'delete_object',
