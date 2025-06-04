@@ -148,6 +148,10 @@ def test_delete_file_obj_file_not_found(s3_service, mocker):
         s3_service.delete_file_obj('missing_file.md')
 
     assert "not found" in str(exc_info.value).lower()
+    mock_head_object.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Key='missing_file.md'
+    )
 
 
 def test_delete_file_obj_file_not_found_via_head(s3_service, mocker):
@@ -172,6 +176,10 @@ def test_delete_file_obj_file_not_found_via_head(s3_service, mocker):
         s3_service.delete_file_obj('missing_file.md')
 
     assert "not found" in str(exc_info.value).lower()
+    mock_head_object.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Key='missing_file.md'
+    )
 
 
 def test_delete_file_obj_unexpected_error(s3_service, mocker):
@@ -186,3 +194,7 @@ def test_delete_file_obj_unexpected_error(s3_service, mocker):
         s3_service.delete_file_obj('any_file.md')
 
     assert "something went wrong" in str(exc_info.value).lower()
+    mock_head_object.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Key='any_file.md'
+    )
