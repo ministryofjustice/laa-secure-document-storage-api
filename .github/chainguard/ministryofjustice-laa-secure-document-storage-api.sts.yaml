@@ -1,6 +1,0 @@
----
-issuer: https://token.actions.githubusercontent.com
-subject_pattern: repo:ministryofjustice-laa-secure-document-storage-api:.*
-
-permissions:
-  contents: read
