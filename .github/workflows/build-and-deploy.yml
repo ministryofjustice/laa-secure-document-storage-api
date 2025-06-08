@@ -22,7 +22,7 @@ jobs:
       id: octo_sts
       with:
         scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
-        identity: ministryofjustice/laa-secure-document-storage-api # Taken from config in .github/chainguard/
+        identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
     - name: Checkout configs
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
