@@ -17,19 +17,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Checkout configs
-        uses: actions/checkout@v4
+      - name: Obtain Octo STS Token
+        uses: octo-sts/action@6177b4481c00308b3839969c3eca88c96a91775f # v1.0.0
+        id: octo_sts
         with:
+          scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
+          identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
+
+      - name: Checkout client configs
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: 'false'
+          token: '${{ steps.octo_sts.outputs.token }}'
           repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
           path: './clientconfigs'
           ref: 'main'
-          token: '${{ secrets.CLIENT_CONFIGS_TOKEN }}'
-          persist-credentials: 'false'
           sparse-checkout: 'clientconfigs'
 
       - name: Check configs
         run: |
-          ls ./
           ls ./clientconfigs/
 
       - name: Set up Node.js
@@ -53,7 +59,6 @@ jobs:
         run: |
           aws configure set aws_access_key_id test
           aws configure set aws_secret_access_key test
-       
 
       - name: run ls command
         run: cat ~/.aws/credentials
@@ -67,15 +72,13 @@ jobs:
           TENANT_ID: ${{ secrets.TENANT_ID }}
           AUDIENCE_ID: ${{ secrets.AUDIENCE_ID }}
 
-
-
       - name: Setup AuditDB
         run: ./auditdb.sh
 
       - name: Setup S3 Bucket
         run: ./s3-bucket-create.sh
 
-      - name: Delay for 60 seconds
+      - name: Wait 60 seconds for ClamAV
         run: sleep 60
 
       - name: Run Postman Tests
@@ -85,7 +88,6 @@ jobs:
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-
 
       - name: SDS API logs
         if: always()
