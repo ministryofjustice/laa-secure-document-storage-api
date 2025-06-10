@@ -1615,7 +1615,7 @@
 									"pm.test(\"Response body shows success\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_a'));",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_a'));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1695,7 +1695,7 @@
 									"pm.test(\"Response body shows success\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_b'));",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_b'));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1775,7 +1775,7 @@
 									"pm.test(\"Response body shows success\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename_c'));",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_c'));",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1842,6 +1842,86 @@
 					"response": []
 				},
 				{
+					"name": "Save D File For Deleting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is CREATED\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_d'));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "body",
+									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_d}}"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/save_file",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"save_file"
+							]
+						},
+						"description": "Expect a 201 OK when saving a new file."
+					},
+					"response": []
+				},
+				{
 					"name": "Delete Single File",
 					"event": [
 						{
@@ -1855,12 +1935,12 @@
 									"",
 									"pm.test(\"response contains filename key\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_a'));",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_a'));",
 									"});",
 									"",
 									"pm.test(\"response contains expected deletion status for file\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    //pm.expect(responseBody[pm.environment.get('unique_filename_a')]).to.equal(204);",
+									"    pm.expect(responseBody[pm.variables.get('unique_filename_a')]).to.equal(204);",
 									"});",
 									""
 								],
@@ -1927,13 +2007,294 @@
 					"response": []
 				},
 				{
+					"name": "Delete Single File - No File Key Provided",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Status code is 400 - BAD REQUEST\", function() {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Request must include at least one filename\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('detail');",
+									"    pm.expect(responseBody.detail).to.include('File key is missing');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={}",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"delete_files"
+							],
+							"query": [
+							]
+						},
+						"description": "Expect a 400 BAD REQUEST when no filename(s) are provided for deletion"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Single File Without Authorisation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Status code is 403 - FORBIDDEN\", function() {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response message is not authorised\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('detail', 'Forbidden');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Sets token without necessary scope to delete before test runs",
+									"",
+									"function postRequest(secret) {",
+									"    const postRequest = {",
+									"        url: tokenUrl,",
+									"        method: 'POST',",
+									"        header: {",
+									"            'Content-Type': 'application/x-www-form-urlencoded'",
+									"        },",
+									"        body: {",
+									"            mode: 'urlencoded',",
+									"            urlencoded:",
+									"                [",
+									"                    { key: 'grant_type', value: 'client_credentials' },",
+									"                    { key: 'client_id', value: clientId },",
+									"                    { key: 'client_secret', value: secret },",
+									"                    { key: 'scope', value: scope }",
+									"                ]",
+									"        }",
+									"    };",
+									"",
+									"    pm.sendRequest(postRequest, (error, response) => {",
+									"        let jsonData = response.json()",
+									"        pm.variables.set(\"bearerToken\", jsonData.access_token)",
+									"    })",
+									"}",
+									"",
+									"// resolve variables from the environment",
+									"const tokenUrl = pm.environment.get('AzureTokenUrl')",
+									"const clientId = pm.environment.get('SDSClientID')",
+									"const scope = pm.environment.get('InvalidScope')",
+									"var envSecret = pm.environment.get('SDSClientSecret')",
+									"",
+									"// locally resolve secret from vault, in pipeline use env var\",",
+									"if (envSecret.startsWith('{{vault:')) {",
+									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+									"    // use .then() in place of await to support newman runner",
+									"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+									"}",
+									"else {",
+									"    postRequest(envSecret)",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={unique_filename_d}",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"delete_files"
+							],
+							"query": [
+								{
+									"key": "file_keys",
+									"value": "{{unique_filename_d}}"
+								}
+							]
+						},
+						"description": "Expect a 403 FORBIDDEN outcome when user does not hold the required permissions to delete files"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Non-Existent File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Overall status code is 202 - ACCEPTED \", function() {",
+									"    pm.response.to.have.status(202);",
+									"});",
+									"",
+									"pm.test(\"Response contains filename key\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('non_existent_file'));",
+									"});",
+									"",
+									"pm.test(\"Outcome code for file is 404 - FILE NOT FOUND\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody[pm.variables.get('non_existent_file')]).to.equal(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{non_existent_file}}",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"delete_files"
+							],
+							"query": [
+								{
+									"key": "file_keys",
+									"value": "{{non_existent_file}}"
+								}
+							]
+						},
+						"description": "Expect a 404 NOT FOUND outcome when trying to delete a file that cannot be found in specified bucket"
+					},
+					"response": []
+				},
+				{
 					"name": "Retrieve Deleted File",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"/*",
 									"pm.test(\"Status code is NOT FOUND\", function () {",
 									"    pm.response.to.have.status(404);",
 									"});",
@@ -1941,9 +2302,8 @@
 									"pm.test(\"Response body shows file not found\", function() {",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'The file '+pm.environment.get('unique_filename_a')+' could not be found.');",
+									"    pm.expect(responseBody).to.have.property('detail', 'The file '+pm.variables.get('unique_filename_a')+' could not be found.');",
 									"});",
-									"*/",
 									""
 								],
 								"type": "text/javascript",
@@ -2018,7 +2378,6 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"/*",
 									"pm.test(\"Status code is SUCCESS\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});",
@@ -2027,7 +2386,7 @@
 									"    const responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
 									"});",
-									"*/"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -2108,22 +2467,22 @@
 									"",
 									"pm.test(\"response contains filename key\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_b'));",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_b'));",
 									"});",
 									"",
 									"pm.test(\"response contains expected deletion status for file\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    //pm.expect(responseBody[pm.environment.get('unique_filename_b')]).to.equal(204);",
+									"    pm.expect(responseBody[pm.variables.get('unique_filename_b')]).to.equal(204);",
 									"});",
 									"",
 									"pm.test(\"response contains filename key\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.environment.get('unique_filename_c'));",
+									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_c'));",
 									"});",
 									"",
 									"pm.test(\"response contains expected deletion status for file\", function() {",
 									"    const responseBody = pm.response.json();",
-									"    //pm.expect(responseBody[pm.environment.get('unique_filename_c')]).to.equal(204);",
+									"    pm.expect(responseBody[pm.variables.get('unique_filename_c')]).to.equal(204);",
 									"});",
 									""
 								],
@@ -2202,14 +2561,15 @@
 						"type": "text/javascript",
 						"packages": {},
 						"exec": [
-							"const timestamp = new Date().getTime();",
-							"const uniqueFilenameA = `test_file_${timestamp}_a.md`;",
-							"const uniqueFilenameB = `test_file_${timestamp}_b.md`;",
-							"const uniqueFilenameC = `test_file_${timestamp}_c.md`;",
-							"",
-							"pm.environment.set(\"unique_filename_a\", uniqueFilenameA);",
-							"pm.environment.set(\"unique_filename_b\", uniqueFilenameB);",
-							"pm.environment.set(\"unique_filename_c\", uniqueFilenameC);",
+							"// Scope vars to the run",
+							"if ( ! pm.variables.has(\"unique_filename_a\") ) {",
+							"    const timestamp = new Date().getTime();",
+							"    pm.variables.set(\"unique_filename_a\", `test_file_${timestamp}_a.md`);",
+							"    pm.variables.set(\"unique_filename_b\", `test_file_${timestamp}_b.md`);",
+							"    pm.variables.set(\"unique_filename_c\", `test_file_${timestamp}_c.md`);",
+							"    pm.variables.set(\"unique_filename_d\", `test_file_${timestamp}_d.md`);",
+							"    pm.variables.set(\"non_existent_file\", `non_existent_file_${timestamp}.md`);",
+							"}",
 							""
 						]
 					}
@@ -2230,7 +2590,7 @@
 			"name": "SDSVirusCheckFileTests",
 			"item": [
 				{
-					"name": "Check file with virus",
+					"name": "Check File With Virus",
 					"event": [
 						{
 							"listen": "test",
@@ -2306,7 +2666,7 @@
 					"response": []
 				},
 				{
-					"name": "Check file without virus",
+					"name": "Check File Without Virus",
 					"event": [
 						{
 							"listen": "prerequest",

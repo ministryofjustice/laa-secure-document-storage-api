@@ -56,7 +56,8 @@ async def delete_files(
             logger.error(f"File to be deleted {file_key} not found for client {client_config.azure_client_id}")
             outcomes[file_key] = 404  # NOT FOUND
         except Exception as e:
-            logger.error(f"Error deleting file: {e.__class__.__name__} {str(e)}")
+            msg = f"Unexpected error deleting {file_key}: {e.__class__.__name__} - {str(e)}"
+            logger.exception(msg)
             outcomes[file_key] = 500  # SERVER ERROR
 
     return JSONResponse(outcomes, status_code=202)  # ACCEPTED
