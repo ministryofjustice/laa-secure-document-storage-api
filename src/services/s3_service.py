@@ -101,6 +101,24 @@ class S3Service:
             logger.error(f"{e.__class__.__name__} uploading file to S3: {str(e)}")
             raise e
 
+    def delete_file_obj(self, filename: str):
+        try:
+            logger.debug(f"Attempting to delete file {filename} from S3 bucket {self.client_config.bucket_name}")
+            self.s3_client.head_object(Bucket=self.client_config.bucket_name, Key=filename)
+            self.s3_client.delete_object(
+                Bucket=self.client_config.bucket_name,
+                Key=filename,
+            )
+            logger.info(f"File {filename} successfully deleted from bucket {self.client_config.bucket_name}")
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "")
+            if error_code == "NoSuchKey" or error_code == "404":
+                logger.warning(f"File {filename} not found in bucket {self.client_config.bucket_name}")
+                raise FileNotFoundError(f"File {filename} not found in bucket {self.client_config.bucket_name}")
+            else:
+                logger.error(f"{e.__class__.__name__} deleting file from S3: {str(e)}")
+                raise
+
     def file_exists_in_bucket(self, key: str) -> bool:
         try:
             self.s3_client.head_object(Bucket=self.client_config.bucket_name, Key=key)
@@ -139,13 +157,7 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str, metadata: di
 
 
 def delete_file(client: str | ClientConfig, file_name: str):
-    """
-    Deletes the specified file from the client's configured bucket.
+    s3_service = S3Service.get_instance(client)
+    s3_service.delete_file_obj(file_name)
 
-    :raises: FileNotFoundError if file does not exist.
-    :param client:
-    :param file_name:
-    :return:
-    """
-    logger.warning(f"Deleting file {file_name} NOT IMPLEMENTED")
-    raise NotImplementedError()
+    return True
