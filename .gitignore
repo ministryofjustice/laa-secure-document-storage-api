@@ -69,4 +69,4 @@ instance/
 .webassets-cache
 
 # SDS specific
-clientconfigs/
+clientconfigs

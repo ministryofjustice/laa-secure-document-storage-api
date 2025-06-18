@@ -30,7 +30,7 @@ jobs:
           persist-credentials: 'false'
           token: '${{ steps.octo_sts.outputs.token }}'
           repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
-          path: './clientconfigs'
+          path: '../sds-client-configs'                         # Note the path is not in the current directory for compose
           ref: 'main'
           sparse-checkout: 'clientconfigs'
 
@@ -71,12 +71,6 @@ jobs:
         env:
           TENANT_ID: ${{ secrets.TENANT_ID }}
           AUDIENCE_ID: ${{ secrets.AUDIENCE_ID }}
-
-      - name: Setup AuditDB
-        run: ./auditdb.sh
-
-      - name: Setup S3 Bucket
-        run: ./s3-bucket-create.sh
 
       - name: Wait 60 seconds for ClamAV
         run: sleep 60
