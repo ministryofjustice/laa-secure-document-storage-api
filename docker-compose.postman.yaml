@@ -1,6 +1,4 @@
 services:
   sds-api:
-    build: .
     volumes:
-      - .:/app
-      - ./authz:/authz
+      - ./clientconfigs:/app/clientconfigs
