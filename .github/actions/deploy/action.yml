@@ -34,6 +34,9 @@ inputs:
   casbin_model:
     description: casbin model for auth
     required: true
+  sentry_dsn:
+    description: Sentry data source name destination for events
+    required: true
 
 
 runs:
