@@ -1,0 +1,6 @@
+services:
+  sds-api:
+    build: .
+    volumes:
+      - .:/app
+      - ./authz:/authz

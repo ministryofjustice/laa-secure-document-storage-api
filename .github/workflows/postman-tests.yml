@@ -34,7 +34,7 @@ jobs:
           persist-credentials: 'false'
           token: '${{ steps.octo_sts.outputs.token }}'
           repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
-          path: '../sds-client-configs'                         # Note the path is not in the current directory for compose
+          path: './clientconfigs'
           ref: 'main'
           sparse-checkout: 'clientconfigs'
 
@@ -71,7 +71,7 @@ jobs:
         run: |
           export AWS_ACCESS_KEY_ID=test
           export AWS_ACCESS_KEY=test
-          docker compose up --build -d
+          docker compose -f docker-compose.yaml -f docker-compose.postman.yaml up --build -d
         env:
           TENANT_ID: ${{ secrets.TENANT_ID }}
           AUDIENCE_ID: ${{ secrets.AUDIENCE_ID }}
