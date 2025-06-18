@@ -1,72 +1,30 @@
 # laa-secure-document-storage-api
 
-A repository containing the API for the LAA shared component for secure document storage
+A repository containing the API for the LAA shared component for secure document storage.
 
 ## Requires
 
-Python 3.10, pipenv and docker
+Python 3.13, pipenv and docker
 
-## Install Requirements
+## Configuration
 
-### Running Docker Apps
+We need to configure a number of settings before the SDS API, or the local services used, will work correctly.
 
-To ensure a consistent development environment across different setups, we use Docker to run the following application(
-s):
+As a minimum you will need to configure some AWS settings, but if you want to try the SDS API locally, you will also
+need some client configuration files, and some credentials if using authentication and authorisation. 
 
-    1. DynamoDB
-
-You can start the applications using Docker by running the following command:
-
-    ```
-    docker-compose up
-    ```
-
-This command will start the applications using the latest built image. If you want to build a new image based on the
-current code, use:
-
-    ```
-    docker-compose up --build
-    ```
-
-If you prefer to work within the IDE and only want to run specific Docker services such as DynamoDB, you can specify the
-service name like so:
-
-    ```
-    docker-compose up dynamodb
-    ```
-
-Service names are defined in the `docker-compose.yml` file.
-
-#### Alpine as SDS API base image
-
-Alpine is used because it has a smaller surface for vulnerabilities (has fewer packages), and uses fewer resources (is
-smaller).
-
-Find the list of available packages for a particular tagged image on https://hub.docker.com/_/python/tags
-
-The differences between Alpine and a more featured image (such as `slim`) should not be relevant to the SDS service, as
-interactions with the host are minimal. However, some differences of note when building are:
-* `apk` instead of `apt`
-* `openrc` as the init system
-* `adduser` has some minor args differences
-
-Alpine docs are:
-* https://docs.alpinelinux.org/user-handbook/0.1a/index.html
-* https://wiki.alpinelinux.org/wiki/Main_Page
-
-
-#### Note on LocalStack
+### AWS credentials
 
 LocalStack is an AWS resource emulator which mimics the behavior of AWS in a production environment. As such, it
 requires similar configuration, namely setting several environment variables.
 
 Add the following lines to your `bash_profile` or `zshrc`:
 
-    ```shell
-    export AWS_ACCESS_KEY_ID=dummy
-    export AWS_ACCESS_KEY=dummy
-    export AWS_SECRET_ACCESS_KEY=dummy
-    ```
+```shell
+export AWS_ACCESS_KEY_ID=dummy
+export AWS_ACCESS_KEY=dummy
+export AWS_SECRET_ACCESS_KEY=dummy
+```
 
 If you don't set these environment variables, LocalStack will default to the credentials defined
 in `~/.aws/credentials`. Although it might seem convenient, this method requires manually updating the variables in
@@ -74,37 +32,92 @@ the `.env` file to ensure correct values when running locally.
 Remember, don't include your real AWS keys in the code base or commit them to version control. When using IDE tools,
 make sure your Docker-compose variables are setup correctly if you choose to use non-dummy keys.
 
-### Python Packages
+### SDS credentials
 
-```
-pipenv install
+SDS uses tokens issued by the MoJ tenant, and there is currently no provision for entirely local authentication: All
+authentication occurs with the single auth services, even when running a local SDS instance. This may be something we
+change in the future.
+
+For users looking to try the API locally, you can do so without authentication by creating a new config for the user
+`anonymous` and granting that user access to the required routes. See the docs on client configs for more details on
+creating configs. The default location for config files is `./clientconfigs/` If this is not present, you can just
+create it.
+
+To use any *authenticated* routes locally, you will need the `tenant_id` and `audience_id` for the SDS API to validate
+the token. Internal services teams can contact the SDS team to obtain these. 
+
+For each client to be authorised to use any of the SDS routes, you will also need a client configuration. See the
+documentation for generating client configs. For internal services, you will need to follow the SDS integration guide.
+
+For SDS developers, another team member will provide access to a local development client credentials and config. They
+will need to be placed in the configured directory. The default path for configs is in a directory at the same level as
+the repo directory in `../sds-client-configs`
+
+### Running locally
+
+To ensure a consistent development environment across different setups, we use Docker to run local instances of the
+AWS services used, and the SDS API itself if needed.
+
+You can start the full suite of applications using Docker by running the following command.
+Note this is in non-daemon mode so will keep the terminal occupied, so all logs will appear as they are generated until
+the process is terminated:
+
+```shell
+$ docker compose up
 ```
 
-## Launch
+You can also start and detach the services using daemon mode:
 
-```
-pipenv run uvicorn src.main:app --reload
+```shell
+$ docker compose up -d
+...
+# And now to see the logs
+$ docker compose logs
+...
 ```
 
-You can now interact with the API using: http://127.0.0.1:8000/
+This command will start the applications using the latest built image. If you want to build a new image based on the
+current code, use:
+
+```shell
+$ docker compose up --build
+```
+
+You can also start just the API dependencies and run the API itself in an IDE or from the terminal.
+To start the dependent services, run:
+
+```shell
+$ docker compose up -d localstack laa-clamav
+```
+
+To run the API instance from an IDE, see [IDE Setup](docs/ide_setup.md).
+
+To run the API instance from a terminal, first install the requirements using `pipenv`, and then use that to run the
+API:
+```shell
+$ pipenv install
+...
+$ pipenv run uvicorn src.main:app --reload
+```
+
+Whichever way the SDS API is launched, you can now interact with the API using: http://127.0.0.1:8000/
 
 ## Testing
 
-### Unit and Integration
+### Unit testing
 
-Install additional requirements
+To run the unit tests using an IDE, follow the [IDE Setup](docs/ide_setup.md) document.
 
+To run from the terminal, first ensure the requirements are installed:
+```shell
+$ pipenv install --dev
 ```
-pipenv install --dev
+And then run:
+```shell
+$ pipenv run pytest
 ```
 
-Run by invoking pytest
-
-```
-pipenv run pytest
-```
-
-### API with Postman
+### API testing with Postman
 
 #### Summary
 
@@ -148,16 +161,15 @@ with the invalid token test.
 - "Send" the imported requests from within Postman one at a time, or right-click the collection and run the collection
 - Observe the test results within Postman
 
-### Cloud Platform
+## Hosting on Cloud Platform
 
 ### AWS resources
 Aws resources need to be configured in cloud platform repository see below.  The resources get created on the namespace
 using terraform.
-When adding a resource you should export a kubernetes secret so that the secret can then be injected into the application as a 
-environment variable at runtime. 
+When adding a resource you should export a kubernetes secret so that the secret can then be injected into the 
+application as a environment variable at runtime. 
 
 You can then use the secret directly in k8s deployment.yml
-
 
 ### Docker
 
@@ -177,8 +189,7 @@ Cloud platform run a tightly managed service on AWS, we have created 4 namespace
 | PRODUCTION  | [laa-sds-production](https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces/live.cloud-platform.service.justice.gov.uk/laa-sds-production) | https://laa-sds-production.apps.live.cloud-platform.service.justice.gov.uk |
 
 We have setup all the environments yet to respond on these endpoints, as it stands we will be playing around exclusively
-in
-dev and maybe test, but the target endpoints are correct.
+in dev and maybe test, but the target endpoints are correct.
 
 All infrastructure changes that need to be made have to be made in the namespace above, this includes creating
 additional services like clamav and adding s3 buckets
@@ -219,13 +230,5 @@ querying the cluster on every level.
 
 ### Github Actions
 
-We have a basic pipeline configured to deploy to dev and test, it is early days and this will need to be further refined
-to suit our working practices, this change is largely there to give a glimpse of what we can do with github
-actions and the cloud platform and how to set them up.
-
-As a bonus we are using the environments feature in github and I have temporarily put in a restriction that someone
-from the sds team has to approve the deployment, we can restrict this further for higher environments or remove it
-altogether.
-
-
-
+We have pipelines configured for linting, unit tests, postman tests, deploying to dev, then a checked deployment to
+test, then staging, and finally production.
