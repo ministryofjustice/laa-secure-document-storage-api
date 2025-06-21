@@ -11,9 +11,9 @@ Python 3.13, pipenv and docker
 We need to configure a number of settings before the SDS API, or the local services used, will work correctly.
 
 As a minimum you will need to configure some AWS settings, but if you want to try the SDS API locally, you will also
-need some client configuration files, and some credentials if using authentication and authorisation. 
+need some client configuration files, and some credentials if using authentication and authorisation.
 
-### AWS credentials
+### AWS configuration values
 
 LocalStack is an AWS resource emulator which mimics the behavior of AWS in a production environment. As such, it
 requires similar configuration, namely setting several environment variables.
@@ -32,26 +32,30 @@ the `.env` file to ensure correct values when running locally.
 Remember, don't include your real AWS keys in the code base or commit them to version control. When using IDE tools,
 make sure your Docker-compose variables are setup correctly if you choose to use non-dummy keys.
 
-### SDS credentials
+### SDS configuration values
 
 SDS uses tokens issued by the MoJ tenant, and there is currently no provision for entirely local authentication: All
 authentication occurs with the single auth services, even when running a local SDS instance. This may be something we
 change in the future.
 
-For users looking to try the API locally, you can do so without authentication by creating a new config for the user
-`anonymous` and granting that user access to the required routes. See the docs on client configs for more details on
-creating configs. The default location for config files is `./clientconfigs/` If this is not present, you can just
-create it.
-
-To use any *authenticated* routes locally, you will need the `tenant_id` and `audience_id` for the SDS API to validate
-the token. Internal services teams can contact the SDS team to obtain these. 
+To use any *authenticated* routes locally, you will need the `tenant_id` and `audience_id` values for the SDS API to
+validate the token. Internal services teams can contact the SDS team to obtain these, and set them in your local
+environment.
 
 For each client to be authorised to use any of the SDS routes, you will also need a client configuration. See the
-documentation for generating client configs. For internal services, you will need to follow the SDS integration guide.
+documentation for [generating client configs](docs/client_configurations.md). For internal services, you will need to 
+follow the 
+[SDS integration guide](https://dsdmoj.atlassian.net/wiki/spaces/SDS/pages/5390237878/LAA+SDS+Integration+Documentation).
 
-For SDS developers, another team member will provide access to a local development client credentials and config. They
-will need to be placed in the configured directory. The default path for configs is in a directory at the same level as
-the repo directory in `../sds-client-configs`
+For SDS developers, another team member will provide access to local development client credentials and config. They
+will need to be placed in the configured directory. The default path is in a directory at the same level as the repo
+directory and called `sds-client-configs`
+
+#### Try without credentials
+
+For users looking to try the API locally without using authentication, you can do so by creating a new config for the 
+unauthenticated user `anonymous` and granting that user access to the required routes. See the docs on client configs
+for more details on [generating client configs](docs/client_configurations.md).
 
 ### Running locally
 
