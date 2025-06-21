@@ -53,6 +53,15 @@ Files are organised into directories based on the requesting parent service (suc
 `azure_display_name` value, and finally the files are named with the `azure_client_id` value (so `abc-123-def.json`).
 
 For ease of use, we have a helper CLI tool `configbuilder.py` which can be used to view and add client configurations.
+This tool introspects aspects of the SDS service, so before using you need to activate the pipenv environment:
+
+```shell
+$ pipenv install
+...
+$ pipenv shell
+...
+# Now the configbuilder tool can be run
+```
 
 To list all client configurations, run:
 ```shell
@@ -126,72 +135,40 @@ store. It supports a single client specified using all of the following environm
 We have an external team who want to use SDS for their document storage needs, and we want to allow that access both in
 terms of configuration and ACL.
 
-1. The requesting service needs:
-
-   * An EntraID app registration
-
-     * The app registration must have the `LAA_SDS.ALL` API permission assigned
-     * The `Application (client) ID` must be provided
-     * The `Display Name` must be provided
-     * The repo or Cloud Platform name of the requesting service should be provided
-
-   * An S3 bucket which will be the backing store for SDS API access
-
-     * The bucket is added by creating a name in the SDS CP namespace, as documented elsewhere
-
-     * The bucket name must be provided when adding a config
-
-   * Which routes the client should have access to:
-
-     * GET /retrieve_file
-
-     * PUT /save_or_update_file
-
-     * POST /save_file
-
-
-2. Use the `configbuilder.py` CLI helper to add a client config.
- 
-    ```bash
-   $ ./configbuilder.py add
-    ```
-
-
-3. Update the ACL policy file (`authz/casbin_policy_prod.csv`) to allow the new client to access the routes they need. 
-
-    Sample fragment of ACL allowing client `000-000-000` to save and retrieve from the bucket named `abc-def-hij`: 
-    ```csv
-    p, 000-000-000, /retrieve_file, GET
-    p, 000-000-000, /save_or_update_file, PUT
-    p, 000-000-000, abc-def-hij, (READ)|(CREATE)
-    ```
-
+Follow the 
+[SDS integration guide](https://dsdmoj.atlassian.net/wiki/spaces/SDS/pages/5390237878/LAA+SDS+Integration+Documentation)
 
 ### New local development client
 
 As a developer of either a requesting service or of the SDS API itself, I need a user to access the service and to 
 specify which locally available buckets should be used.
 
-1. The developer needs an EntraID app registration with the `LAA_SDS_ALL` API permission.
-   The SDS API currently only allows applications authenticated via EntraID, so a dev or test application needs to be
-   created in EntraID before the API is usable locally.
+The SDS API currently only authenticates using the EntraID service, so you need to follow the
+[SDS integration guide](https://dsdmoj.atlassian.net/wiki/spaces/SDS/pages/5390237878/LAA+SDS+Integration+Documentation)
 
-2. Use the `configbuilder.py` CLI helper to add a config
+### Try the API locally without a client
+
+You can try the API locally without an authenticated client by locally adding permissions for an unauthenticated user
+to access the routes you are trying. To do so, run the configbuilder tool and add a config and ACL for the `anonymous`
+user:
+
+Use the `configbuilder.py` CLI helper to add a client config.
  
-    ```bash
-    $ ./configbuilder.py add
-    ```
+```shell
+$ pipenv install
+...
+$ pipenv shell
+(laa-sds-api) $ ./configbuilder.py add
+```
+And enter the following:
+```shell
+Azure application (client) ID: anonymous
+Azure display name: local-anonymous
+Bucket name: sds-local
+Service name: local-anonymous
+```
 
-3. Update the ACL policy to allow the new client to access the routes they need. For purely local development, you can
-   use the special username authenticated to the ACL found in the authz directory.
-
-    Sample fragment of ACL allowing client `000-000-000` to save, retrieve and delete from `local-test-bucket`: 
-    ```csv
-    p, 000-000-000, /retrieve_file, GET
-    p, 000-000-000, /save_or_update_file, PUT
-    p, 000-000-000, /delete_files, DELETE
-    p, 000-000-000, local-test-bucket, (READ)|(CREATE)|(DELETE)
-    ```
+You should now find the client configuration and ACL files in the client configs directory.
 
 ### Remove production client
 

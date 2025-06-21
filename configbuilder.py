@@ -101,7 +101,7 @@ class ClientAcl(BaseModel):
     def generate(cls, azure_client_id: str) -> 'ClientAcl':
         return ClientAcl(
             azure_client_id=azure_client_id,
-            policy_items=PolicyItem.generate_from_app()
+            policy_items=[]
         )
 
     @classmethod
