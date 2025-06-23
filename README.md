@@ -2,18 +2,20 @@
 
 A repository containing the API for the LAA shared component for secure document storage.
 
-## Requires
+## Running locally
+
+### Requires
 
 Python 3.13, pipenv and docker
 
-## Configuration
+### Configuration
 
 We need to configure a number of settings before the SDS API, or the local services used, will work correctly.
 
 As a minimum you will need to configure some AWS settings, but if you want to try the SDS API locally, you will also
 need some client configuration files, and some credentials if using authentication and authorisation.
 
-### AWS configuration values
+#### Localstack configuration values
 
 LocalStack is an AWS resource emulator which mimics the behavior of AWS in a production environment. As such, it
 requires similar configuration, namely setting several environment variables.
@@ -32,7 +34,7 @@ the `.env` file to ensure correct values when running locally.
 Remember, don't include your real AWS keys in the code base or commit them to version control. When using IDE tools,
 make sure your Docker-compose variables are setup correctly if you choose to use non-dummy keys.
 
-### SDS configuration values
+#### SDS configuration values
 
 SDS uses tokens issued by the MoJ tenant, and there is currently no provision for entirely local authentication: All
 authentication occurs with the single auth services, even when running a local SDS instance. This may be something we
@@ -57,7 +59,7 @@ For users looking to try the API locally without using authentication, you can d
 unauthenticated user `anonymous` and granting that user access to the required routes. See the docs on client configs
 for more details on [generating client configs](docs/client_configurations.md).
 
-### Running locally
+### Running the whole stack
 
 To ensure a consistent development environment across different setups, we use Docker to run local instances of the
 AWS services used, and the SDS API itself if needed.
@@ -86,6 +88,8 @@ current code, use:
 ```shell
 $ docker compose up --build
 ```
+
+### Running dependencies in docker, and the API separately
 
 You can also start just the API dependencies and run the API itself in an IDE or from the terminal.
 To start the dependent services, run:
