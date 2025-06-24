@@ -183,4 +183,23 @@ the appropriate endpoints, as listed in the (readme)[README.md].
 
 ### Rollback
 
-To be completed...
+Revert the branch to a known good version, then re-trigger the deployment process.
+
+## Alpine as SDS API base image
+
+Alpine is used because it has a smaller surface for vulnerabilities (has fewer packages), and uses fewer resources (is
+smaller).
+
+Find the list of available packages for a particular tagged image on https://hub.docker.com/_/python/tags
+
+The differences between Alpine and a more featured image (such as `slim`) should not be relevant to the SDS service, as
+interactions with the host are minimal. However, some differences of note when building are:
+* `apk` instead of `apt`
+* `openrc` as the init system
+* `adduser` has some minor args differences
+
+Alpine docs are:
+* https://docs.alpinelinux.org/user-handbook/0.1a/index.html
+* https://wiki.alpinelinux.org/wiki/Main_Page
+
+

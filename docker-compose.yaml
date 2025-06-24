@@ -1,15 +1,14 @@
-version: '3.8'
 services:
   sds-api:
-#  web:
     build: .
     volumes:
       - .:/app
       - ./authz:/authz
+      - ../sds-api-configs/clientconfigs:/app/clientconfigs
     ports:
-      - 8000:8000
+      - '8000:8000'
     environment:
-      - DYNAMODB_ENDPOINT_URL=http://dynamodb:8000
+      - DYNAMODB_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=eu-west-1
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AUDIT_TABLE:AUDIT_SDS
@@ -23,12 +22,7 @@ services:
       - CASBIN_POLICY='/authz/casbin_policy_open_routes.csv:/app/clientconfigs'
       - CASBIN_MODEL=/authz/casbin_model_acl_with_authenticated.conf
       - CONFIG_DIR=/app/clientconfigs
-      - CONFIG_SOURCES=db,file
-  dynamodb:
-    image: amazon/dynamodb-local
-    container_name: dynamodb_local
-    ports:
-      - "8100:8000"
+      - CONFIG_SOURCES=file
   localstack:
     image: localstack/localstack:4.4
     ports:
