@@ -74,7 +74,6 @@ jobs:
         kube-cluster: ${{ secrets.TEST_KUBE_CLUSTER }}
         kube-namespace: ${{ secrets.TEST_KUBE_NAMESPACE }}
         irsa-sa-environment: 'uat'
-        bucket-secret-ref: 'laa-sds-s3-equiniti-output'
         tenant_id: ${{secrets.TEST_TENANT_ID}}
         audience: ${{secrets.TEST_AUDIENCE}}
         sentry_dsn: ${{secrets.TEST_SENTRY_DSN}}
@@ -146,7 +145,6 @@ jobs:
         kube-cluster: ${{ secrets.STAGING_KUBE_CLUSTER }}
         kube-namespace: ${{ secrets.STAGING_KUBE_NAMESPACE }}
         irsa-sa-environment: 'staging'
-        bucket-secret-ref: 'laa-sds-s3-equiniti-output'
         tenant_id: ${{secrets.STAGING_TENANT_ID}}
         audience: ${{secrets.STAGING_AUDIENCE}}
         sentry_dsn: ${{secrets.STAGING_SENTRY_DSN}}
@@ -218,7 +216,6 @@ jobs:
           kube-cluster: ${{ secrets.PROD_KUBE_CLUSTER }}
           kube-namespace: ${{ secrets.PROD_KUBE_NAMESPACE }}
           irsa-sa-environment: 'production'
-          bucket-secret-ref: 'laa-sds-s3-equiniti-output'
           tenant_id: ${{secrets.PROD_TENANT_ID}}
           audience: ${{secrets.PROD_AUDIENCE}}
           sentry_dsn: ${{secrets.PROD_SENTRY_DSN}}
