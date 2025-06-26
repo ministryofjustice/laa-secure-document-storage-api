@@ -339,12 +339,13 @@ def interactive_edit(
             f"Currently using {len(bundle.clientacl.policy_items)} routes out of {len(all_routes)}. "
             f"Edit {len(bundle.clientacl.policy_items)}, accept, or select from {len(all_routes)}? [E/a/s] "
         ).lower()
-        if cmd == 'a':
-            pass
-        else:
-            if cmd == 's':
-                # Reset, then edit
-                bundle.clientacl.policy_items = all_routes
+
+        if cmd == 's':
+            # Reset...
+            bundle.clientacl.policy_items = all_routes
+            # ...then edit
+            cmd = 'e'
+        if cmd == 'e':
             for policy_item in bundle.clientacl.policy_items:
                 edited_path = prompt_for_value("Resource", policy_item.path, deletable=True)
                 if edited_path is None:
@@ -360,12 +361,12 @@ def interactive_edit(
             f"Currently using {len(bundle.clientconfig.file_validators)} file filters out of {len(all_specs)}. "
             f"Edit {len(bundle.clientconfig.file_validators)}, accept, or select from {len(all_specs)}? [E/a/s] "
         ).lower()
-        if cmd == 'a':
-            pass
-        else:
-            if cmd == 's':
-                # Reset, then edit
-                bundle.clientconfig.file_validators = all_specs
+        if cmd == 's':
+            # Reset...
+            bundle.clientconfig.file_validators = all_specs
+            # ...then edit
+            cmd = 'e'
+        if cmd == 'e':
             for validator_spec in bundle.clientconfig.file_validators:
                 keep = input(f"Filter using {validator_spec.name}? [Y/n] ") not in ('n', 'N')
                 if not keep:
