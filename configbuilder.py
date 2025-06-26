@@ -317,11 +317,11 @@ def prompt_for_value(prompt: str, current: str, deletable: bool = False) -> str 
 
 
 def interactive_edit(
-        bundle: ClientBundle,
-        edit_client: bool = True,
-        edit_acl: bool = True,
-        edit_validators: bool = True,
-    ):
+            bundle: ClientBundle,
+            edit_client: bool = True,
+            edit_acl: bool = True,
+            edit_validators: bool = True,
+        ):
     if edit_client:
         print("=== Client Configuration ===")
         # Client ID and service name are not editable, add a new client instead
