@@ -316,59 +316,68 @@ def prompt_for_value(prompt: str, current: str, deletable: bool = False) -> str 
     return current
 
 
-def interactive_edit(bundle: ClientBundle):
-    print("=== Client Configuration ===")
-    # Client ID and service name are not editable, add a new client instead
-    bundle.azure_display_name = prompt_for_value("Azure display name", bundle.azure_display_name)
-    bundle.clientconfig.bucket_name = prompt_for_value("Bucket name", bundle.clientconfig.bucket_name)
+def interactive_edit(
+            bundle: ClientBundle,
+            edit_client: bool = True,
+            edit_acl: bool = True,
+            edit_validators: bool = True,
+        ):
+    if edit_client:
+        print("=== Client Configuration ===")
+        # Client ID and service name are not editable, add a new client instead
+        bundle.azure_display_name = prompt_for_value("Azure display name", bundle.azure_display_name)
+        bundle.clientconfig.bucket_name = prompt_for_value("Bucket name", bundle.clientconfig.bucket_name)
 
     # Don't edit lists in-place, batch the removes for later
     removes: List[Tuple[list, Any]] = []
 
-    print("=== Client ACL ===")
-    all_routes = PolicyItem.generate_from_app()
-    all_routes.append(PolicyItem(path=bundle.clientconfig.bucket_name, action="(CREATE)|(READ)"))
-    cmd = input(
-        f"Currently using {len(bundle.clientacl.policy_items)} routes out of {len(all_routes)}. "
-        "Edit, accept, or reset list? [E/a/r] "
-    ).lower()
-    if cmd == 'a':
-        pass
-    else:
-        if cmd == 'r':
-            # Reset, then edit
-            bundle.clientacl.policy_items = all_routes
-        for policy_item in bundle.clientacl.policy_items:
-            edited_path = prompt_for_value("Resource", policy_item.path, deletable=True)
-            if edited_path is None:
-                removes.append((bundle.clientacl.policy_items, policy_item))
-                continue
-            policy_item.path = edited_path
-            policy_item.action = prompt_for_value(f" ↳ Action on {policy_item.path}", policy_item.action)
+    if edit_acl:
+        print("=== Client ACL ===")
+        all_routes = PolicyItem.generate_from_app()
+        all_routes.append(PolicyItem(path=bundle.clientconfig.bucket_name, action="(CREATE)|(READ)"))
+        cmd = input(
+            f"Currently using {len(bundle.clientacl.policy_items)} routes out of {len(all_routes)}. "
+            f"Edit {len(bundle.clientacl.policy_items)}, accept, or select from {len(all_routes)}? [E/a/s] "
+        ).lower()
 
-    print("=== Client File Filters ===")
-    all_specs = generate_all_filevalidatorspecs()
-    cmd = input(
-        f"Currently using {len(bundle.clientconfig.file_validators)} file filters out of {len(all_specs)}. "
-        "Edit, accept, or reset list? [E/a/r] "
-    ).lower()
-    if cmd == 'a':
-        pass
-    else:
-        if cmd == 'r':
-            # Reset, then edit
+        if cmd == 's':
+            # Reset...
+            bundle.clientacl.policy_items = all_routes
+            # ...then edit
+            cmd = 'e'
+        if cmd == 'e':
+            for policy_item in bundle.clientacl.policy_items:
+                edited_path = prompt_for_value("Resource", policy_item.path, deletable=True)
+                if edited_path is None:
+                    removes.append((bundle.clientacl.policy_items, policy_item))
+                    continue
+                policy_item.path = edited_path
+                policy_item.action = prompt_for_value(f" ↳ Action on {policy_item.path}", policy_item.action)
+
+    if edit_validators:
+        print("=== Client File Filters ===")
+        all_specs = generate_all_filevalidatorspecs()
+        cmd = input(
+            f"Currently using {len(bundle.clientconfig.file_validators)} file filters out of {len(all_specs)}. "
+            f"Edit {len(bundle.clientconfig.file_validators)}, accept, or select from {len(all_specs)}? [E/a/s] "
+        ).lower()
+        if cmd == 's':
+            # Reset...
             bundle.clientconfig.file_validators = all_specs
-        for validator_spec in bundle.clientconfig.file_validators:
-            keep = input(f"Filter using {validator_spec.name}? [Y/n] ") not in ('n', 'N')
-            if not keep:
-                removes.append((bundle.clientconfig.file_validators, validator_spec))
-                continue
-            new_kwargs = {}
-            for arg, value in validator_spec.validator_kwargs.items():
-                new_kwargs[arg] = prompt_for_value(f" ↳ {validator_spec.name} parameter {arg}", value)
-                if isinstance(value, list) and isinstance(new_kwargs[arg], str):
-                    new_kwargs[arg] = new_kwargs[arg].split(' ')
-            validator_spec.validator_kwargs = new_kwargs
+            # ...then edit
+            cmd = 'e'
+        if cmd == 'e':
+            for validator_spec in bundle.clientconfig.file_validators:
+                keep = input(f"Filter using {validator_spec.name}? [Y/n] ") not in ('n', 'N')
+                if not keep:
+                    removes.append((bundle.clientconfig.file_validators, validator_spec))
+                    continue
+                new_kwargs = {}
+                for arg, value in validator_spec.validator_kwargs.items():
+                    new_kwargs[arg] = prompt_for_value(f" ↳ {validator_spec.name} parameter {arg}", value)
+                    if isinstance(value, list) and isinstance(new_kwargs[arg], str):
+                        new_kwargs[arg] = new_kwargs[arg].split(' ')
+                validator_spec.validator_kwargs = new_kwargs
 
     for item_list, item in removes:
         item_list.remove(item)
@@ -414,6 +423,7 @@ def cmd_add(args: argparse.Namespace, **kwargs):
     )
     client_bundle.get_or_create_clientconfig(bucket_name)
     client_bundle.get_or_create_clientacl()
+    interactive_edit(client_bundle, edit_client=False)
     client_bundle.write()
 
 

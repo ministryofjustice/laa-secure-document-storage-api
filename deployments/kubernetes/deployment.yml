@@ -35,11 +35,6 @@ spec:
               value: "cloud"
             - name: AWS_REGION
               value: "eu-west-2"
-            - name: BUCKET_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: ${BUCKET_SECRET_REF}
-                  key: bucket_name
             - name: TENANT_ID
               value: ${TENANT_ID}
             - name: AUDIENCE

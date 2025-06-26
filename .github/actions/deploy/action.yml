@@ -19,9 +19,6 @@ inputs:
   irsa-sa-environment:
     description: Environment
     required: true
-  bucket-secret-ref:
-    description: BUCKET K8s SECRET REF
-    required: true
   audience:
     description: azure authentication application id
     required: true
@@ -62,7 +59,6 @@ runs:
         IMAGE_TAG: ${{ github.sha }}
         KUBE_NAMESPACE: ${{ inputs.kube-namespace }}
         ENVIRONMENT: ${{ inputs.irsa-sa-environment }}
-        BUCKET_SECRET_REF: ${{ inputs.bucket-secret-ref }}
         AUDIENCE: ${{ inputs.audience }}
         TENANT_ID: ${{ inputs.tenant_id }}
         SENTRY_DSN: ${{ inputs.sentry_dsn }}
