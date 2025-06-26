@@ -5,6 +5,7 @@ from typing import Any
 import sentry_sdk
 import structlog
 from asgi_correlation_id.context import correlation_id
+from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
@@ -26,6 +27,7 @@ from src.services.authz_service import AuthzService
 def add_correlation(
         logger: logging.Logger, method_name: str, event_dict: dict[str, Any]) \
         -> dict[str, Any]:
+    """processor function for structlog that adds correlation ID to log messages """
     if request_id := correlation_id.get():
         event_dict["request_id"] = request_id
     return event_dict
@@ -73,6 +75,7 @@ logging.config.dictConfig(logging_config.config)
 # Order matters here: Casbin middleware first, then the auth backend
 app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
 app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
+app.add_middleware(CorrelationIdMiddleware)
 
 app.include_router(health_router.router)
 app.include_router(retrieve_router.router)

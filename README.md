@@ -240,3 +240,26 @@ querying the cluster on every level.
 
 We have pipelines configured for linting, unit tests, postman tests, deploying to dev, then a checked deployment to
 test, then staging, and finally production.
+
+## Correlation IDs
+The application is configured to automatically include a unique correlation ID in the log output as `request_id` for each request. For example as below which includes `"request_id": "4c5b755c90f6453db7b06e442d124fd5"`:
+
+```
+{"event": "No auth headers", "request_id": "4c5b755c90f6453db7b06e442d124fd5", "logger": "src.middleware.auth", "level": "info", "timestamp": "2025-06-26 07:12.34"}
+2025-06-26 08:12:34,087 Request: anonymous, /health, GET ---> True
+INFO:     127.0.0.1:51768 - "GET /health HTTP/1.1" 200 OK
+
+```
+
+
+This relies on the [ASGI](https://github.com/snok/asgi-correlation-id) third-party library and is configured in `src/main.py` as follows:
+
+1. Import ASGI `correlation_id` object and `CorrelationIdMiddleware` middleware
+2. Define `add_correlation` structlog processor function that uses the `correlation_id` object, as described in the [ASGI readme](https://github.com/snok/asgi-correlation-id?tab=readme-ov-file#integration-with-structlog)
+3. Include the `add_correlation` function in the list of processors passed to the `structlog.configure`
+4. Add the correlation middleware to the `app` object: `app.add_middleware(CorrelationIdMiddleware)`
+
+These are all taken from the standard instructions in the ASGI readme.
+
+### Alternative configuration approach
+Our logging is configured using both a `logging_config.py` file and a `structlog.configure` call in `main.py`. We're using `structlog.configure` to add correlation IDs to the logs but there's an alternative approach that relies on updating `logging_config.py` instead, as described [here] (https://github.com/snok/asgi-correlation-id?tab=readme-ov-file#configure-logging). We've chosen to use the `structlog.configure` approach because this conveniently records the correlation ID as part of the JSON event object.
