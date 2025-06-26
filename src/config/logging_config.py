@@ -2,23 +2,15 @@ import os
 config = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'correlation_id': {
-            '()': 'asgi_correlation_id.CorrelationIdFilter',
-            'uuid_length': 32,
-            'default_value': '-',
-            },
-        },
     'formatters': {
         'structFormatter': {
             'class': 'logging.Formatter',
-            'format': '[%(correlation_id)s] %(message)s'
+            'format': '%(message)s'
         }
     },
     'handlers': {
         'consoleHandler': {
             'class': 'logging.StreamHandler',
-            'filters': ['correlation_id'],
             'level': 'DEBUG',
             'formatter': 'structFormatter'
         }

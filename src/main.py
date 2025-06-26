@@ -1,8 +1,10 @@
 import logging.config
 import os
+from typing import Any
 
 import sentry_sdk
 import structlog
+from asgi_correlation_id.context import correlation_id
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -20,6 +22,15 @@ from src.routers import save_file as save_router
 from src.routers import delete_files as delete_router
 from src.routers import virus_check_file as virus_check_router
 from src.services.authz_service import AuthzService
+
+
+def add_correlation(
+        logger: logging.Logger, method_name: str, event_dict: dict[str, Any]) \
+        -> dict[str, Any]:
+    """processor function for structlog that adds correlation ID to log messages """
+    if request_id := correlation_id.get():
+        event_dict["request_id"] = request_id
+    return event_dict
 
 
 sentry_dsn = os.environ.get('SENTRY_DSN')
@@ -47,6 +58,7 @@ app = FastAPI(
 
 structlog.configure(
     logger_factory=LoggerFactory(), processors=[
+        add_correlation,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
         structlog.stdlib.PositionalArgumentsFormatter(),
