@@ -15,7 +15,10 @@ from fastapi_authz import CasbinMiddleware
 
 from src.config import logging_config
 from src.middleware.auth import BearerTokenAuthBackend, BearerTokenMiddleware
+from src.routers import status as status_router
+from src.routers import ping as ping_router
 from src.routers import health as health_router
+from src.routers import root as root_router
 from src.routers import retrieve_file as retrieve_router
 from src.routers import save_or_update_file as save_or_update_router
 from src.routers import save_file as save_router
@@ -77,9 +80,12 @@ app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
 app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
 app.add_middleware(CorrelationIdMiddleware)
 
-app.include_router(health_router.router)
 app.include_router(retrieve_router.router)
 app.include_router(save_or_update_router.router)
 app.include_router(save_router.router)
 app.include_router(delete_router.router)
 app.include_router(virus_check_router.router)
+app.include_router(status_router.router)
+app.include_router(ping_router.router)
+app.include_router(health_router.router)
+app.include_router(root_router.router)

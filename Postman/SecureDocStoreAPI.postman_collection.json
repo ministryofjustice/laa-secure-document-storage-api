@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "SDSHealthCheckTests",
+			"name": "SDSHealthAndStatusTests",
 			"item": [
 				{
 					"name": "Health Check",
@@ -62,9 +62,147 @@
 						"description": "Expect a 200 OK response from /health"
 					},
 					"response": []
+				},
+				{
+					"name": "Ping (Reachability) Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to check the health of the API",
+									"pm.test(\"Response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body shows pong\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('ping', 'pong');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/ping",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"ping"
+							]
+						},
+						"description": "Expect a 200 OK response from /ping"
+					},
+					"response": []
+				},
+				{
+					"name": "Status Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to check the status of the API",
+									"pm.test(\"Response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var status = pm.response.json();",
+									"",
+									"pm.test(\"Authentication status success\", function() {",
+									"    pm.expect(status.services.authentication.checks.find(obj => {",
+									"        return obj.outcome === 'failure'",
+									"})).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Authorisation status success\", function() {",
+									"    pm.expect(status.services.authorisation.checks.find(obj => {",
+									"        return obj.outcome === 'failure'",
+									"})).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Configuration status success\", function() {",
+									"    pm.expect(status.services.configuration.checks.find(obj => {",
+									"        return obj.outcome === 'failure'",
+									"})).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Audit status success\", function() {",
+									"    pm.expect(status.services.audit.checks.find(obj => {",
+									"        return obj.outcome === 'failure'",
+									"})).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Storage status success\", function() {",
+									"    pm.expect(status.services.storage.checks.find(obj => {",
+									"        return obj.outcome === 'failure'",
+									"})).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Antivirus status success\", function() {",
+									"    pm.expect(status.services.antivirus.checks.find(obj => {",
+									"        return obj.outcome === 'failure'",
+									"})).to.be.undefined",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/status",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"status"
+							]
+						},
+						"description": "Expect a 200 OK response from /status"
+					},
+					"response": []
 				}
 			],
-			"description": "Tests on the /health endpoint"
+			"description": "Tests on the health and status endpoints"
 		},
 		{
 			"name": "SDSDocsTests",

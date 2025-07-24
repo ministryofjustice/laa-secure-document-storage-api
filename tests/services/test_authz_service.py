@@ -74,6 +74,6 @@ def test_authz_service(model_file: str, policy_file: str, username: str | None, 
             BearerTokenAuthBackend, 'authenticate',
             return_value=(AuthCredentials(scopes=[]), request_user)
     ) as mock_auth_backend:
-        response = test_client.get("/health")
+        response = test_client.get("/ping")
         mock_auth_backend.assert_called()
         assert response.status_code == expected_status, assert_msg
