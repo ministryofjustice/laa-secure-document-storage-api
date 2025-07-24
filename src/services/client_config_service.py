@@ -185,9 +185,12 @@ class ClientConfigServiceStatusReporter(StatusReporter):
         """
         checks = ServiceObservations()
         present, populated = checks.add_checks('present', 'populated')
-        config_dir = os.getenv('CONFIG_DIR')
-        if os.path.isdir(config_dir):
-            present.outcome = Outcome.success
-            if len(os.listdir(config_dir)) > 0:
-                populated.outcome = Outcome.success
+        try:
+            config_dir = os.getenv('CONFIG_DIR')
+            if os.path.isdir(config_dir):
+                present.outcome = Outcome.success
+                if len(os.listdir(config_dir)) > 0:
+                    populated.outcome = Outcome.success
+        except Exception as e:
+            logger.exception(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
         return checks

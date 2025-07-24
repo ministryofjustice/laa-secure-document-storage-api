@@ -15,5 +15,5 @@ async def get_status() -> StatusReport:
         try:
             status.services[reporter.label] = reporter.get_status()
         except Exception as error:
-            logger.info(f'Error gathering status f{error.__class__.__name__} {error}')
+            logger.info(f'Error gathering {reporter.__class__.__name__} status {error.__class__.__name__} {error}')
     return status

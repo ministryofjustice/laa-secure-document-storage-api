@@ -140,6 +140,6 @@ class AuthStatusReporterV2(StatusReporter):
             fetch_oidc_config(os.getenv('TENANT_ID'))
             reachable.outcome = Outcome.success
         except Exception as error:
-            logger.error(f"Status check failed: {error.__class__.__name__} {error}")
+            logger.error(f"Status check {cls.label} failed: {error.__class__.__name__} {error}")
 
         return checks

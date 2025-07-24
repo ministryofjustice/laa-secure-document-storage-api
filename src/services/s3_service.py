@@ -193,6 +193,6 @@ class S3ServiceStatusReporter(StatusReporter):
                 reachable.outcome = Outcome.success
                 responding.outcome = Outcome.success
         except Exception as e:
-            logger.exception(f'Status check failed: {e.__class__.__name__} {e}')
+            logger.exception(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
 
         return checks

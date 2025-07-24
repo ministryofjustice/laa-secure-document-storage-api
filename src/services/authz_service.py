@@ -102,6 +102,6 @@ class AuthzServiceStatusReporter(StatusReporter):
             if AuthzService()._num_policies > 1:
                 populated.outcome = Outcome.success
         except Exception as error:
-            logger.error(f'Status check failed: {error.__class__.__name__} {error}')
+            logger.error(f'Status check {cls.label} failed: {error.__class__.__name__} {error}')
 
         return checks
