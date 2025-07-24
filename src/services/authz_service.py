@@ -29,6 +29,7 @@ class AuthzService:
     """
 
     _instance = None
+    _num_policies = 0
 
     def __new__(cls, enforcer: casbin.Enforcer | None = None):
         if cls._instance is None:
@@ -47,6 +48,7 @@ class AuthzService:
                 enforcer.start_auto_load_policy(int(os.getenv('CASBIN_RELOAD_INTERVAL', 600)))
                 if os.getenv('LOGGING_LEVEL_CASBIN', 'NONE').upper() != 'NONE':
                     configure_logging()
+                cls._num_policies = policy.num_files_processed
             cls._instance.enforcer = enforcer
         return cls._instance
 
