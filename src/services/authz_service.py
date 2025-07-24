@@ -5,7 +5,9 @@ import casbin
 from fastapi import HTTPException
 from casbin.util.log import configure_logging
 
+from src.models.status_report import ServiceObservations, Outcome
 from src.utils.multifileadapter import MultiFileAdapter
+from src.utils.status_reporter import StatusReporter
 
 logger = structlog.get_logger()
 
@@ -79,3 +81,27 @@ def enforce_or_error(subj: str, obj: str, action: str, detail: str = 'Forbidden'
     if not AuthzService().enforcer.enforce(subj, obj, action):
         logger.warning(f"User {subj} does not have {action} on {obj}")
         raise HTTPException(status_code=403, detail=detail)
+
+
+class AuthzServiceStatusReporter(StatusReporter):
+    label = 'authorisation'
+
+    @classmethod
+    def get_status(cls) -> ServiceObservations:
+        """
+        Present if a policy has been specified.
+        Populated if policies have been loaded.
+        """
+        checks = ServiceObservations()
+        present, populated = checks.add_checks('present', 'populated')
+
+        if os.environ.get('CASBIN_POLICY', None) is not None:
+            present.outcome = Outcome.success
+
+        try:
+            if AuthzService()._num_policies > 1:
+                populated.outcome = Outcome.success
+        except Exception as error:
+            logger.error(f'Status check failed: {error.__class__.__name__} {error}')
+
+        return checks

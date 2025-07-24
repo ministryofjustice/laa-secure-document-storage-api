@@ -5,6 +5,9 @@ import clamd
 import structlog
 from dotenv import load_dotenv
 
+from src.models.status_report import ServiceObservations, Outcome
+from src.utils.status_reporter import StatusReporter
+
 load_dotenv()
 logger = structlog.get_logger()
 
@@ -50,3 +53,26 @@ class ClamAVService:
 async def virus_check(file: BytesIO):
     clamAv = ClamAVService.get_instance()
     return await clamAv.check(file)
+
+
+class ClamAvServiceStatusReporter(StatusReporter):
+    label = 'antivirus'
+
+    @classmethod
+    def get_status(cls) -> ServiceObservations:
+        """
+        Reachable if the API is usable.
+        Responding if the service responds to ping.
+        """
+        checks = ServiceObservations()
+        reachable, responding = checks.add_checks('reachable', 'responding')
+
+        try:
+            clam_av = ClamAVService.get_instance()
+            clam_av._clamd.version()
+            reachable.outcome = Outcome.success
+            clam_av._clamd.ping()
+            responding.outcome = Outcome.success
+        except Exception as e:
+            logger.exception(f'Status check failed: {e}')
+        return checks

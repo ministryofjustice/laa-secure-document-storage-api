@@ -1,4 +1,5 @@
 import os
+
 import requests
 import structlog
 from cachetools import cached, TTLCache
@@ -10,6 +11,9 @@ from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCred
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import Response, JSONResponse
+
+from src.models.status_report import ServiceObservations, Outcome
+from src.utils.status_reporter import StatusReporter
 
 security = HTTPBearer()
 logger = structlog.get_logger()
@@ -115,3 +119,27 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
         raise _AuthenticationError(status_code=403, detail="Forbidden")
 
     return payload
+
+
+class AuthStatusReporterV2(StatusReporter):
+    label = 'authentication'
+
+    @classmethod
+    def get_status(cls) -> ServiceObservations:
+        """
+        Configured if values set for authenticating.
+        Reachable if OIDC can be fetched.
+        """
+        checks = ServiceObservations()
+        configured, reachable = checks.add_checks('configured', 'reachable')
+
+        if os.getenv('AUDIENCE') is not None and os.getenv('TENANT_ID') is not None:
+            configured.outcome = Outcome.success
+
+        try:
+            fetch_oidc_config(os.getenv('TENANT_ID'))
+            reachable.outcome = Outcome.success
+        except Exception as error:
+            logger.error(f"Status check failed: {error.__class__.__name__} {error}")
+
+        return checks

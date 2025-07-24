@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 import structlog
 from datetime import datetime
 
+from src.models.status_report import ServiceObservations, Outcome
 from src.utils.operation_types import OperationType
+from src.utils.status_reporter import StatusReporter
 
 logger = structlog.get_logger()
 
@@ -87,3 +89,30 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
         item["last_updated_on"] = datetime.now().isoformat()
 
         table.put_item(Item=item)
+
+
+class AuditStatusReporterV2(StatusReporter):
+    label = 'audit'
+
+    @classmethod
+    def get_status(cls) -> ServiceObservations:
+        """
+        Reachable if the service can be reached.
+        Responding if the configured table is available.
+        """
+        checks = ServiceObservations()
+        reachable, responding = checks.add_checks('reachable', 'responding')
+
+        try:
+            audit_db = AuditService.get_instance()
+            table = audit_db.dynamodb_client.Table(os.getenv('AUDIT_TABLE'))
+            # Getting table_status triggers an actual connection attempt
+            table_status = table.table_status
+            reachable.outcome = Outcome.success
+
+            if table_status != 'INACCESSIBLE_ENCRYPTION_CREDENTIALS':
+                responding.outcome = Outcome.success
+        except Exception as e:
+            logger.exception(f'Status check failed: {e}')
+
+        return checks
