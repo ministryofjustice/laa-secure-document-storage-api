@@ -25,10 +25,6 @@ async def delete_files(
     * 204 if found and deleted
     * 404 if not found
     * 500 if an internal error occurred
-
-    :param file_keys:
-    :param client_config:
-    :return: 202 ACCEPTED response, with body listing each file name and status code
     """
     if len(file_keys) == 0:
         raise HTTPException(status_code=400, detail="File key is missing")

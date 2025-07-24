@@ -23,6 +23,14 @@ async def save_or_update_file(
     body: FileUpload = Depends(validate_json(FileUpload)),
     client_config: ClientConfig = Depends(client_config_middleware),
 ):
+    """
+    Saves the specified file, allowing overwrites of existing files with the same name.
+
+    * 200 OK if file replaced an earlier version
+    * 201 CREATED if file saved is new
+
+    See also /save_file for saving a file without allowing overwrites.
+    """
     response, file_existed = await handle_file_upload_logic(
         request=request,
         file=file,

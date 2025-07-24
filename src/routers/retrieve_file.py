@@ -17,6 +17,11 @@ async def retrieve_file(
             file_key: str = Query(None, min_length=1),
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
+    """
+    Gets a short-lifetime link to download the file specified in the body of the request.
+
+    Returns 200 OK with JSON {'fileURL': '--link to resource--'}
+    """
     if not file_key:
         raise HTTPException(status_code=400, detail="File key is missing")
 

@@ -23,6 +23,14 @@ async def save_file(
     body: FileUpload = Depends(validate_json(FileUpload)),
     client_config: ClientConfig = Depends(client_config_middleware),
 ):
+    """
+    Saves a new file, ensuring no existing files are overwritten.
+
+    * 201 CREATED on successful save
+    * 409 CONFLICT if file already exists
+
+    See also /save_or_update_file for saving a file and allowing overwrites.
+    """
     response, _ = await handle_file_upload_logic(
         request=request,
         file=file,
