@@ -133,7 +133,7 @@ class AuthStatusReporterV2(StatusReporter):
         checks = ServiceObservations()
         configured, reachable = checks.add_checks('configured', 'reachable')
 
-        if os.getenv('AUDIENCE') is not None and os.getenv('TENANT_ID') is not None:
+        if os.getenv('AUDIENCE') not in (None, '') and os.getenv('TENANT_ID') not in (None, ''):
             configured.outcome = Outcome.success
 
         try:
