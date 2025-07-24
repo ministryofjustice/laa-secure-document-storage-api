@@ -12,7 +12,8 @@ router = APIRouter()
 logger = structlog.get_logger()
 
 
-@router.get('/retrieve_file')
+@router.get('/get_file')
+@router.get('/retrieve_file', deprecated=True)
 async def retrieve_file(
             file_key: str = Query(None, min_length=1),
             client_config: ClientConfig = Depends(client_config_middleware),
