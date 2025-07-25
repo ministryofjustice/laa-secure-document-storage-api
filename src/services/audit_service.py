@@ -116,11 +116,11 @@ class AuditStatusReporterV2(StatusReporter):
                 responding.outcome = Outcome.success
         except ClientError as ce:
             # Production service will give a permission error
-            if ce.response.get('Code', 'Unknown') == 'AccessDeniedException':
+            if ce.response['Error']['Code'] == '403':
                 reachable.outcome = Outcome.success
                 responding.outcome = Outcome.success
             else:
-                logger.error(f'Status check {cls.label} failed: {ce.__class__.__name__} {ce}')
+                logger.error(f'Status check {cls.label} unexpected error: {ce.__class__.__name__} {ce}')
         except Exception as e:
             logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
 

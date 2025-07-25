@@ -186,7 +186,7 @@ class ClientConfigServiceStatusReporter(StatusReporter):
         checks = ServiceObservations()
         present, populated = checks.add_checks('present', 'populated')
         try:
-            config_dir = os.getenv('CONFIG_DIR')
+            config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')
             if os.path.isdir(config_dir):
                 present.outcome = Outcome.success
                 if len(os.listdir(config_dir)) > 0:
