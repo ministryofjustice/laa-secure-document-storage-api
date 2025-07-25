@@ -74,5 +74,5 @@ class ClamAvServiceStatusReporter(StatusReporter):
             clam_av._clamd.ping()
             responding.outcome = Outcome.success
         except Exception as e:
-            logger.exception(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
+            logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
         return checks

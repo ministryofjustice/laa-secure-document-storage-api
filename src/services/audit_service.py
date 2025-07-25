@@ -1,5 +1,7 @@
 import boto3
 import os
+
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 import structlog
 from datetime import datetime
@@ -112,7 +114,14 @@ class AuditStatusReporterV2(StatusReporter):
 
             if table_status != 'INACCESSIBLE_ENCRYPTION_CREDENTIALS':
                 responding.outcome = Outcome.success
+        except ClientError as ce:
+            # Production service will give a permission error
+            if ce.response.get('Code', 'Unknown') == 'AccessDeniedException':
+                reachable.outcome = Outcome.success
+                responding.outcome = Outcome.success
+            else:
+                logger.error(f'Status check {cls.label} failed: {ce.__class__.__name__} {ce}')
         except Exception as e:
-            logger.exception(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
+            logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
 
         return checks

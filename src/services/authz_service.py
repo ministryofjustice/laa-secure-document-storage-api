@@ -95,7 +95,7 @@ class AuthzServiceStatusReporter(StatusReporter):
         checks = ServiceObservations()
         present, populated = checks.add_checks('present', 'populated')
 
-        if os.environ.get('CASBIN_POLICY', None) is not None:
+        if os.environ.get('CASBIN_POLICY', None) not in ('', None):
             present.outcome = Outcome.success
 
         try:

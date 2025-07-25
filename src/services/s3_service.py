@@ -189,10 +189,12 @@ class S3ServiceStatusReporter(StatusReporter):
             logger.error('Unexpectedly succeeded when checking for a resource which should not exist or be available')
         except ClientError as ce:
             # We checked for a non-existent bucket, so check if we have the expected error
-            if ce.response['Error']['Code'] == '404':
+            if ce.response['Error']['Code'] == '404' or ce.response['Error']['Code'] == '403':
                 reachable.outcome = Outcome.success
                 responding.outcome = Outcome.success
+            else:
+                logger.error('Unexpected error type')
         except Exception as e:
-            logger.exception(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
+            logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
 
         return checks

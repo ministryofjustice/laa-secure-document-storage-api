@@ -192,5 +192,5 @@ class ClientConfigServiceStatusReporter(StatusReporter):
                 if len(os.listdir(config_dir)) > 0:
                     populated.outcome = Outcome.success
         except Exception as e:
-            logger.exception(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
+            logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
         return checks
