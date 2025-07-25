@@ -120,7 +120,7 @@ class AuditStatusReporterV2(StatusReporter):
                 reachable.outcome = Outcome.success
                 responding.outcome = Outcome.success
             else:
-                logger.error(f'Status check {cls.label} unexpected error: {ce.__class__.__name__} {ce}')
+                logger.error(f'Status check {cls.label} failed with {ce.response["Error"]["Code"]}: {ce.__class__.__name__} {ce}')
         except Exception as e:
             logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
 
