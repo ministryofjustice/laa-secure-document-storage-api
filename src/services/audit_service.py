@@ -108,6 +108,8 @@ class AuditStatusReporterV2(StatusReporter):
         try:
             audit_db = AuditService.get_instance()
             table = audit_db.dynamodb_client.Table(os.getenv('AUDIT_TABLE'))
+
+            # LocalStack checks
             # Getting table_status triggers an actual connection attempt
             table_status = table.table_status
             reachable.outcome = Outcome.success
@@ -115,12 +117,12 @@ class AuditStatusReporterV2(StatusReporter):
             if table_status != 'INACCESSIBLE_ENCRYPTION_CREDENTIALS':
                 responding.outcome = Outcome.success
         except ClientError as ce:
-            # Production service will give a permission error
-            if ce.response['Error']['Code'] == '403':
+            # Deployed service will give a permission error
+            if ce.response['Error']['Code'] == 'AccessDeniedException':
                 reachable.outcome = Outcome.success
                 responding.outcome = Outcome.success
             else:
-                logger.error(f'Status check {cls.label} failed with {ce.response["Error"]["Code"]}: {ce.__class__.__name__} {ce}')
+                logger.error(f'Status check {cls.label} unexpected response: {ce.__class__.__name__} {ce}')
         except Exception as e:
             logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
 
