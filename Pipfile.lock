@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4ad4a41bb4e178d50196c63e1388006b41e942791a3408248f813a11dd9fc880"
+            "sha256": "721984d1dbd6df8fb81c8d4798e29022620d853e9f4d4c2960f116c785dcab3c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -168,20 +168,20 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:2e3411bb43285caad1c8e1a3186d025ba65a6342e26bad493f6b8feb3d1a1680",
-                "sha256:9b0ff0b34c9cf7328546c532c20b081f09055ff485f4d57c19146c36877048c5"
+                "sha256:82c6868cad18c3bd4170915e9525f9af5f83e9779c528417f8863629558fc2d0",
+                "sha256:fabb16360a93b449d5241006485bcc761c26694e75ac01009f4459f114acc06e"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.9'",
-            "version": "==1.38.43"
+            "version": "==1.39.14"
         },
         "botocore": {
             "hashes": [
-                "sha256:2ee60ac0b08e80e9be2aa2841d42e438d5bc4f82549560a682837655097a3db7",
-                "sha256:c453c5c16c157c5427058bb3cc2c5ad35ee2e43336f0ccbfcc6092c5635505c6"
+                "sha256:4ed551c77194167b7e8063f33059bc2f9b2ead0ed4ee33dc7857273648ed4349",
+                "sha256:7fc44d4ad13b524e5d8a6296785776ef5898ac026ff74df9b35313831d507926"
             ],
             "markers": "python_version >= '3.9'",
-            "version": "==1.38.43"
+            "version": "==1.39.14"
         },
         "cachetools": {
             "hashes": [
@@ -1222,11 +1222,11 @@
         },
         "s3transfer": {
             "hashes": [
-                "sha256:0148ef34d6dd964d0d8cf4311b2b21c474693e57c2e069ec708ce043d2b527be",
-                "sha256:f5e6db74eb7776a37208001113ea7aa97695368242b364d73e91c981ac522177"
+                "sha256:a981aa7429be23fe6dfc13e80e4020057cbab622b08c0315288758d67cabc724",
+                "sha256:c3fdba22ba1bd367922f27ec8032d6a1cf5f10c934fb5d68cf60fd5a23d936cf"
             ],
             "markers": "python_version >= '3.9'",
-            "version": "==0.13.0"
+            "version": "==0.13.1"
         },
         "sentry-sdk": {
             "hashes": [
