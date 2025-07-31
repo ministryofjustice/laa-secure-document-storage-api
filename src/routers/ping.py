@@ -1,8 +1,6 @@
-import structlog
 from fastapi import APIRouter
 
 router = APIRouter()
-logger = structlog.get_logger()
 
 
 @router.get("/ping")
