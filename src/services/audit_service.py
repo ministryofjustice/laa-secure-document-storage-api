@@ -93,7 +93,7 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
         table.put_item(Item=item)
 
 
-class AuditStatusReporter(StatusReporter):
+class AuditServiceStatusReporter(StatusReporter):
     label = 'audit'
 
     @classmethod

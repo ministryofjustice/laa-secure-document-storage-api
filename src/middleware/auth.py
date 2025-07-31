@@ -121,7 +121,7 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
     return payload
 
 
-class AuthStatusReporter(StatusReporter):
+class AuthServiceStatusReporter(StatusReporter):
     label = 'authentication'
 
     @classmethod
