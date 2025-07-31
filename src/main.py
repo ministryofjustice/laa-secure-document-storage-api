@@ -15,16 +15,17 @@ from fastapi_authz import CasbinMiddleware
 
 from src.config import logging_config
 from src.middleware.auth import BearerTokenAuthBackend, BearerTokenMiddleware
-from src.routers import status as status_router
-from src.routers import ping as ping_router
-from src.routers import health as health_router
-from src.routers import root as root_router
-from src.routers import retrieve_file as retrieve_router
-from src.routers import save_or_update_file as save_or_update_router
-from src.routers import save_file as save_router
-from src.routers import delete_files as delete_router
-from src.routers import virus_check_file as virus_check_router
 from src.services.authz_service import AuthzService
+
+from src.routers.delete_files import router as delete_files_router
+from src.routers.health import router as health_router
+from src.routers.ping import router as ping_router
+from src.routers.retrieve_file import router as retrieve_file_router
+from src.routers.root import router as root_router
+from src.routers.save_file import router as save_file_router
+from src.routers.save_or_update_file import router as save_or_update_file_router
+from src.routers.status import router as status_router
+from src.routers.virus_check_file import router as virus_check_file_router
 
 
 def add_correlation(
@@ -80,12 +81,13 @@ app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
 app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
 app.add_middleware(CorrelationIdMiddleware)
 
-app.include_router(retrieve_router.router)
-app.include_router(save_or_update_router.router)
-app.include_router(save_router.router)
-app.include_router(delete_router.router)
-app.include_router(virus_check_router.router)
-app.include_router(status_router.router)
-app.include_router(ping_router.router)
-app.include_router(health_router.router)
-app.include_router(root_router.router)
+app.include_router(retrieve_file_router)
+app.include_router(save_or_update_file_router)
+app.include_router(save_file_router)
+app.include_router(delete_files_router)
+app.include_router(virus_check_file_router)
+
+app.include_router(status_router)
+app.include_router(ping_router)
+app.include_router(health_router)
+app.include_router(root_router)
