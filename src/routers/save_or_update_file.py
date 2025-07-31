@@ -25,11 +25,17 @@ async def save_or_update_file(
 ):
     """
     Saves the specified file, allowing overwrites of existing files with the same name.
+    Files are automatically scanned for viruses, and pre-configured validators are run.
+    See also /save_file for saving a file without allowing overwrites.
 
     * 200 OK if file replaced an earlier version
     * 201 CREATED if file saved is new
 
-    See also /save_file for saving a file without allowing overwrites.
+    The following codes may be returned from the automatic virus scan:
+    * 411 if file content length is not present
+    * 400 if a virus is detected
+
+    Any code other than 200 OK or 201 CREATED means the file has not been saved.
     """
     response, file_existed = await handle_file_upload_logic(
         request=request,
