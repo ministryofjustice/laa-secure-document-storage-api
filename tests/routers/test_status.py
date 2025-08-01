@@ -13,7 +13,7 @@ def test_status(mock_status, test_client):
 
     response = test_client.get("/status")
 
-    assert healthy_report.is_all_success() is True
+    assert healthy_report.has_failures() is False
     assert response.status_code == 200
     assert response.json() == healthy_report.model_dump()
 
@@ -28,6 +28,6 @@ def test_status_mixed_outcomes(mock_status, test_client):
 
     response = test_client.get("/status")
 
-    assert mixed_report.is_all_success() is False
+    assert mixed_report.has_failures() is True
     assert response.status_code == 200
     assert response.json() == mixed_report.model_dump()

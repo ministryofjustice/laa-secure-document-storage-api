@@ -59,13 +59,15 @@ class ServiceObservations(BaseModel):
             observations.append(self.add_check(name=name))
         return observations
 
-    def is_all_success(self) -> bool:
+    def has_failures(self) -> bool:
         """
-        Returns True if all StatusCheckResult values are success.
+        Returns True if any outcome is a failure.
         :return: bool
         """
-        outcomes = [scr.outcome for scr in self.checks]
-        return outcomes.count(Outcome.success) == len(outcomes)
+        for scr in self.checks:
+            if scr.outcome == Outcome.failure:
+                return True
+        return False
 
 
 class StatusReport(BaseModel):
@@ -74,8 +76,8 @@ class StatusReport(BaseModel):
     """
     services: Dict[str, ServiceObservations] = Field(default_factory=dict)
 
-    def is_all_success(self) -> bool:
+    def has_failures(self) -> bool:
         for obs in self.services.values():
-            if not obs.is_all_success():
-                return False
-        return True
+            if obs.has_failures():
+                return True
+        return False

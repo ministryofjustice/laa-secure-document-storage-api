@@ -14,7 +14,7 @@ async def health():
     * 503 SERVICE UNAVAILABLE with JSON {'detail': 'Please try again later'} if any checks fail
     """
     status_report = await status_service.get_status()
-    if not status_report.is_all_success():
+    if status_report.has_failures():
         raise HTTPException(
             status_code=503,
             detail="Please try again later."
