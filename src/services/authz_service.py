@@ -54,6 +54,10 @@ class AuthzService:
             cls._instance.enforcer = enforcer
         return cls._instance
 
+    @classmethod
+    def get_num_policies(cls):
+        return cls._num_policies
+
 
 def enforce(subj: str, obj: str, action: str) -> bool:
     """
@@ -98,7 +102,7 @@ class AuthzServiceStatusReporter(StatusReporter):
             present.outcome = Outcome.success
 
         try:
-            if AuthzService()._num_policies > 1:
+            if AuthzService().get_num_policies() > 1:
                 populated.outcome = Outcome.success
         except Exception as error:
             logger.error(f'Status check {cls.label} failed: {error.__class__.__name__} {error}')

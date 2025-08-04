@@ -45,7 +45,8 @@ class S3Service:
         self.client_config = client_config
         self.s3_client = self.get_s3_client()
 
-    def get_s3_client(self):
+    @classmethod
+    def get_s3_client(cls):
         if os.getenv('ENV') == 'local':
             s3_client = boto3.client(
                 's3',
@@ -180,8 +181,7 @@ class S3ServiceStatusReporter(StatusReporter):
             # S3 access normally requires a ClientConfig to access the correct bucket, but the config
             # is not needed to validate the connection to the service. So we do not pass a config, and
             # directly get the S3 client.
-            s3_service = S3Service(None)
-            client = s3_service.get_s3_client()
+            client = S3Service.get_s3_client()
             # We check for a bucket we know does not exist, and if the service is active it will respond
             # with a Not Found error rather than a Connection Error.
             client.head_bucket(Bucket='does-not-exist')
