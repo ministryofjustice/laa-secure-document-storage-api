@@ -68,8 +68,10 @@ class ClamAvServiceStatusReporter(StatusReporter):
 
         try:
             clam_av = ClamAVService.get_instance()
+            # Check we can reach the API...
             clam_av._clamd.version()
             reachable.outcome = Outcome.success
+            # ...and check we can reach the actual service
             clam_av._clamd.ping()
             responding.outcome = Outcome.success
         except Exception as e:
