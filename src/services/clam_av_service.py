@@ -56,7 +56,6 @@ async def virus_check(file: BytesIO):
 
 
 class ClamAvServiceStatusReporter(StatusReporter):
-    label = 'antivirus'
 
     @classmethod
     def get_status(cls) -> ServiceObservations:
@@ -64,7 +63,7 @@ class ClamAvServiceStatusReporter(StatusReporter):
         Reachable if the API is usable.
         Responding if the service responds to ping.
         """
-        checks = ServiceObservations()
+        checks = ServiceObservations(label='antivirus')
         reachable, responding = checks.add_checks('reachable', 'responding')
 
         try:

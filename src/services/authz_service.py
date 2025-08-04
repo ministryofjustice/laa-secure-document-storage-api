@@ -84,7 +84,6 @@ def enforce_or_error(subj: str, obj: str, action: str, detail: str = 'Forbidden'
 
 
 class AuthzServiceStatusReporter(StatusReporter):
-    label = 'authorisation'
 
     @classmethod
     def get_status(cls) -> ServiceObservations:
@@ -92,7 +91,7 @@ class AuthzServiceStatusReporter(StatusReporter):
         Present if a policy has been specified.
         Populated if policies have been loaded.
         """
-        checks = ServiceObservations()
+        checks = ServiceObservations(label='authorisation')
         present, populated = checks.add_checks('present', 'populated')
 
         if os.environ.get('CASBIN_POLICY', None) not in ('', None):

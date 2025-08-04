@@ -175,7 +175,6 @@ def get_config_for_client_or_error(username: str) -> ClientConfig:
 
 
 class ClientConfigServiceStatusReporter(StatusReporter):
-    label = 'configuration'
 
     @classmethod
     def get_status(cls) -> ServiceObservations:
@@ -183,7 +182,7 @@ class ClientConfigServiceStatusReporter(StatusReporter):
         Present if configured directory exists.
         Populated if configured directory has contents.
         """
-        checks = ServiceObservations()
+        checks = ServiceObservations(label='configuration')
         present, populated = checks.add_checks('present', 'populated')
         try:
             config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')

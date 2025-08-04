@@ -8,7 +8,7 @@ def test_health(mock_status, test_client):
     so = ServiceObservations()
     a, b = so.add_checks('a', 'b')
     a.outcome = b.outcome = Outcome.success
-    healthy_report = StatusReport(services={'servicename': so})
+    healthy_report = StatusReport(services=[so, ])
     mock_status.return_value = healthy_report
 
     response = test_client.get("/health")
@@ -21,7 +21,7 @@ def test_health(mock_status, test_client):
 def test_health_failure(mock_status, test_client):
     so = ServiceObservations()
     so.add_check('a')  # Defaults to a failed outcome
-    unhealthy_report = StatusReport(services={'servicename': so})
+    unhealthy_report = StatusReport(services=[so, ])
     mock_status.return_value = unhealthy_report
 
     response = test_client.get("/health")
@@ -35,7 +35,7 @@ def test_health_mixed_outcomes(mock_status, test_client):
     so = ServiceObservations()
     a, b = so.add_checks('a', 'b')  # Default to failure
     a.outcome = Outcome.success  # Single check set to success
-    mixed_report = StatusReport(services={'servicename': so})
+    mixed_report = StatusReport(services=[so, ])
     mock_status.return_value = mixed_report
 
     response = test_client.get("/health")

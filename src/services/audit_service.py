@@ -94,7 +94,6 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
 
 
 class AuditServiceStatusReporter(StatusReporter):
-    label = 'audit'
 
     @classmethod
     def get_status(cls) -> ServiceObservations:
@@ -102,8 +101,8 @@ class AuditServiceStatusReporter(StatusReporter):
         Reachable if the service can be reached.
         Responding if the configured table is available.
         """
-        checks = ServiceObservations()
-        reachable, responding = checks.add_checks('reachable', 'responding')
+        so = ServiceObservations(label='audit')
+        reachable, responding = so.add_checks('reachable', 'responding')
 
         try:
             audit_db = AuditService.get_instance()
@@ -126,4 +125,4 @@ class AuditServiceStatusReporter(StatusReporter):
         except Exception as e:
             logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
 
-        return checks
+        return so

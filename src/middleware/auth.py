@@ -122,7 +122,6 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
 
 
 class AuthServiceStatusReporter(StatusReporter):
-    label = 'authentication'
 
     @classmethod
     def get_status(cls) -> ServiceObservations:
@@ -130,7 +129,7 @@ class AuthServiceStatusReporter(StatusReporter):
         Configured if values set for authenticating.
         Reachable if OIDC can be fetched.
         """
-        checks = ServiceObservations()
+        checks = ServiceObservations(label='authentication')
         configured, reachable = checks.add_checks('configured', 'reachable')
 
         if os.getenv('AUDIENCE') not in (None, '') and os.getenv('TENANT_ID') not in (None, ''):

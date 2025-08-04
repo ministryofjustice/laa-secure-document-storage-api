@@ -27,6 +27,7 @@ class ServiceObservations(BaseModel):
     The set of checks a service makes to verify its overall status.
     ServiceObservations
     """
+    label: str = 'service'
     checks: list[Observation] = Field(default_factory=list)
 
     def add_check(self, name: str) -> Observation:
@@ -74,10 +75,10 @@ class StatusReport(BaseModel):
     """
     All the service checks combined into a single status report.
     """
-    services: Dict[str, ServiceObservations] = Field(default_factory=dict)
+    services: List[ServiceObservations] = Field(default_factory=list)
 
     def has_failures(self) -> bool:
-        for obs in self.services.values():
-            if obs.has_failures():
+        for so in self.services:
+            if so.has_failures():
                 return True
         return False

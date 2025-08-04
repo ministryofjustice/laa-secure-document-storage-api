@@ -166,7 +166,6 @@ def delete_file(client: str | ClientConfig, file_name: str):
 
 
 class S3ServiceStatusReporter(StatusReporter):
-    label = 'storage'
 
     @classmethod
     def get_status(cls) -> ServiceObservations:
@@ -174,7 +173,7 @@ class S3ServiceStatusReporter(StatusReporter):
         Reachable if service responds.
         Responding if service operations respond.
         """
-        checks = ServiceObservations()
+        checks = ServiceObservations(label='storage')
         reachable, responding = checks.add_checks('reachable', 'responding')
 
         try:
