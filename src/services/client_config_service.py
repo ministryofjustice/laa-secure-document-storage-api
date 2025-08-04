@@ -189,7 +189,7 @@ class ClientConfigServiceStatusReporter(StatusReporter):
             if os.path.isdir(config_dir):
                 present.outcome = Outcome.success
                 # Check we actually have some json files
-                candidates = [p for p in pathlib.Path(config_dir).rglob(f"*.json")]
+                candidates = [p for p in pathlib.Path(config_dir).rglob("*.json")]
                 if len(candidates) > 0:
                     populated.outcome = Outcome.success
         except Exception as e:
