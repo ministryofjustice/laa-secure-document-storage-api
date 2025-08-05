@@ -1,13 +1,13 @@
 from unittest.mock import patch
 
-from src.models.status_report import StatusReport, Outcome, ServiceObservations
+from src.models.status_report import StatusReport, Category, ServiceObservations
 
 
 @patch("src.routers.status.status_service.get_status")
 def test_health(mock_status, test_client):
     so = ServiceObservations()
     a, b = so.add_checks('a', 'b')
-    a.outcome = b.outcome = Outcome.success
+    a.category = b.category = Category.success
     healthy_report = StatusReport(services=[so, ])
     mock_status.return_value = healthy_report
 
@@ -34,7 +34,7 @@ def test_health_failure(mock_status, test_client):
 def test_health_mixed_outcomes(mock_status, test_client):
     so = ServiceObservations()
     a, b = so.add_checks('a', 'b')  # Default to failure
-    a.outcome = Outcome.success  # Single check set to success
+    a.category = Category.success  # Single check set to success
     mixed_report = StatusReport(services=[so, ])
     mock_status.return_value = mixed_report
 

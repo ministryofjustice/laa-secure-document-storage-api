@@ -5,7 +5,7 @@ import casbin
 from fastapi import HTTPException
 from casbin.util.log import configure_logging
 
-from src.models.status_report import ServiceObservations, Outcome
+from src.models.status_report import ServiceObservations, Category
 from src.utils.multifileadapter import MultiFileAdapter
 from src.utils.status_reporter import StatusReporter
 
@@ -99,11 +99,11 @@ class AuthzServiceStatusReporter(StatusReporter):
         present, populated = checks.add_checks('present', 'populated')
 
         if os.environ.get('CASBIN_POLICY', None) not in ('', None):
-            present.outcome = Outcome.success
+            present.category = Category.success
 
         try:
             if AuthzService().get_num_policies() > 1:
-                populated.outcome = Outcome.success
+                populated.category = Category.success
         except Exception as error:
             logger.error(f'Status check {cls.label} failed: {error.__class__.__name__} {error}')
 

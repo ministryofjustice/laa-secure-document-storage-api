@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 
 from src.models.client_config import ClientConfig
 from src.models.execeptions.file_not_found import FileNotFoundException
-from src.models.status_report import ServiceObservations, Outcome
+from src.models.status_report import ServiceObservations, Category
 from src.services import client_config_service
 from src.utils.status_reporter import StatusReporter
 
@@ -189,8 +189,8 @@ class S3ServiceStatusReporter(StatusReporter):
         except ClientError as ce:
             # We checked for a non-existent bucket, so check if we have the expected error
             if ce.response['Error']['Code'] == '404' or ce.response['Error']['Code'] == '403':
-                reachable.outcome = Outcome.success
-                responding.outcome = Outcome.success
+                reachable.category = Category.success
+                responding.category = Category.success
             else:
                 logger.error('Unexpected error type')
         except Exception as e:

@@ -5,7 +5,7 @@ from unittest.mock import patch
 from fastapi import HTTPException
 
 import src.services.client_config_service
-from src.models.status_report import Outcome
+from src.models.status_report import Category
 from src.services.client_config_service import ClientConfigServiceStatusReporter
 
 
@@ -76,8 +76,8 @@ def test_status_reporter_partial_failure(mock_isdir, mock_pathlib):
     so = ClientConfigServiceStatusReporter.get_status()
 
     assert so.has_failures()
-    for check in so.checks:
-        if check.name == 'present':
-            assert check.outcome == Outcome.success
-        elif check.name == 'populated':
-            assert check.outcome == Outcome.failure
+    for check in so.observations:
+        if check.phenomenon == 'present':
+            assert check.category == Category.success
+        elif check.phenomenon == 'populated':
+            assert check.category == Category.failure

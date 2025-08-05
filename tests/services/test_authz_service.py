@@ -12,7 +12,7 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 
 from src.main import app
 from src.middleware.auth import BearerTokenAuthBackend
-from src.models.status_report import Outcome
+from src.models.status_report import Category
 from src.services.authz_service import AuthzService, AuthzServiceStatusReporter
 
 test_client = TestClient(app)
@@ -98,8 +98,8 @@ def test_status_report_partial_failure(mock_numpolicies):
     so = AuthzServiceStatusReporter.get_status()
 
     assert so.has_failures()
-    for check in so.checks:
-        if check.name == 'present':
-            assert check.outcome == Outcome.success
-        elif check.name == 'populated':
-            assert check.outcome == Outcome.failure
+    for check in so.observations:
+        if check.phenomenon == 'present':
+            assert check.category == Category.success
+        elif check.phenomenon == 'populated':
+            assert check.category == Category.failure

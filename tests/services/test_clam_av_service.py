@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.models.status_report import Outcome
+from src.models.status_report import Category
 from src.services.clam_av_service import ClamAVService, ClamAvServiceStatusReporter
 
 
@@ -51,8 +51,8 @@ def test_status_reporter_partial_failure(mock_clamd):
     so = ClamAvServiceStatusReporter.get_status()
 
     assert so.has_failures()
-    for check in so.checks:
-        if check.name == 'reachable':
-            assert check.outcome == Outcome.success
-        elif check.name == 'responding':
-            assert check.outcome == Outcome.failure
+    for check in so.observations:
+        if check.phenomenon == 'reachable':
+            assert check.category == Category.success
+        elif check.phenomenon == 'responding':
+            assert check.category == Category.failure

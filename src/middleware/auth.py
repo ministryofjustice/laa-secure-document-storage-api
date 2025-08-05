@@ -12,7 +12,7 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import Response, JSONResponse
 
-from src.models.status_report import ServiceObservations, Outcome
+from src.models.status_report import ServiceObservations, Category
 from src.utils.status_reporter import StatusReporter
 
 security = HTTPBearer()
@@ -133,11 +133,11 @@ class AuthServiceStatusReporter(StatusReporter):
         configured, reachable = checks.add_checks('configured', 'reachable')
 
         if os.getenv('AUDIENCE') not in (None, '') and os.getenv('TENANT_ID') not in (None, ''):
-            configured.outcome = Outcome.success
+            configured.category = Category.success
 
         try:
             fetch_oidc_config(os.getenv('TENANT_ID'))
-            reachable.outcome = Outcome.success
+            reachable.category = Category.success
         except Exception as error:
             logger.error(f"Status check {cls.label} failed: {error.__class__.__name__} {error}")
 

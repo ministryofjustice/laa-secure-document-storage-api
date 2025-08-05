@@ -5,7 +5,7 @@ import clamd
 import structlog
 from dotenv import load_dotenv
 
-from src.models.status_report import ServiceObservations, Outcome
+from src.models.status_report import ServiceObservations, Category
 from src.utils.status_reporter import StatusReporter
 
 load_dotenv()
@@ -70,10 +70,10 @@ class ClamAvServiceStatusReporter(StatusReporter):
             clam_av = ClamAVService.get_instance()
             # Check we can reach the API...
             clam_av._clamd.version()
-            reachable.outcome = Outcome.success
+            reachable.category = Category.success
             # ...and check we can reach the actual service
             clam_av._clamd.ping()
-            responding.outcome = Outcome.success
+            responding.category = Category.success
         except Exception as e:
             logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
         return checks

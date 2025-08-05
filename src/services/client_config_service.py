@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from src.models.client_config import ClientConfig
 import structlog
 
-from src.models.status_report import ServiceObservations, Outcome
+from src.models.status_report import ServiceObservations, Category
 from src.utils.status_reporter import StatusReporter
 
 logger = structlog.get_logger()
@@ -187,11 +187,11 @@ class ClientConfigServiceStatusReporter(StatusReporter):
         try:
             config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')
             if os.path.isdir(config_dir):
-                present.outcome = Outcome.success
+                present.category = Category.success
                 # Check we actually have some json files
                 candidates = [p for p in pathlib.Path(config_dir).rglob("*.json")]
                 if len(candidates) > 0:
-                    populated.outcome = Outcome.success
+                    populated.category = Category.success
         except Exception as e:
             logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
         return checks

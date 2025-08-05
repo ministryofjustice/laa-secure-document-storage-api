@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import structlog
 from datetime import datetime
 
-from src.models.status_report import ServiceObservations, Outcome
+from src.models.status_report import ServiceObservations, Category
 from src.utils.operation_types import OperationType
 from src.utils.status_reporter import StatusReporter
 
@@ -111,15 +111,15 @@ class AuditServiceStatusReporter(StatusReporter):
             # LocalStack checks
             # Getting table_status triggers an actual connection attempt
             table_status = table.table_status
-            reachable.outcome = Outcome.success
+            reachable.category = Category.success
 
             if table_status != 'INACCESSIBLE_ENCRYPTION_CREDENTIALS':
-                responding.outcome = Outcome.success
+                responding.category = Category.success
         except ClientError as ce:
             # Deployed service will give a permission error
             if ce.response['Error']['Code'] == 'AccessDeniedException':
-                reachable.outcome = Outcome.success
-                responding.outcome = Outcome.success
+                reachable.category = Category.success
+                responding.category = Category.success
             else:
                 logger.error(f'Status check {cls.label} unexpected response: {ce.__class__.__name__} {ce}')
         except Exception as e:
