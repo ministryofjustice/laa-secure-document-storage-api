@@ -1,5 +1,5 @@
 import inspect
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import structlog
 from fastapi import HTTPException
@@ -25,6 +25,35 @@ def get_validator(validator_name: str) -> FileValidator:
         logger.error(f"Validator {validator_name} not found in {validators}")
         raise ValidatorNotFoundError(f"Validator {validator_name} not found")
     return validators[validator_name]()
+
+
+def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
+    return [FileValidatorSpec(name=v.__name__, validator_kwargs=get_kwargs_for_filevalidator(v))
+            for v in FileValidator.__subclasses__()]
+
+
+def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, Any]:
+    # Change to use get_validator function from above
+    if isinstance(validator, str):
+        for validator_cls in FileValidator.__subclasses__():
+            if validator_cls.__name__ == validator:
+                validator = validator_cls
+                break
+    if not hasattr(validator, 'validate'):
+        raise ValueError(f"Validator {validator} does not have a 'validate' method")
+    # Introspect the 'validate' method to get any expected extra arguments which need to appear in the spec
+    validator_args = [a for a in inspect.getfullargspec(validator.validate).args if a not in ('self', 'file_object')]
+    validator_defaults = inspect.getfullargspec(validator.validate).defaults
+    validator_kwargs = {}
+    for i, arg in enumerate(validator_args):
+        try:
+            value = validator_defaults[i]
+            if value is list:
+                value = []
+        except ValueError:
+            value = None
+        validator_kwargs[arg] = value
+    return validator_kwargs
 
 
 async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> Tuple[int, str]:
