@@ -12,7 +12,8 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 
 from src.main import app
 from src.middleware.auth import BearerTokenAuthBackend
-from src.services.authz_service import AuthzService
+from src.models.status_report import Category
+from src.services.authz_service import AuthzService, AuthzServiceStatusReporter
 
 test_client = TestClient(app)
 logger = structlog.get_logger()
@@ -74,6 +75,31 @@ def test_authz_service(model_file: str, policy_file: str, username: str | None, 
             BearerTokenAuthBackend, 'authenticate',
             return_value=(AuthCredentials(scopes=[]), request_user)
     ) as mock_auth_backend:
-        response = test_client.get("/health")
+        response = test_client.get("/ping")
         mock_auth_backend.assert_called()
         assert response.status_code == expected_status, assert_msg
+
+
+@patch('src.services.authz_service.AuthzService.get_num_policies')
+def test_status_report_success(mock_numpolicies):
+    # Needs more than 1 file (the open routes file) to be loaded
+    mock_numpolicies.return_value = 4
+
+    so = AuthzServiceStatusReporter.get_status()
+
+    assert so.has_failures() is False
+
+
+@patch('src.services.authz_service.AuthzService.get_num_policies')
+def test_status_report_partial_failure(mock_numpolicies):
+    # Needs more than 1 file (the open routes file) to be loaded
+    mock_numpolicies.return_value = 1
+
+    so = AuthzServiceStatusReporter.get_status()
+
+    assert so.has_failures()
+    for check in so.observations:
+        if check.phenomenon == 'present':
+            assert check.category == Category.success
+        elif check.phenomenon == 'populated':
+            assert check.category == Category.failure

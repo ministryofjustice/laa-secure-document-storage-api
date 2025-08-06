@@ -9,7 +9,9 @@ from botocore.exceptions import ClientError
 
 from src.models.client_config import ClientConfig
 from src.models.execeptions.file_not_found import FileNotFoundException
+from src.models.status_report import ServiceObservations, Category
 from src.services import client_config_service
+from src.utils.status_reporter import StatusReporter
 
 logger = structlog.get_logger()
 
@@ -43,7 +45,8 @@ class S3Service:
         self.client_config = client_config
         self.s3_client = self.get_s3_client()
 
-    def get_s3_client(self):
+    @classmethod
+    def get_s3_client(cls):
         if os.getenv('ENV') == 'local':
             s3_client = boto3.client(
                 's3',
@@ -161,3 +164,36 @@ def delete_file(client: str | ClientConfig, file_name: str):
     s3_service.delete_file_obj(file_name)
 
     return True
+
+
+class S3ServiceStatusReporter(StatusReporter):
+
+    @classmethod
+    def get_status(cls) -> ServiceObservations:
+        """
+        Reachable if service responds.
+        Responding if service operations respond.
+        """
+        checks = ServiceObservations(label='storage')
+        reachable, responding = checks.add_checks('reachable', 'responding')
+
+        try:
+            # S3 access normally requires a ClientConfig to access the correct bucket, but the config
+            # is not needed to validate the connection to the service. So we do not pass a config, and
+            # directly get the S3 client.
+            client = S3Service.get_s3_client()
+            # We check for a bucket we know does not exist, and if the service is active it will respond
+            # with a Not Found error rather than a Connection Error.
+            client.head_bucket(Bucket='does-not-exist')
+            logger.error('Unexpectedly succeeded when checking for a resource which should not exist or be available')
+        except ClientError as ce:
+            # We checked for a non-existent bucket, so check if we have the expected error
+            if ce.response['Error']['Code'] == '404' or ce.response['Error']['Code'] == '403':
+                reachable.category = Category.success
+                responding.category = Category.success
+            else:
+                logger.error('Unexpected error type')
+        except Exception as e:
+            logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
+
+        return checks

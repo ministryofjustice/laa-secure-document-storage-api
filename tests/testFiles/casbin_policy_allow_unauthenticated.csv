@@ -1,6 +1,6 @@
 
 p, anonymous, /, GET
-p, anonymous, /health, GET
+p, anonymous, /ping, GET
 
 p, anonymous, /retrieve_file, ((GET)|(POST))
 p, anonymous, /retrieve_file/, ((GET)|(POST))

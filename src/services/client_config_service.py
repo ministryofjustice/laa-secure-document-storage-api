@@ -7,6 +7,10 @@ from fastapi import HTTPException
 
 from src.models.client_config import ClientConfig
 import structlog
+
+from src.models.status_report import ServiceObservations, Category
+from src.utils.status_reporter import StatusReporter
+
 logger = structlog.get_logger()
 
 
@@ -168,3 +172,26 @@ def get_config_for_client_or_error(username: str) -> ClientConfig:
         logger.error(f"ClientConfig for '{username}' not found")
         raise HTTPException(status_code=403, detail='Forbidden')
     return config
+
+
+class ClientConfigServiceStatusReporter(StatusReporter):
+
+    @classmethod
+    def get_status(cls) -> ServiceObservations:
+        """
+        Present if configured directory exists.
+        Populated if configured directory has contents.
+        """
+        checks = ServiceObservations(label='configuration')
+        present, populated = checks.add_checks('present', 'populated')
+        try:
+            config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')
+            if os.path.isdir(config_dir):
+                present.category = Category.success
+                # Check we actually have some json files
+                candidates = [p for p in pathlib.Path(config_dir).rglob("*.json")]
+                if len(candidates) > 0:
+                    populated.category = Category.success
+        except Exception as e:
+            logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
+        return checks
