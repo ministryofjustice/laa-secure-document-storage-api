@@ -9,7 +9,7 @@ from io import BytesIO
 import src.services.s3_service
 from src.models.execeptions.file_not_found import FileNotFoundException
 from src.models.client_config import ClientConfig
-from src.services.s3_service import S3Service
+from src.services.s3_service import S3Service, S3ServiceStatusReporter
 import structlog
 
 logger = structlog.get_logger()
@@ -198,3 +198,33 @@ def test_delete_file_obj_unexpected_error(s3_service, mocker):
         Bucket=s3_service.client_config.bucket_name,
         Key='any_file.md'
     )
+
+
+@patch('src.services.s3_service.S3Service.get_s3_client')
+def test_status_reporter_success(mock_client, mocker):
+    # Success is counter-intuitive due to the way the check is implemented:
+    # If a 404 or 403 exception is raised, that's shown the service is alive.
+    mock_client.side_effect = ClientError(
+        error_response={"Error": {"Code": "404", "Message": "Not Found"}},
+        operation_name='HeadBucket'
+    )
+
+    so = S3ServiceStatusReporter.get_status()
+
+    mock_client.assert_called()
+    assert so.has_failures() is False
+
+
+@patch('src.services.s3_service.S3Service.get_s3_client')
+def test_status_reporter_failure(mock_client, mocker):
+    # Success is counter-intuitive due to the way the check is implemented:
+    # If a 404 or 403 exception is raised, that's shown the service is alive.
+    mock_client.side_effect = ClientError(
+        error_response={"Error": {"Code": "400", "Message": "Unable to connect"}},
+        operation_name='HeadBucket'
+    )
+
+    so = S3ServiceStatusReporter.get_status()
+
+    mock_client.assert_called()
+    assert so.has_failures()

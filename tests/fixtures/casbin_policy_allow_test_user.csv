@@ -2,6 +2,9 @@
 p, test_user, /, GET
 p, test_user, /health, GET
 p, anonymous, /health, GET
+p, test_user, /ping, GET
+p, test_user, /status, GET
+p, test_user, /status/, GET
 
 p, test_user, /retrieve_file, GET
 p, test_user, /retrieve_file/, GET

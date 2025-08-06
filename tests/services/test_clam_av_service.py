@@ -3,7 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.services.clam_av_service import ClamAVService
+from src.models.status_report import Category
+from src.services.clam_av_service import ClamAVService, ClamAvServiceStatusReporter
 
 
 @pytest.mark.asyncio
@@ -24,3 +25,34 @@ async def test_check_av_service(mock_clamd, scan_result, expected_status, expect
 
     assert status == expected_status
     assert response.get('message') == expected_message
+
+
+@patch.object(ClamAVService.get_instance(), '_clamd')
+def test_status_reporter_success(mock_clamd):
+    # ClamAV mock returns without raising an exception, so each check passes
+    so = ClamAvServiceStatusReporter.get_status()
+
+    assert so.has_failures() is False
+
+
+@patch.object(ClamAVService.get_instance(), '_clamd')
+def test_status_reporter_failure(mock_clamd):
+    mock_clamd.version.side_effect = Exception()
+
+    so = ClamAvServiceStatusReporter.get_status()
+
+    assert so.has_failures()
+
+
+@patch.object(ClamAVService.get_instance(), '_clamd')
+def test_status_reporter_partial_failure(mock_clamd):
+    mock_clamd.ping.side_effect = Exception()
+
+    so = ClamAvServiceStatusReporter.get_status()
+
+    assert so.has_failures()
+    for check in so.observations:
+        if check.phenomenon == 'reachable':
+            assert check.category == Category.success
+        elif check.phenomenon == 'responding':
+            assert check.category == Category.failure

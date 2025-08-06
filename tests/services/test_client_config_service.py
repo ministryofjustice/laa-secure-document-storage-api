@@ -5,6 +5,8 @@ from unittest.mock import patch
 from fastapi import HTTPException
 
 import src.services.client_config_service
+from src.models.status_report import Category
+from src.services.client_config_service import ClientConfigServiceStatusReporter
 
 
 def test_unauthenticated_user_raises_exception():
@@ -48,3 +50,34 @@ def test_config_ttl():
     with patch.object(src.services.client_config_service.ClientConfigService, 'load') as mock_load:
         src.services.client_config_service.get_config_for_client('test_user')
         mock_load.assert_called()
+
+
+@patch('pathlib.Path.rglob')
+@patch('os.path.isdir')
+def test_status_reporter_success(mock_isdir, mock_pathlib):
+    # Config directory exists...
+    mock_isdir.return_value = True
+    # ...and it has some suitable files
+    mock_pathlib.return_value = ['a.json', 'b.json']
+
+    so = ClientConfigServiceStatusReporter.get_status()
+
+    assert so.has_failures() is False
+
+
+@patch('pathlib.Path.rglob')
+@patch('os.path.isdir')
+def test_status_reporter_partial_failure(mock_isdir, mock_pathlib):
+    # Config directory exists...
+    mock_isdir.return_value = True
+    # ...but there are no suitable files
+    mock_pathlib.return_value = []
+
+    so = ClientConfigServiceStatusReporter.get_status()
+
+    assert so.has_failures()
+    for check in so.observations:
+        if check.phenomenon == 'present':
+            assert check.category == Category.success
+        elif check.phenomenon == 'populated':
+            assert check.category == Category.failure

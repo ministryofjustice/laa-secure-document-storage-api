@@ -133,7 +133,6 @@ class DisallowedMimetypes(FileValidator):
         if file_object.content_type.lower() in content_types:
             logger.error(f"File mimetype {file_object.content_type.lower()} in disallowed mimetypes {content_types}")
             return 415, "File mimetype not allowed"
-        logger.info(f"File mimetype {file_object.content_type.lower()} not in disallowed mimetypes {content_types}")
         return 200, ""
 
 

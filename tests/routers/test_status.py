@@ -1,0 +1,33 @@
+from unittest.mock import patch
+
+from src.models.status_report import StatusReport, Category, ServiceObservations
+
+
+@patch("src.routers.status.status_service.get_status")
+def test_status(mock_status, test_client):
+    so = ServiceObservations()
+    a, b = so.add_checks('a', 'b')
+    a.category = b.category = Category.success
+    healthy_report = StatusReport(services=[so, ])
+    mock_status.return_value = healthy_report
+
+    response = test_client.get("/status")
+
+    assert healthy_report.has_failures() is False
+    assert response.status_code == 200
+    assert response.json() == healthy_report.model_dump()
+
+
+@patch("src.routers.status.status_service.get_status")
+def test_status_mixed_outcomes(mock_status, test_client):
+    so = ServiceObservations()
+    a, b = so.add_checks('a', 'b')  # Default to failure
+    a.category = Category.success  # Single check set to success
+    mixed_report = StatusReport(services=[so, ])
+    mock_status.return_value = mixed_report
+
+    response = test_client.get("/status")
+
+    assert mixed_report.has_failures() is True
+    assert response.status_code == 200
+    assert response.json() == mixed_report.model_dump()

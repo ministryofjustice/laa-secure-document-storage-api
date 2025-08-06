@@ -6,3 +6,5 @@ p, *, /openapi.json, GET
 # Allow any user to access the health check
 p, *, /, GET
 p, *, /health, GET
+p, *, /ping, GET
+p, *, /status, GET

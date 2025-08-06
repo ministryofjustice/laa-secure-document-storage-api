@@ -1,10 +1,14 @@
 import boto3
 import os
+
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 import structlog
 from datetime import datetime
 
+from src.models.status_report import ServiceObservations, Category
 from src.utils.operation_types import OperationType
+from src.utils.status_reporter import StatusReporter
 
 logger = structlog.get_logger()
 
@@ -87,3 +91,38 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
         item["last_updated_on"] = datetime.now().isoformat()
 
         table.put_item(Item=item)
+
+
+class AuditServiceStatusReporter(StatusReporter):
+
+    @classmethod
+    def get_status(cls) -> ServiceObservations:
+        """
+        Reachable if the service can be reached.
+        Responding if the configured table is available.
+        """
+        so = ServiceObservations(label='audit')
+        reachable, responding = so.add_checks('reachable', 'responding')
+
+        try:
+            audit_db = AuditService.get_instance()
+            table = audit_db.dynamodb_client.Table(os.getenv('AUDIT_TABLE'))
+
+            # LocalStack checks
+            # Getting table_status triggers an actual connection attempt
+            table_status = table.table_status
+            reachable.category = Category.success
+
+            if table_status != 'INACCESSIBLE_ENCRYPTION_CREDENTIALS':
+                responding.category = Category.success
+        except ClientError as ce:
+            # Deployed service will give a permission error
+            if ce.response['Error']['Code'] == 'AccessDeniedException':
+                reachable.category = Category.success
+                responding.category = Category.success
+            else:
+                logger.error(f'Status check {cls.label} unexpected response: {ce.__class__.__name__} {ce}')
+        except Exception as e:
+            logger.error(f'Status check {cls.label} failed: {e.__class__.__name__} {e}')
+
+        return so

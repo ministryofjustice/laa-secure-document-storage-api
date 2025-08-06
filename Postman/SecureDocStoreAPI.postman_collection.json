@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "SDSHealthCheckTests",
+			"name": "SDSHealthAndStatusTests",
 			"item": [
 				{
 					"name": "Health Check",
@@ -62,9 +62,153 @@
 						"description": "Expect a 200 OK response from /health"
 					},
 					"response": []
+				},
+				{
+					"name": "Ping (Reachability) Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to check the health of the API",
+									"pm.test(\"Response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body shows pong\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('ping', 'pong');",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/ping",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"ping"
+							]
+						},
+						"description": "Expect a 200 OK response from /ping"
+					},
+					"response": []
+				},
+				{
+					"name": "Status Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to check the status of the API",
+									"pm.test(\"Response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var status = pm.response.json();",
+									"",
+									"pm.test(\"Authentication status success\", function() {",
+									"    var service_status = status.services.find(obj => {if(obj.label === 'authentication') return obj})",
+									"        pm.expect(service_status.observations.find(obj => {",
+									"            return obj.category === 'failure'",
+									"    })).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Authorisation status success\", function() {",
+									"    var service_status = status.services.find(obj => {if(obj.label === 'authorisation') return obj})",
+									"        pm.expect(service_status.observations.find(obj => {",
+									"            return obj.category === 'failure'",
+									"    })).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Configuration status success\", function() {",
+									"    var service_status = status.services.find(obj => {if(obj.label === 'configuration') return obj})",
+									"        pm.expect(service_status.observations.find(obj => {",
+									"            return obj.category === 'failure'",
+									"    })).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Audit status success\", function() {",
+									"    var service_status = status.services.find(obj => {if(obj.label === 'audit') return obj})",
+									"        pm.expect(service_status.observations.find(obj => {",
+									"            return obj.category === 'failure'",
+									"    })).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Storage status success\", function() {",
+									"    var service_status = status.services.find(obj => {if(obj.label === 'storage') return obj})",
+									"        pm.expect(service_status.observations.find(obj => {",
+									"            return obj.category === 'failure'",
+									"    })).to.be.undefined",
+									"});",
+									"",
+									"pm.test(\"Antivirus status success\", function() {",
+									"    var service_status = status.services.find(obj => {if(obj.label === 'antivirus') return obj})",
+									"        pm.expect(service_status.observations.find(obj => {",
+									"            return obj.category === 'failure'",
+									"    })).to.be.undefined",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/status",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"status"
+							]
+						},
+						"description": "Expect a 200 OK response from /status"
+					},
+					"response": []
 				}
 			],
-			"description": "Tests on the /health endpoint"
+			"description": "Tests on the health and status endpoints"
 		},
 		{
 			"name": "SDSDocsTests",
@@ -923,7 +1067,7 @@
 			]
 		},
 		{
-			"name": "SDSRetrieveFileTests",
+			"name": "SDSRetrieveFileTests (Deprecated)",
 			"item": [
 				{
 					"name": "Retrieve File",
@@ -1091,7 +1235,178 @@
 					"response": []
 				}
 			],
-			"description": "Test on the /retrieve_file endpoint"
+			"description": "Test using the deprecated /retrieve_file endpoint"
+		},
+		{
+			"name": "SDSGetFileTests",
+			"item": [
+				{
+					"name": "Get File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test get file",
+									"pm.test(\"response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response contains fileURL key\", function() {",
+									"    const responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}.md",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"get_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "{{unique_filename}}"
+								}
+							]
+						},
+						"description": "Run 'Save Or Update File' request first then expect 200 OK"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Non-Existent File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to verify getting a 404 response for a non-existent file",
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response body shows file not found\", function() {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property('detail', 'The file non_existent could not be found.');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/get_file?file_key=non_existent",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"get_file"
+							],
+							"query": [
+								{
+									"key": "file_key",
+									"value": "non_existent"
+								}
+							]
+						},
+						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+					},
+					"response": []
+				}
+			],
+			"description": "Test on the /get_file endpoint"
 		},
 		{
 			"name": "SDSSaveFileTests",

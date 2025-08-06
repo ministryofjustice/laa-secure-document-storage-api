@@ -14,6 +14,8 @@ class MultiFileAdapter(casbin.FileAdapter):
     loaded. Multiple paths must be separated by a colon ':'
     """
     def load_policy(self, model):
+        # Track the number of files processed to help with status reporting
+        self.num_files_processed = 0
         # Do not check if path exists at this entry, because we may have been given a string with colon-separated paths
         self._load_policy_file(model)
 
@@ -41,7 +43,7 @@ class MultiFileAdapter(casbin.FileAdapter):
                 continue
 
         # Load policy lines from each of the found file paths
-        total_loaded = 0
+        self.num_files_processed = 0
         for policy_path in policy_file_paths:
             try:
                 with open(policy_path, "rb") as file:
@@ -49,7 +51,7 @@ class MultiFileAdapter(casbin.FileAdapter):
                     while line:
                         load_policy_line(line.decode().strip(), model)
                         line = file.readline()
-                    total_loaded += 1
+                    self.num_files_processed += 1
             except Exception as e:
                 logger.error(f"Failed to load policy file {policy_path}: {e.__class__.__name__} {e}")
-        logger.info(f"Loaded {total_loaded} policy files")
+        logger.info(f"Processed {self.num_files_processed} policy files")
