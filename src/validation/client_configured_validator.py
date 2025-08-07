@@ -49,7 +49,7 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
 
     # The returned validator_defaults is a tuple that only includes values for args with defaults (which are always
     # the rightmost args). Padding on left with None values for any any non-default args.
-    validator_defaults = tuple(None for i in range(len(validator_args) - len(validator_defaults))) + validator_defaults
+    validator_defaults = (None,) * (len(validator_args) - len(validator_defaults)) + validator_defaults
 
     validator_kwargs = {}
     for key, value in zip(validator_args, validator_defaults):
