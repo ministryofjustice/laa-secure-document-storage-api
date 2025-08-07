@@ -28,6 +28,7 @@ def get_validator(validator_name: str) -> FileValidator:
 
 
 def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
+    # The validators are defined src/validation/file_validator.py
     return [FileValidatorSpec(name=v.__name__, validator_kwargs=get_kwargs_for_filevalidator(v))
             for v in FileValidator.__subclasses__()]
 
@@ -44,15 +45,21 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
     # Introspect the 'validate' method to get any expected extra arguments which need to appear in the spec
     validator_args = [a for a in inspect.getfullargspec(validator.validate).args if a not in ('self', 'file_object')]
     validator_defaults = inspect.getfullargspec(validator.validate).defaults
+
+    # If there are no defaults we get None rather than usual tuple. Restoring tuple here.
+    if validator_defaults is None:
+        validator_defaults = tuple()
+
+    # The returned validator_defaults is a tuple that only includes values for args with defaults (which are always
+    # the rightmost args). Padding on left with None values for any any non-default args.
+    validator_defaults = tuple(None for i in range(len(validator_args) - len(validator_defaults))) + validator_defaults
+
     validator_kwargs = {}
-    for i, arg in enumerate(validator_args):
-        try:
-            value = validator_defaults[i]
-            if value is list:
-                value = []
-        except ValueError:
-            value = None
-        validator_kwargs[arg] = value
+    for key, value in zip(validator_args, validator_defaults):
+        if value is list:
+            value = []
+        validator_kwargs[key] = value
+
     return validator_kwargs
 
 
