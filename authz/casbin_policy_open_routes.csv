@@ -8,3 +8,6 @@ p, *, /, GET
 p, *, /health, GET
 p, *, /ping, GET
 p, *, /status, GET
+
+# Allow any user to access config
+p, *, /available_validators, GET

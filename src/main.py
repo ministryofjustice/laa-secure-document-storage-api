@@ -26,6 +26,7 @@ from src.routers.save_file import router as save_file_router
 from src.routers.save_or_update_file import router as save_or_update_file_router
 from src.routers.status import router as status_router
 from src.routers.virus_check_file import router as virus_check_file_router
+from src.routers.available_validators import router as available_validators
 
 
 def add_correlation(
@@ -91,3 +92,5 @@ app.include_router(status_router)
 app.include_router(ping_router)
 app.include_router(health_router)
 app.include_router(root_router)
+
+app.include_router(available_validators)
