@@ -34,12 +34,9 @@ def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
 
 
 def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, Any]:
-    # Change to use get_validator function from above
     if isinstance(validator, str):
-        for validator_cls in FileValidator.__subclasses__():
-            if validator_cls.__name__ == validator:
-                validator = validator_cls
-                break
+        validator = get_validator(validator)
+
     if not hasattr(validator, 'validate'):
         raise ValueError(f"Validator {validator} does not have a 'validate' method")
     # Introspect the 'validate' method to get any expected extra arguments which need to appear in the spec
