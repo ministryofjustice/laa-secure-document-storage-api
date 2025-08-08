@@ -46,7 +46,7 @@ def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
     # The validators are defined src/validation/file_validator.py
     return [FileValidatorSpec(name=v.__name__,
                               validator_kwargs=get_kwargs_for_filevalidator(v),
-                              description = get_validator_validate_docstring(v)[0],
+                              description=get_validator_validate_docstring(v)[0],
                               )
             for v in FileValidator.__subclasses__()]
 

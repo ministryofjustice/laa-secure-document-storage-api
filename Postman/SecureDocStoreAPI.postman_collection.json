@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "fbf41a7a-ffb4-4247-8641-2e78cf5f2079",
+		"_postman_id": "cba6b06f-e973-477b-b4c0-61a1253e4f02",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "43175045"
+		"_exporter_id": "44343518"
 	},
 	"item": [
 		{
@@ -201,6 +201,67 @@
 							],
 							"path": [
 								"status"
+							]
+						},
+						"description": "Expect a 200 OK response from /status"
+					},
+					"response": []
+				},
+				{
+					"name": "Available Validators Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test to check the status of the API",
+									"pm.test(\"Response code is 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"var details = pm.response.json()",
+									"",
+									"pm.test(\"Response is list\", () => {",
+									"    pm.expect(details).to.be.an(\"array\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"All list items have expected keys\", () => {",
+									"    details.forEach(function (item, index) {",
+									"    pm.expect(item).to.have.keys('name','description','validator_kwargs');",
+									"    });",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SDSBaseUrl}}/available_validators",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"available_validators"
 							]
 						},
 						"description": "Expect a 200 OK response from /status"
@@ -631,8 +692,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								},
 								{
 									"key": "body",
@@ -702,10 +762,9 @@
 							"formdata": [
 								{
 									"key": "file",
+									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}",
-									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file"
+									"src": "test_file.md"
 								},
 								{
 									"key": "body",
@@ -1133,7 +1192,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}.md",
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1304,7 +1363,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}.md",
+							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1471,12 +1530,11 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								  },
-								  {
+								},
+								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -1518,11 +1576,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-""
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
-							  }
+							}
 						}
 					],
 					"request": {
@@ -1551,12 +1609,11 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								  },
-								  {
+								},
+								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -1978,8 +2035,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_a}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2058,8 +2114,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_b}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2138,8 +2193,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_c}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2218,8 +2272,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_d}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2383,14 +2436,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={}",
+							"raw": "{{SDSBaseUrl}}/delete_files",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
 								"delete_files"
-							],
-							"query": [
 							]
 						},
 						"description": "Expect a 400 BAD REQUEST when no filename(s) are provided for deletion"
@@ -2500,7 +2551,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={unique_filename_d}",
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_d}}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -2962,8 +3013,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "eicar.txt",
-									"fileName": "{{unique_filename}}"
+									"src": "eicar.txt"
 								}
 							]
 						},
@@ -3037,8 +3087,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								}
 							]
 						},
