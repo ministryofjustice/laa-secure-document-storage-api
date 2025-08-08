@@ -118,9 +118,25 @@ def test_get_validator_validate_docstring_multi_line():
             """
             pass
 
-    short, long = get_validator_validate_docstring(HasLongDoc)
-    assert short == "This is the first line"
-    assert long == "This is the first line\nThis is the second line\nThis is the third line\n"
+    headline, all = get_validator_validate_docstring(HasLongDoc)
+    assert headline == "This is the first line"
+    assert all == "This is the first line\nThis is the second line\nThis is the third line\n"
+
+
+def test_get_validator_validate_docstring_multi_line_and_newline_start():
+
+    class HasLongDocNl:
+        def validate():
+            """
+            This is the first line
+            This is the second line
+            This is the third line
+            """
+            pass
+
+    headline, all = get_validator_validate_docstring(HasLongDocNl)
+    assert headline == "This is the first line"
+    assert all == "\nThis is the first line\nThis is the second line\nThis is the third line\n"
 
 
 def test_get_validator_validate_docstring_single_line():
@@ -130,8 +146,19 @@ def test_get_validator_validate_docstring_single_line():
             "This is the only line"
             pass
 
-    short, long = get_validator_validate_docstring(HasShortDoc)
-    assert short == long == "This is the only line"
+    headline, all = get_validator_validate_docstring(HasShortDoc)
+    assert headline == all == "This is the only line"
+
+
+def test_get_validator_validate_doctring_empty_docstring():
+
+    class EmptyDoc:
+        def validate():
+            ""
+            pass
+
+    headline, all = get_validator_validate_docstring(EmptyDoc)
+    assert headline == all == ""
 
 
 def test_get_validator_validate_doctring_no_docstring():
@@ -140,5 +167,15 @@ def test_get_validator_validate_doctring_no_docstring():
         def validate():
             pass
 
-    short, long = get_validator_validate_docstring(LacksDoc)
-    assert short == long == ""
+    headline, all = get_validator_validate_docstring(LacksDoc)
+    assert headline == all == ""
+
+
+def test_get_validator_validate_doctring_with_actual_validator():
+    """
+    Just checking ability to digest a genuine validator.
+    Not examining text content to avoid fragility if docstring updated
+    (which is not part of code).
+    """
+    headline, all = get_validator_validate_docstring(MaxFileSize)
+    assert len(headline) <= len(all)

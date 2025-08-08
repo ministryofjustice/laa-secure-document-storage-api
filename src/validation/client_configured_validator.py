@@ -28,21 +28,26 @@ def get_validator(validator_name: str) -> FileValidator:
 
 
 def get_validator_validate_docstring(validator: FileValidator) -> tuple[str, str]:
-    "Extract docstring from validate method and return the first line and the full text."
+    """
+    Extract docstring from validate method and return a "headline" and full text.
+    The "headline" is the first line non-empty line, or just "" if all are empty.
+    """
     full_text = validator.validate.__doc__
     if full_text is None:
         full_text = ""
-    lines = full_text.splitlines()
-    if lines:
-        first_line = lines[0]
-    else:
-        first_line = ""
-    return first_line, full_text
+    headline = ""
+    for headline in full_text.splitlines():
+        if headline != "":
+            break
+    return headline, full_text
 
 
 def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
     # The validators are defined src/validation/file_validator.py
-    return [FileValidatorSpec(name=v.__name__, validator_kwargs=get_kwargs_for_filevalidator(v))
+    return [FileValidatorSpec(name=v.__name__,
+                              validator_kwargs=get_kwargs_for_filevalidator(v),
+                              description = get_validator_validate_docstring(v)[0],
+                              )
             for v in FileValidator.__subclasses__()]
 
 
