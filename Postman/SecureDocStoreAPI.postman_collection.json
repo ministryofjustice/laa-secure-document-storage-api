@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "cba6b06f-e973-477b-b4c0-61a1253e4f02",
+		"_postman_id": "fbf41a7a-ffb4-4247-8641-2e78cf5f2079",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "44343518"
+		"_exporter_id": "43175045"
 	},
 	"item": [
 		{
@@ -692,7 +692,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								},
 								{
 									"key": "body",
@@ -762,9 +763,10 @@
 							"formdata": [
 								{
 									"key": "file",
-									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}",
+									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file"
 								},
 								{
 									"key": "body",
@@ -1192,7 +1194,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}",
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}.md",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1363,7 +1365,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}",
+							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}.md",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1530,11 +1532,12 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								},
-								{
+								  },
+								  {
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
@@ -1576,11 +1579,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									""
+""
 								],
 								"type": "text/javascript",
 								"packages": {}
-							}
+							  }
 						}
 					],
 					"request": {
@@ -1609,11 +1612,12 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								},
-								{
+								  },
+								  {
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
@@ -2035,7 +2039,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_a}}"
 								}
 							]
 						},
@@ -2114,7 +2119,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_b}}"
 								}
 							]
 						},
@@ -2193,7 +2199,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_c}}"
 								}
 							]
 						},
@@ -2272,7 +2279,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_d}}"
 								}
 							]
 						},
@@ -2436,12 +2444,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files",
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
 								"delete_files"
+							],
+							"query": [
 							]
 						},
 						"description": "Expect a 400 BAD REQUEST when no filename(s) are provided for deletion"
@@ -2551,7 +2561,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_d}}",
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={unique_filename_d}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -3013,7 +3023,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "eicar.txt"
+									"src": "eicar.txt",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
@@ -3087,7 +3098,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
