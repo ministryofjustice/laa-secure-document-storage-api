@@ -27,13 +27,14 @@ def get_validator(validator_name: str) -> FileValidator:
     return validators[validator_name]()
 
 
-def get_validator_validate_docstring(validator: FileValidator) -> str:
+def get_validator_validate_docstring(validator: FileValidator) -> tuple[str, str]:
+    "Extract docstring from validate method and return the first line and the full text."
     full_text = validator.validate.__doc__
     if full_text is None:
         full_text = ""
     lines = full_text.splitlines()
     if lines:
-        first_line = full_text.splitlines()[0]
+        first_line = lines[0]
     else:
         first_line = ""
     return first_line, full_text
