@@ -27,6 +27,18 @@ def get_validator(validator_name: str) -> FileValidator:
     return validators[validator_name]()
 
 
+def get_validator_validate_docstring(validator: FileValidator) -> str:
+    full_text = validator.validate.__doc__
+    if full_text is None:
+        full_text = ""
+    lines = full_text.splitlines()
+    if lines:
+        first_line = full_text.splitlines()[0]
+    else:
+        first_line = ""
+    return first_line, full_text
+
+
 def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
     # The validators are defined src/validation/file_validator.py
     return [FileValidatorSpec(name=v.__name__, validator_kwargs=get_kwargs_for_filevalidator(v))

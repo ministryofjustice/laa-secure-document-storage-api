@@ -1,6 +1,7 @@
 import pytest
 from src.validation.client_configured_validator import generate_all_filevalidatorspecs
 from src.validation.client_configured_validator import get_kwargs_for_filevalidator
+from src.validation.client_configured_validator import get_validator_validate_docstring
 from src.validation.file_validator import MaxFileSize, MinFileSize
 from src.validation.file_validator import AllowedFileExtensions, DisallowedFileExtensions
 from src.validation.file_validator import AllowedMimetypes, DisallowedMimetypes
@@ -15,7 +16,7 @@ def test_generate_all_filevalidatorspecs_returns_expected_validators():
 
 def test_generate_all_filevalidatorspecs_returns_kwargs():
     """Just checks we're getting the expected number of results and that each validator_kwarg
-    is a dict. Avoided chekcing expected kwarg values as would be more fidly and is also covered
+    is a dict. Avoided checking expected kwarg values as would be more fiddly and is also covered
     separately below"""
     validators = generate_all_filevalidatorspecs()
     dict_kwargs = [v.validator_kwargs for v in validators if isinstance(v.validator_kwargs, dict)]
@@ -105,3 +106,39 @@ def test_get_kwargs_for_filevalidator_raises_exception_when_validator_method_not
     with pytest.raises(ValueError) as exception_info:
         get_kwargs_for_filevalidator(BadClass)
     assert ".BadClass'> does not have a 'validate' method" in str(exception_info.value)
+
+
+def test_get_validator_validate_docstring_multi_line():
+
+    class HasLongDoc:
+        def validate():
+            """This is the first line
+            This is the second line
+            This is the third line
+            """
+            pass
+
+    short, long = get_validator_validate_docstring(HasLongDoc)
+    assert short == "This is the first line"
+    assert long == "This is the first line\nThis is the second line\nThis is the third line\n"
+
+
+def test_get_validator_validate_docstring_single_line():
+
+    class HasShortDoc:
+        def validate():
+            "This is the only line"
+            pass
+
+    short, long = get_validator_validate_docstring(HasShortDoc)
+    assert short == long == "This is the only line"
+
+
+def test_get_validator_validate_doctring_no_docstring():
+
+    class LacksDoc:
+        def validate():
+            pass
+
+    short, long = get_validator_validate_docstring(LacksDoc)
+    assert short == long == ""
