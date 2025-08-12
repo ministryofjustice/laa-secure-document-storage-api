@@ -264,7 +264,7 @@
 								"available_validators"
 							]
 						},
-						"description": "Expect a 200 OK response from /status"
+						"description": "Expect a 200 OK response from /available_validators"
 					},
 					"response": []
 				}
