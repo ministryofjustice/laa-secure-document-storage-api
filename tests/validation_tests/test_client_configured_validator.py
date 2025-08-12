@@ -50,6 +50,7 @@ def test_get_kwargs_for_filevalidator_works_with_validator_param(validator, expe
 def test_get_kwargs_for_filevalidator_works_when_no_args():
 
     class NoArgs:
+        @staticmethod
         def validate():
             pass
 
@@ -71,7 +72,7 @@ def test_get_kwargs_for_filevalidator_excludes_self_and_file_object_args():
 def test_get_kwargs_for_filevalidator_works_when_only_non_default_args_present():
 
     class NonDefaultOnly:
-        def validate(a, b, c):
+        def validate(self, a, b, c):
             pass
 
     kwargs = get_kwargs_for_filevalidator(NonDefaultOnly)
@@ -81,7 +82,7 @@ def test_get_kwargs_for_filevalidator_works_when_only_non_default_args_present()
 def test_get_kwargs_for_filevalidator_works_when_only_default_args_present():
 
     class DefaultOnly:
-        def validate(a=1, b=2, c=3):
+        def validate(self, a=1, b=2, c=3):
             pass
 
     kwargs = get_kwargs_for_filevalidator(DefaultOnly)
@@ -91,7 +92,7 @@ def test_get_kwargs_for_filevalidator_works_when_only_default_args_present():
 def test_get_kwargs_for_filevalidator_works_when_non_default_and_default_args_present():
 
     class NonDefaultAndDefault:
-        def validate(a, b, c=1, d=2):
+        def validate(self, a, b, c=1, d=2):
             pass
 
     kwargs = get_kwargs_for_filevalidator(NonDefaultAndDefault)
@@ -111,7 +112,7 @@ def test_get_kwargs_for_filevalidator_raises_exception_when_validator_method_not
 def test_get_validator_validate_docstring_multi_line():
 
     class HasLongDoc:
-        def validate():
+        def validate(self):
             """This is the first line
             This is the second line
             This is the third line
@@ -126,7 +127,7 @@ def test_get_validator_validate_docstring_multi_line():
 def test_get_validator_validate_docstring_multi_line_and_newline_start():
 
     class HasLongDocNl:
-        def validate():
+        def validate(self):
             """
             This is the first line
             This is the second line
@@ -142,7 +143,7 @@ def test_get_validator_validate_docstring_multi_line_and_newline_start():
 def test_get_validator_validate_docstring_single_line():
 
     class HasShortDoc:
-        def validate():
+        def validate(self):
             "This is the only line"
             pass
 
@@ -150,10 +151,10 @@ def test_get_validator_validate_docstring_single_line():
     assert headline == all == "This is the only line"
 
 
-def test_get_validator_validate_doctring_empty_docstring():
+def test_get_validator_validate_docstring_empty_docstring():
 
     class EmptyDoc:
-        def validate():
+        def validate(self):
             ""
             pass
 
@@ -161,17 +162,17 @@ def test_get_validator_validate_doctring_empty_docstring():
     assert headline == all == ""
 
 
-def test_get_validator_validate_doctring_no_docstring():
+def test_get_validator_validate_docstring_no_docstring():
 
     class LacksDoc:
-        def validate():
+        def validate(self):
             pass
 
     headline, all = get_validator_validate_docstring(LacksDoc)
     assert headline == all == ""
 
 
-def test_get_validator_validate_doctring_with_actual_validator():
+def test_get_validator_validate_docstring_with_actual_validator():
     """
     Just checking ability to digest a genuine validator.
     Not examining text content to avoid fragility if docstring updated

@@ -4,7 +4,7 @@ from pydantic import Field, AliasChoices, BaseModel
 class FileValidatorSpec(BaseModel):
     """
     Requires the named file validator with the specified keyword arguments to pass.
-    Although description attribute defaults to None, so does not require specific assingment.
+    The description attribute defaults to None and does not require explicit assignment.
     """
     name: str = Field(validation_alias=AliasChoices('name', 'type'))
     description: str | None = None
