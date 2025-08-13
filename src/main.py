@@ -17,15 +17,16 @@ from src.config import logging_config
 from src.middleware.auth import BearerTokenAuthBackend, BearerTokenMiddleware
 from src.services.authz_service import AuthzService
 
-from src.routers.delete_files import router as delete_files_router
-from src.routers.health import router as health_router
-from src.routers.ping import router as ping_router
-from src.routers.retrieve_file import router as retrieve_file_router
-from src.routers.root import router as root_router
-from src.routers.save_file import router as save_file_router
-from src.routers.save_or_update_file import router as save_or_update_file_router
-from src.routers.status import router as status_router
-from src.routers.virus_check_file import router as virus_check_file_router
+from src.routers.delete_files import router as delete_files
+from src.routers.health import router as health
+from src.routers.ping import router as ping
+from src.routers.retrieve_file import router as retrieve_file
+from src.routers.root import router as root
+from src.routers.save_file import router as save_file
+from src.routers.save_or_update_file import router as save_or_update_file
+from src.routers.status import router as status
+from src.routers.virus_check_file import router as virus_check_file
+from src.routers.available_validators import router as available_validators
 
 
 def add_correlation(
@@ -57,7 +58,7 @@ if sentry_dsn:
 
 app = FastAPI(
     title='LAA Secure Document Storage API',
-    version='0.7.0'
+    version='0.8.0'
 )
 
 structlog.configure(
@@ -81,13 +82,15 @@ app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
 app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
 app.add_middleware(CorrelationIdMiddleware)
 
-app.include_router(retrieve_file_router)
-app.include_router(save_or_update_file_router)
-app.include_router(save_file_router)
-app.include_router(delete_files_router)
-app.include_router(virus_check_file_router)
+app.include_router(retrieve_file)
+app.include_router(save_or_update_file)
+app.include_router(save_file)
+app.include_router(delete_files)
+app.include_router(virus_check_file)
 
-app.include_router(status_router)
-app.include_router(ping_router)
-app.include_router(health_router)
-app.include_router(root_router)
+app.include_router(status)
+app.include_router(ping)
+app.include_router(health)
+app.include_router(root)
+
+app.include_router(available_validators)

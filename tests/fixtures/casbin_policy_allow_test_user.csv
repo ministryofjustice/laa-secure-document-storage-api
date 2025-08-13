@@ -5,6 +5,7 @@ p, anonymous, /health, GET
 p, test_user, /ping, GET
 p, test_user, /status, GET
 p, test_user, /status/, GET
+p, test_user, /available_validators, GET
 
 p, test_user, /retrieve_file, GET
 p, test_user, /retrieve_file/, GET
