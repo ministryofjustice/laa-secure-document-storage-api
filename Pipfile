@@ -15,7 +15,6 @@ pytest-mock = "==3.14.0"
 responses = "*"
 aiohttp = "*"
 msal = "==1.32.3"
-python-jose = "==3.5.0"
 cachetools = "==6.1.0"
 sentry-sdk = "==2.30.0"
 pydantic = "==2.11.7"
@@ -27,6 +26,7 @@ casbin = "==1.43.0"
 fastapi-authz = "==1.0.0"
 h11 = ">=0.16.0"
 requests = "==2.32.4"
+python-jose = {extras = ["cryptography"], version = "==3.5.0"}
 
 [dev-packages]
 flake8 = "==7.3.0"
