@@ -39,7 +39,7 @@ def test_swagger_doc_is_available():
 
 
 @pytest.mark.e2e
-def test_retrieve_file_unsuccessful_if_invalid_scope():
+def test_get_file_is_successful():
     params = {"file_key": "README.md"}
     headers = get_authorised_headers(TOKEN_CREDS)
     response = client.get(f"{HOST_URL}/retrieve_file", headers=headers, params=params)
