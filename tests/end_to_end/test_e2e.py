@@ -34,10 +34,64 @@ def test_healthcheck_returns_expected_response():
 
 
 @pytest.mark.e2e
+def test_ping_returns_expected_response():
+    response = client.get(f"{HOST_URL}/ping")
+    assert response.status_code == 200
+    assert response.text == '{"ping":"pong"}'
+
+
+@pytest.mark.e2e
+def test_status_check_returns_expected_response():
+    response = client.get(f"{HOST_URL}/status")
+    status_dict = response.json()
+    service_results = status_dict.get("services", [])
+    sorted_labels = sorted([sr.get("label") for sr in service_results])
+
+    bad_results = []
+    for result in service_results:
+        bad_results = bad_results + [r for r in result.get("observations", []) if r.get("category") != "success"]
+
+    assert response.status_code == 200
+    assert sorted_labels == ['antivirus', 'audit', 'authentication', 'authorisation', 'configuration', 'storage']
+    assert bad_results == []
+
+
+@pytest.mark.e2e
+def test_available_validators_returns_expected_response():
+    response = client.get(f"{HOST_URL}/available_validators")
+    results = response.json()
+    bad_results = []
+    for result in results:
+        if sorted(result.keys()) != ['description', 'name', 'validator_kwargs']:
+            bad_results.append(result)
+
+    assert response.status_code == 200
+    assert bad_results == []
+
+
+@pytest.mark.e2e
 def test_swagger_doc_is_available():
     response = client.get(f"{HOST_URL}/docs")
     assert response.status_code == 200
     assert "LAA Secure Document Storage API - Swagger UI" in response.text
+
+
+@pytest.mark.e2e
+def test_retrieve_file_unsuccessful_if_no_token():
+    params = {"file_key": "README.md"}
+    response = client.get(f"{HOST_URL}/retrieve_file", headers={}, params=params)
+    assert response.status_code == 403
+    assert response.text == '"Forbidden"'
+
+
+@pytest.mark.e2e
+def test_retrieve_file_unsuccessful_if_invalid_token():
+    params = {"file_key": "README.md"}
+    response = client.get(f"{HOST_URL}/retrieve_file",
+                          headers={'Authorization': "Bearer bewarer"},
+                          params=params)
+    assert response.status_code == 401
+    assert "Invalid or expired token" in response.text
 
 
 @pytest.mark.e2e
