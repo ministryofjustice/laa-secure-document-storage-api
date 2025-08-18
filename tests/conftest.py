@@ -4,6 +4,15 @@ from unittest.mock import AsyncMock
 import pytest
 import os
 
+"""
+Multiple Configuration Files
+This file (conftest.py) is used to set many aspects of pytest,
+but not all. Some things (e.g. custom markers) are defined in
+pytest.ini, found in root dir of the project.
+In addition, fixtures can be defined both here and elsewhere.
+"""
+
+
 from starlette.middleware import Middleware
 
 pytest_plugins = [
