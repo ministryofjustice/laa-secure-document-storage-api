@@ -3,8 +3,8 @@ import pytest
 from dotenv import load_dotenv
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
-from tests.end_to_end.e2e_support import TokenManager
-
+from tests.end_to_end.e2e_support import TokenManager, UploadFileData
+from tests.end_to_end.e2e_support import make_unique_name
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -22,6 +22,8 @@ token_getter = TokenManager(client_id=os.getenv('client_id'),
                             client_secret=os.getenv('client_secret'),
                             token_url=os.getenv('token_url')
                             )
+
+test_md_file = UploadFileData("Postman/test_file.md")
 
 
 @pytest.mark.e2e
@@ -47,3 +49,20 @@ def test_get_file_is_successful():
     assert "fileURL" in response.text
     assert "Expires" in response.text
     assert params["file_key"] in response.text
+
+
+@pytest.mark.e2e
+def test_put_new_file_once():
+    upload_bucket = '{"bucketName": "sds-local"}'
+
+    new_filename = make_unique_name("put_new_file_test.txt")
+    upload_file = test_md_file.get_data(new_filename)
+
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=upload_file,
+                          data={"body": upload_bucket})
+
+    assert response.status_code == 201
+    assert str(response.text).startswith('{"success":"File saved successfully')
+    assert str(response.text).endswith(f'with key {new_filename}"}}')
