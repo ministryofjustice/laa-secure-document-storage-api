@@ -35,10 +35,10 @@ class UploadFileData:
     to assign a different filename within in the payload to be uploaded.
     """
 
-    def __init__(self, file_path: str, newfilename: str = "", autonew: bool = True):
-        if newfilename == "" and autonew:
-            newfilename = file_path
-        self.file_details = {'file': (newfilename,
+    def __init__(self, file_path: str, new_filename: str = "", autonew: bool = True):
+        if new_filename == "" and autonew:
+            new_filename = file_path
+        self.file_details = {'file': (new_filename,
                                       open(file_path, 'rb'),
                                       get_mimetype(file_path)
                                       )
@@ -47,8 +47,8 @@ class UploadFileData:
     def reset_seek(self, new_reference_point: int = 0):
         self.file_details["file"][1].seek(new_reference_point)
 
-    def update_filename(self, newfilename: str):
-        new_tuple = (newfilename,) + self.file_details["file"][1:]
+    def update_filename(self, new_filename: str):
+        new_tuple = (new_filename,) + self.file_details["file"][1:]
         self.file_details = {"file": new_tuple}
 
     def get_data(self, new_filename: str = ""):
