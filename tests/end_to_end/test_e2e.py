@@ -3,15 +3,8 @@ import pytest
 from dotenv import load_dotenv
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
-from tests.end_to_end.e2e_support import get_authorised_headers
+from tests.end_to_end.e2e_support import TokenManager
 
-
-load_dotenv()
-HOST_URL = os.getenv('host_url')
-TOKEN_CREDS = {"token_url": os.getenv('token_url'),
-               "client_id": os.getenv('client_id'),
-               "client_secret": os.getenv('client_secret')
-               }
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -22,6 +15,13 @@ Manual test execution:
 `pipenv run pytest -m e2e` to run e2e tests only
 `pipenv run pytest -m "not e2e"` to exclude e2e tests from run.
 """
+
+load_dotenv()
+HOST_URL = os.getenv('host_url', 'http://localhost:8000')
+token_getter = TokenManager(client_id=os.getenv('client_id'),
+                            client_secret=os.getenv('client_secret'),
+                            token_url=os.getenv('token_url')
+                            )
 
 
 @pytest.mark.e2e
@@ -41,7 +41,7 @@ def test_swagger_doc_is_available():
 @pytest.mark.e2e
 def test_get_file_is_successful():
     params = {"file_key": "README.md"}
-    headers = get_authorised_headers(TOKEN_CREDS)
+    headers = token_getter.get_headers()
     response = client.get(f"{HOST_URL}/retrieve_file", headers=headers, params=params)
     assert response.status_code == 200
     assert "fileURL" in response.text
