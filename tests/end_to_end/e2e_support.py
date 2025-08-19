@@ -72,27 +72,9 @@ def make_unique_name(original_name: str) -> str:
     return f"{time.time()}_{original_name}"
 
 
-def get_file_data_for_request(filename: str, newfilename: str = "") -> dict[str, tuple]:
-    """
-    Returns file details/data in format that works with requests' or httpx's
-    files parameter.
-    Optional newfilename parameter enables the filename in the request to be different from the
-    name of the file that's read, so we can submit the same file multiple times but assign a
-    different filename each time when sending it.
-    """
-    if not newfilename:
-        newfilename = filename
-    return {'file': (newfilename,
-                     open(filename, 'rb'),
-                     get_mimetype(filename)
-                     )
-            }
-
-
-def post_a_file(url: str, headers: dict[str: str], filename: str, newfilename: str = "",) -> client.Response:
-    """Upload a file for data setup purposes"""
+def post_a_file(url: str, headers: dict[str: str], file_data: dict[str: tuple]) -> client.Response:
+    "Upload a file for data setup purposes"
     upload_bucket = '{"bucketName": "sds-local"}'
-    file_data = get_file_data_for_request(filename, newfilename)
     response = client.put(f"{url}/save_or_update_file",
                           headers=headers,
                           files=file_data,

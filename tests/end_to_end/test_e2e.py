@@ -6,10 +6,11 @@ import httpx as client
 from tests.end_to_end.e2e_support import TokenManager, UploadFileData
 from tests.end_to_end.e2e_support import read_postman_env_file
 from tests.end_to_end.e2e_support import make_unique_name
+from tests.end_to_end.e2e_support import post_a_file
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
-They all should be decorated with custom marker @pytest.mark.e2e to enable them
+They all should be decorated with custom marker, @pytest.mark.e2e, to enable them
 to be run separately from pytest unit tests.
 
 Manual test execution for e2e only or excluding e2e:
@@ -167,3 +168,23 @@ def test_put_new_file_twice_gives_expected_code_and_message():
 
     assert response1.status_code == 201 and str(response1.text).startswith('{"success":"File saved successfully')
     assert response2.status_code == 200 and str(response2.text).startswith('{"success":"File updated successfully')
+
+
+@pytest.mark.e2e
+def test_delete_single_file():
+    # Upload a file to be deleted
+    new_filename = make_unique_name("file_to_be_deleted.txt")
+    upload_file_response = post_a_file(url=HOST_URL,
+                                       headers=token_getter.get_headers(),
+                                       file_data=test_md_file.get_data(new_filename))
+    # Delete the file
+    params = {"file_keys": [new_filename]}
+    response = client.delete(f"{HOST_URL}/delete_files",
+                             headers=token_getter.get_headers(),
+                             params=params)
+    # This is really checking a preparation step
+    assert upload_file_response.status_code == 201
+    # Note response.status should always be 202 but can be other results for
+    # the individual files
+    assert response.status_code == 202
+    assert response.json().get(new_filename) == 204

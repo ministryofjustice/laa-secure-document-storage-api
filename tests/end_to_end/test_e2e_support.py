@@ -2,7 +2,7 @@ import os
 import io
 import pytest
 from unittest.mock import patch
-from tests.end_to_end.e2e_support import TokenManager, UploadFileData, make_unique_name, get_file_data_for_request
+from tests.end_to_end.e2e_support import TokenManager, UploadFileData, make_unique_name
 
 """
 These test are for the support code used by e2e tests.
@@ -115,11 +115,3 @@ def test_make_unique_name():
     # should match range value if unique values generated.
     unique_names = {make_unique_name("abc") for i in range(100)}
     assert len(unique_names) == 100
-
-
-@pytest.mark.e2e
-def test_get_file_data_for_request():
-    file_data = get_file_data_for_request("Postman/test_file.md", "uploadname.md")
-    assert file_data["file"][0] == "uploadname.md"
-    assert isinstance(file_data["file"][1], io.BufferedReader)
-    assert file_data["file"][2] == "text/markdown"
