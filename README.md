@@ -121,15 +121,29 @@ To run from the terminal, first ensure the requirements are installed:
 $ pipenv install --dev
 ```
 And then run:
+
 ```shell
+$ pipenv run pytest -m "not e2e"
+```
+### API testing with pytest
+In additionl to pytest unit testing, we also have end-to-end tests that run via pytest. These run in the pipeline and can be run locally. These use the same requirements as above, and are run locally using:
+
+```
+$ pipenv run pytest -m e2e
+```
+
+To run all the pytest tests, regardless of type, run:
+
+```
 $ pipenv run pytest
 ```
 
 ### API testing with Postman
 
+
 #### Summary
 
-We have a number of tests against this API which can run locally, in the pipeline or against any of our non-production
+Separate from the pytest API tests, we have a number of Postman tests against this API which can run locally, in the pipeline or against any of our non-production
 environments. We have pre-request scripts configured to obtain authentication tokens. A valid token is obtained before
 all tests via a pre-request script on the collection. An invalid token is obtained via a pre-request script associated 
 with the invalid token test.
@@ -238,7 +252,7 @@ querying the cluster on every level.
 
 ### Github Actions
 
-We have pipelines configured for linting, unit tests, postman tests, deploying to dev, then a checked deployment to
+We have pipelines configured for linting, unit tests, API Tests (Postman and pytest), deploying to dev, then a checked deployment to
 test, then staging, and finally production.
 
 ## Correlation IDs
