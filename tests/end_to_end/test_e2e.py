@@ -17,10 +17,10 @@ Manual test execution for e2e only or excluding e2e:
     `pipenv run pytest -m "not e2e"` - to exclude e2e tests from run.
 
 Environment Variables
-    client_id - required
-    client_secret - required
-    host_url - optional, defaults to http://127.0.0.1:8000
-    token_url - optional, defaults to value in Postman/SDSLocal.postman_environment.json file
+    CLIENT_ID - required
+    CLIENT_SECRET - required
+    HOST_URL - optional, defaults to http://127.0.0.1:8000
+    TOKEN_URL - optional, defaults to value in Postman/SDSLocal.postman_environment.json file
 """
 
 
@@ -144,3 +144,26 @@ def test_put_new_file_once():
     assert response.status_code == 201
     assert str(response.text).startswith('{"success":"File saved successfully')
     assert str(response.text).endswith(f'with key {new_filename}"}}')
+
+
+@pytest.mark.e2e
+def test_put_new_file_twice_gives_expected_code_and_message():
+    upload_bucket = '{"bucketName": "sds-local"}'
+    new_filename = make_unique_name("loaded_twice.txt")
+    upload_file = test_md_file.get_data(new_filename)
+
+    response1 = client.put(f"{HOST_URL}/save_or_update_file",
+                           headers=token_getter.get_headers(),
+                           files=upload_file,
+                           data={"body": upload_bucket})
+
+    # This resets the "seek" position to start of file, to prevent 0-byte upload
+    upload_file = test_md_file.get_data(new_filename)
+
+    response2 = client.put(f"{HOST_URL}/save_or_update_file",
+                           headers=token_getter.get_headers(),
+                           files=upload_file,
+                           data={"body": upload_bucket})
+
+    assert response1.status_code == 201 and str(response1.text).startswith('{"success":"File saved successfully')
+    assert response2.status_code == 200 and str(response2.text).startswith('{"success":"File updated successfully')
