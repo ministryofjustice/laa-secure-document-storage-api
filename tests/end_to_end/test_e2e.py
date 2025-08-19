@@ -19,7 +19,7 @@ Manual test execution for e2e only or excluding e2e:
 Environment Variables
     client_id - required
     client_secret - required
-    host_url - optional, defaults to http://localhost:8000
+    host_url - optional, defaults to http://127.0.0.1:8000
     token_url - optional, defaults to value in Postman/SDSLocal.postman_environment.json file
 """
 
@@ -28,13 +28,26 @@ postman_env_details = read_postman_env_file()
 postman_token_url = postman_env_details.get("AzureTokenUrl")
 
 load_dotenv()
-HOST_URL = os.getenv('host_url', 'http://localhost:8000')
+HOST_URL = os.getenv('host_url', 'http://127.0.0.1:8000')
 token_getter = TokenManager(client_id=os.getenv('client_id'),
                             client_secret=os.getenv('client_secret'),
                             token_url=os.getenv('token_url', postman_token_url)
                             )
 
 test_md_file = UploadFileData("Postman/test_file.md")
+
+
+@pytest.mark.e2e
+def test_token_can_be_retrieved():
+    token_url = os.getenv('token_url', postman_token_url)
+    params = {'client_id': os.getenv('client_id'),
+              'client_secret': os.getenv('client_secret'),
+              'scope': 'api://laa-sds-local/.default',
+              'grant_type': 'client_credentials'
+              }
+    response = client.post(token_url, data=params)
+    assert response.status_code == 200
+    assert "Error" not in response.text
 
 
 @pytest.mark.e2e
