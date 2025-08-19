@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
 from tests.end_to_end.e2e_support import TokenManager, UploadFileData
+from tests.end_to_end.e2e_support import read_postman_env_file
 from tests.end_to_end.e2e_support import make_unique_name
 
 """
@@ -11,16 +12,26 @@ This file is for e2e tests that require an actual SDS application to run against
 They all should be decorated with custom marker @pytest.mark.e2e to enable them
 to be run separately from pytest unit tests.
 
-Manual test execution:
-`pipenv run pytest -m e2e` to run e2e tests only
-`pipenv run pytest -m "not e2e"` to exclude e2e tests from run.
+Manual test execution for e2e only or excluding e2e:
+    `pipenv run pytest -m e2e` - to run e2e tests only
+    `pipenv run pytest -m "not e2e"` - to exclude e2e tests from run.
+
+Environment Variables
+    client_id - required
+    client_secret - required
+    host_url - optional, defaults to http://localhost:8000
+    token_url - optional, defaults to value in Postman/SDSLocal.postman_environment.json file
 """
+
+
+postman_env_details = read_postman_env_file()
+postman_token_url = postman_env_details.get("AzureTokenUrl")
 
 load_dotenv()
 HOST_URL = os.getenv('host_url', 'http://localhost:8000')
 token_getter = TokenManager(client_id=os.getenv('client_id'),
                             client_secret=os.getenv('client_secret'),
-                            token_url=os.getenv('token_url')
+                            token_url=os.getenv('token_url', postman_token_url)
                             )
 
 test_md_file = UploadFileData("Postman/test_file.md")

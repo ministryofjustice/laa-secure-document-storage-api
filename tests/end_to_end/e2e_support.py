@@ -1,5 +1,6 @@
 import mimetypes
 import time
+import json
 import httpx as client
 
 """
@@ -97,3 +98,30 @@ def post_a_file(url: str, headers: dict[str: str], filename: str, newfilename: s
                           files=file_data,
                           data={"body": upload_bucket})
     return response
+
+
+def read_postman_env_file(postman_environment_json_file: str
+                          = "Postman/SDSLocal.postman_environment.json") -> dict[str: str]:
+    """
+    The environment files used by our Postman tests are a potential source of test environment data.
+    This function extracts the application URL and token URL from one of these files.
+    """
+    environment_info = {}
+
+    with open(postman_environment_json_file, "r") as infile:
+        extracted_data = json.load(infile)
+
+    environment_info["name"] = extracted_data.get("name")
+    # Values should be unique, so a set would seem better choice than a list.
+    # However, we later want to remove items during iteration and this
+    # is difficult to do with a set.
+    keys_to_find = ["SDSBaseUrl", "AzureTokenUrl"]
+    for item in extracted_data.get("values", []):
+        for key_to_find in keys_to_find:
+            if item.get("key") == key_to_find:
+                keys_to_find.remove(key_to_find)
+                environment_info[key_to_find] = item.get("value")
+        if keys_to_find == []:
+            break
+
+    return environment_info
