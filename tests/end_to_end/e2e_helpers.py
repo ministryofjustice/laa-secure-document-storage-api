@@ -21,7 +21,7 @@ class TokenManager:
         response = client.post(self.token_url, data=self.params)
         return response.json().get("access_token")
 
-    def get_headers(self) -> dict[str: str]:
+    def get_headers(self) -> dict[str, str]:
         access_token = self.get_access_token()
         return {'Authorization': f'Bearer {access_token}'}
 
