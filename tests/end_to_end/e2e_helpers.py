@@ -72,7 +72,7 @@ def make_unique_name(original_name: str) -> str:
     return f"{time.time()}_{original_name}"
 
 
-def post_a_file(url: str, headers: dict[str: str], file_data: dict[str: tuple]) -> client.Response:
+def post_a_file(url: str, headers: dict[str, str], file_data: dict[str, tuple]) -> client.Response:
     "Upload a file for data setup purposes"
     upload_bucket = '{"bucketName": "sds-local"}'
     response = client.put(f"{url}/save_or_update_file",
@@ -83,7 +83,7 @@ def post_a_file(url: str, headers: dict[str: str], file_data: dict[str: tuple]) 
 
 
 def read_postman_env_file(postman_environment_json_file: str
-                          = "Postman/SDSLocal.postman_environment.json") -> dict[str: str]:
+                          = "Postman/SDSLocal.postman_environment.json") -> dict[str, str]:
     """
     The environment files used by our Postman tests are a potential source of test environment data.
     This function extracts the application URL and token URL from one of these files.

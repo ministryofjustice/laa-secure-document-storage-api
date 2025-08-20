@@ -3,10 +3,10 @@ import pytest
 from dotenv import load_dotenv
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
-from tests.end_to_end.e2e_support import TokenManager, UploadFileData
-from tests.end_to_end.e2e_support import read_postman_env_file
-from tests.end_to_end.e2e_support import make_unique_name
-from tests.end_to_end.e2e_support import post_a_file
+from tests.end_to_end.e2e_helpers import TokenManager, UploadFileData
+from tests.end_to_end.e2e_helpers import read_postman_env_file
+from tests.end_to_end.e2e_helpers import make_unique_name
+from tests.end_to_end.e2e_helpers import post_a_file
 
 """
 This file is for e2e tests that require an actual SDS application to run against.

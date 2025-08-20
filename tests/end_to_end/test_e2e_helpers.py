@@ -2,7 +2,7 @@ import os
 import io
 import pytest
 from unittest.mock import patch
-from tests.end_to_end.e2e_support import TokenManager, UploadFileData, make_unique_name
+from tests.end_to_end.e2e_helpers import TokenManager, UploadFileData, make_unique_name
 
 """
 These test are for the support code used by e2e tests.
@@ -14,7 +14,7 @@ class MockResponse:
     def __init__(self, status_code, json_response):
         self.status_code = status_code
         self.json_response = json_response
-        self.text = str(self.json)
+        self.text = str(self.json_response)
 
     def json(self):
         return self.json_response
