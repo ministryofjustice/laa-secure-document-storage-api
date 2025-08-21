@@ -93,7 +93,6 @@ def test_available_validators_returns_expected_response():
     for result in results:
         if sorted(result.keys()) != ['description', 'name', 'validator_kwargs']:
             bad_results.append(result)
-
     assert response.status_code == 200
     assert bad_results == []
 
@@ -215,7 +214,6 @@ def test_put_file_without_file_fails_as_expected():
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
                           data={"body": upload_bucket})
-
     assert response.status_code == 400
     assert response.json()["detail"] == ["File is required"]
 
@@ -337,10 +335,7 @@ def test_post_file_with_missing_bucket_is_blocked():
     # Care with formatting the below - value needs to be str, delimted with '
     # (Although this is just creating a body that lacks bucketName)
     data = {"body": '{"folder": "testmult"}'}
-    response = client.post(f"{HOST_URL}/save_file",
-                           headers=token_getter.get_headers(),
-                           files=upload_file,
-                           data=data)
+    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), files=upload_file, data=data)
     assert response.status_code == 400
     assert response.json()["detail"]["bucketName"] == "Field required"
 
@@ -348,11 +343,7 @@ def test_post_file_with_missing_bucket_is_blocked():
 @pytest.mark.e2e
 def test_post_file_without_file_fails_as_expected():
     upload_bucket = '{"bucketName": "sds-local"}'
-
-    response = client.post(f"{HOST_URL}/save_file",
-                           headers=token_getter.get_headers(),
-                           data={"body": upload_bucket})
-
+    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), data={"body": upload_bucket})
     assert response.status_code == 400
     assert response.json()["detail"] == ["File is required"]
 
@@ -368,12 +359,67 @@ def test_delete_single_file():
                                        file_data=test_md_file.get_data(new_filename))
     # Delete the file
     params = {"file_keys": [new_filename]}
-    response = client.delete(f"{HOST_URL}/delete_files",
-                             headers=token_getter.get_headers(),
-                             params=params)
+    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
     # This is really checking a preparation step
     assert upload_file_response.status_code == 201
-    # Note response.status should always be 202 but can be other results for
-    # the individual files
+    # Note response.status should always be 202 but can be other results for the individual files
     assert response.status_code == 202
     assert response.json().get(new_filename) == 204
+
+
+@pytest.mark.e2e
+def test_file_cannot_be_retrieved_after_it_has_been_deleted():
+    headers = token_getter.get_headers()
+    # Upload a file to be deleted
+    new_filename = make_unique_name("file_to_be_deleted.txt")
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
+    # Delete the file
+    del_params = {"file_keys": [new_filename]}
+    _ = client.delete(f"{HOST_URL}/delete_files", headers=headers, params=del_params)
+    # Try to get the deleted file
+    get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": new_filename})
+    assert get_response.status_code == 404
+    assert f"The file {new_filename} could not be found." in get_response.text
+
+
+@pytest.mark.e2e
+def test_delete_file_with_no_file_key_fails_as_expected():
+    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers())
+    assert response.status_code == 400
+    assert response.json()["detail"] == "File key is missing"
+
+
+@pytest.mark.e2e
+def test_delete_file_without_authorisation_fails_as_expected():
+    params = {"file_keys": ["should_not_matter_as_no_authorisation.txt"]}
+    response = client.delete(f"{HOST_URL}/delete_files", headers={}, params=params)
+    assert response.status_code == 403
+    assert response.text == '"Forbidden"'
+
+
+@pytest.mark.e2e
+def test_delete_non_existent_file_fails_as_expected():
+    params = {"file_keys": ["non_existent_file"]}
+    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
+    assert response.status_code == 202
+    assert response.json() == {"non_existent_file": 404}
+
+# Note the Postman tests have "Retrieve Deleted File" and "Retrieve Non-Deleted File" tests
+# at this point. They have not been replicated here as they seem to just duplicate Retrieve File
+# tests for non-existent and existent files. (But we have new test_file_cannot_be_retrieved_after_it_has_been_deleted
+# above)
+
+
+@pytest.mark.e2e
+def test_delete_multiple_files_has_right_result_for_each_file():
+    headers = token_getter.get_headers()
+    # Upload 2 files to be deleted
+    new_filename1 = make_unique_name("file_to_be_deleted.txt")
+    new_filename2 = make_unique_name("another_file_to_be_deleted.txt")
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename1))
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename2))
+    # Request deletion of two valid files and one non-existent file
+    params = {"file_keys": [new_filename1, new_filename2, "non_existent_file"]}
+    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
+    assert response.status_code == 202
+    assert response.json() == {new_filename1: 204, new_filename2: 204, "non_existent_file": 404}
