@@ -351,20 +351,30 @@ def test_post_file_without_file_fails_as_expected():
 # Delete File Tests
 
 @pytest.mark.e2e
-def test_delete_single_file():
+def test_delete_single_file_deletes_the_requested_file_only():
+    headers = token_getter.get_headers()
     # Upload a file to be deleted
-    new_filename = make_unique_name("file_to_be_deleted.txt")
-    upload_file_response = post_a_file(url=HOST_URL,
-                                       headers=token_getter.get_headers(),
-                                       file_data=test_md_file.get_data(new_filename))
+    unwanted_filename = make_unique_name("file_to_be_deleted.txt")
+    unwanted_file_response = post_a_file(url=HOST_URL,
+                                         headers=headers,
+                                         file_data=test_md_file.get_data(unwanted_filename))
+    # Upload a file to be left alone
+    wanted_filename = make_unique_name("file_to_be_retained.txt")
+    wanted_file_response = post_a_file(url=HOST_URL,
+                                       headers=headers,
+                                       file_data=test_md_file.get_data(wanted_filename))
+
     # Delete the file
-    params = {"file_keys": [new_filename]}
-    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
-    # This is really checking a preparation step
-    assert upload_file_response.status_code == 201
+    params = {"file_keys": [unwanted_filename]}
+    del_response = client.delete(f"{HOST_URL}/delete_files", headers=headers, params=params)
+    # Retreive the other file
+    get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": wanted_filename})
+    # This is really checking a preparation steps
+    assert unwanted_file_response.status_code == wanted_file_response.status_code == 201
     # Note response.status should always be 202 but can be other results for the individual files
-    assert response.status_code == 202
-    assert response.json().get(new_filename) == 204
+    assert del_response.status_code == 202
+    assert del_response.json().get(unwanted_filename) == 204
+    assert get_response.status_code == 200
 
 
 @pytest.mark.e2e
@@ -406,8 +416,10 @@ def test_delete_non_existent_file_fails_as_expected():
 
 # Note the Postman tests have "Retrieve Deleted File" and "Retrieve Non-Deleted File" tests
 # at this point. They have not been replicated here as they seem to just duplicate Retrieve File
-# tests for non-existent and existent files. (But we have new test_file_cannot_be_retrieved_after_it_has_been_deleted
-# above)
+# tests for non-existent and existent files.
+# Although tests above test_delete_single_file_deletes_the_requested_file_only and
+# test_file_cannot_be_retrieved_after_it_has_been_deleted have supplementary "gets"
+# to check (a) delete did not affect unrelated file (b) file cannot be retrieved after deletion.
 
 
 @pytest.mark.e2e
@@ -423,3 +435,21 @@ def test_delete_multiple_files_has_right_result_for_each_file():
     response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
     assert response.status_code == 202
     assert response.json() == {new_filename1: 204, new_filename2: 204, "non_existent_file": 404}
+
+# Virus Check Tests
+
+
+@pytest.mark.e2e
+def test_virus_check_detects_virus():
+    upload_virus_file = virus_file.get_data()
+    response = client.put(f"{HOST_URL}/virus_check_file", headers=token_getter.get_headers(), files=upload_virus_file)
+    assert response.status_code == 400
+    assert response.json()["detail"] == ["Virus Found"]
+
+
+@pytest.mark.e2e
+def test_virus_check_passes_clean_file():
+    upload_file = test_md_file.get_data()
+    response = client.put(f"{HOST_URL}/virus_check_file", headers=token_getter.get_headers(), files=upload_file)
+    assert response.status_code == 200
+    assert response.json()["success"] == "No virus found"
