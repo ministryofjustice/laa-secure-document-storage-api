@@ -35,9 +35,21 @@ token_getter = TokenManager(client_id=os.getenv('CLIENT_ID'),
                             token_url=os.getenv('TOKEN_URL', postman_token_url)
                             )
 
-test_md_file = UploadFileData("Postman/test_file.md")
-virus_file = UploadFileData("Postman/eicar.txt")
-disallowed_file = UploadFileData("Postman/test_file.exe")
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_and_teardown_test_files():
+    """
+    Makes the test files available to each test and closes
+    them afterwards
+    """
+    global test_md_file, virus_file, disallowed_file
+    test_md_file = UploadFileData("Postman/test_file.md")
+    virus_file = UploadFileData("Postman/eicar.txt")
+    disallowed_file = UploadFileData("Postman/test_file.exe")
+    yield
+    test_md_file.close_file()
+    virus_file.close_file()
+    disallowed_file.close_file()
 
 
 @pytest.mark.e2e

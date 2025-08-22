@@ -58,6 +58,13 @@ class UploadFileData:
         self.reset_seek()
         return self.file_details
 
+    def close_file(self):
+        """
+        Closing the file will prevent it from being used.
+        Only intended for test cleanup step.
+        """
+        self.file_details["file"][1].close()
+
 
 def get_mimetype(filename: str) -> str:
     mimetype = mimetypes.guess_type(filename)[0]
