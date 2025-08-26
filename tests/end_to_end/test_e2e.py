@@ -39,8 +39,10 @@ token_getter = TokenManager(client_id=os.getenv('CLIENT_ID'),
 @pytest.fixture(scope="module", autouse=True)
 def setup_and_teardown_test_files():
     """
-    Makes the test files available to each test and closes
-    them afterwards
+    Pre-test setup and post-test teardown for tests within this module (file) only.
+    Makes standard upload files available to each test and closes them afterwards.
+    Code before the "yield" is executed before the tests.
+    Code after the "yield" is exected after the last test.
     """
     global test_md_file, virus_file, disallowed_file
     test_md_file = UploadFileData("Postman/test_file.md")
@@ -54,6 +56,7 @@ def setup_and_teardown_test_files():
 
 @pytest.mark.e2e
 def test_token_can_be_retrieved():
+    "Establish that token retrieval is working"
     token_url = os.getenv('TOKEN_URL', postman_token_url)
     params = {'client_id': os.getenv('CLIENT_ID'),
               'client_secret': os.getenv('CLIENT_SECRET'),
@@ -63,6 +66,21 @@ def test_token_can_be_retrieved():
     response = client.post(token_url, data=params)
     assert response.status_code == 200
     assert "Error" not in response.text
+
+
+@pytest.mark.e2e
+def test_no_token_when_invalid_scope_provided():
+    "Alternative to Postman 'invalid scope token' test"
+    invalid_scope = 'api://laa-sds-local/default'
+    token_url = os.getenv('TOKEN_URL', postman_token_url)
+    params = {'client_id': os.getenv('CLIENT_ID'),
+              'client_secret': os.getenv('CLIENT_SECRET'),
+              'scope': invalid_scope,
+              'grant_type': 'client_credentials'
+              }
+    response = client.post(token_url, data=params)
+    assert response.status_code == 400
+    assert f"The provided value for scope {invalid_scope} is not valid" in response.text
 
 # Health and Status Tests
 
