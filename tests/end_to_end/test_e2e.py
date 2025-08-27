@@ -35,6 +35,9 @@ token_getter = TokenManager(client_id=os.getenv('CLIENT_ID'),
                             token_url=os.getenv('TOKEN_URL', postman_token_url)
                             )
 
+# Note the value is a str, not dict, and the single/double quotes need to be this particular way
+UPLOAD_BODY = {"body": '{"bucketName": "sds-local"}'}
+
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_and_teardown_test_files():
@@ -160,15 +163,13 @@ def test_retrieve_file_unsuccessful_if_invalid_token():
 
 @pytest.mark.e2e
 def test_put_new_file_once():
-    upload_bucket = '{"bucketName": "sds-local"}'
-
     new_filename = make_unique_name("put_new_file_test.txt")
     upload_file = test_md_file.get_data(new_filename)
 
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
                           files=upload_file,
-                          data={"body": upload_bucket})
+                          data=UPLOAD_BODY)
 
     assert response.status_code == 201
     assert str(response.text).startswith('{"success":"File saved successfully')
@@ -177,14 +178,13 @@ def test_put_new_file_once():
 
 @pytest.mark.e2e
 def test_put_new_file_twice_gives_expected_code_and_message():
-    upload_bucket = '{"bucketName": "sds-local"}'
     new_filename = make_unique_name("loaded_twice.txt")
     upload_file = test_md_file.get_data(new_filename)
 
     response1 = client.put(f"{HOST_URL}/save_or_update_file",
                            headers=token_getter.get_headers(),
                            files=upload_file,
-                           data={"body": upload_bucket})
+                           data=UPLOAD_BODY)
 
     # This resets the "seek" position to start of file, to prevent 0-byte upload
     upload_file = test_md_file.get_data(new_filename)
@@ -192,7 +192,7 @@ def test_put_new_file_twice_gives_expected_code_and_message():
     response2 = client.put(f"{HOST_URL}/save_or_update_file",
                            headers=token_getter.get_headers(),
                            files=upload_file,
-                           data={"body": upload_bucket})
+                           data=UPLOAD_BODY)
 
     assert response1.status_code == 201 and str(response1.text).startswith('{"success":"File saved successfully')
     assert response2.status_code == 200 and str(response2.text).startswith('{"success":"File updated successfully')
@@ -200,24 +200,22 @@ def test_put_new_file_twice_gives_expected_code_and_message():
 
 @pytest.mark.e2e
 def test_put_file_with_virus_is_blocked():
-    upload_bucket = '{"bucketName": "sds-local"}'
     upload_virus_file = virus_file.get_data()
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
                           files=upload_virus_file,
-                          data={"body": upload_bucket})
+                          data=UPLOAD_BODY)
     assert response.status_code == 400
     assert response.json()["detail"] == ["Virus Found"]
 
 
 @pytest.mark.e2e
 def test_put_file_with_disallowed_file_type_is_blocked():
-    upload_bucket = '{"bucketName": "sds-local"}'
     upload_disallowed_file = disallowed_file.get_data()
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
                           files=upload_disallowed_file,
-                          data={"body": upload_bucket})
+                          data=UPLOAD_BODY)
     assert response.status_code == 415
     assert response.json()["detail"] == "File mimetype not allowed"
 
@@ -239,11 +237,9 @@ def test_put_file_with_missing_bucket_is_blocked():
 
 @pytest.mark.e2e
 def test_put_file_without_file_fails_as_expected():
-    upload_bucket = '{"bucketName": "sds-local"}'
-
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
-                          data={"body": upload_bucket})
+                          data=UPLOAD_BODY)
     assert response.status_code == 400
     assert response.json()["detail"] == ["File is required"]
 
@@ -297,14 +293,13 @@ def test_get_file_returns_expected_error_when_file_not_found():
 
 @pytest.mark.e2e
 def test_post_new_file_once_is_successful():
-    upload_bucket = '{"bucketName": "sds-local"}'
     new_filename = make_unique_name("post_new_file_test.txt")
     upload_file = test_md_file.get_data(new_filename)
 
     response = client.post(f"{HOST_URL}/save_file",
                            headers=token_getter.get_headers(),
                            files=upload_file,
-                           data={"body": upload_bucket})
+                           data=UPLOAD_BODY)
 
     assert response.status_code == 201
     assert str(response.text).startswith('{"success":"File saved successfully')
@@ -313,19 +308,18 @@ def test_post_new_file_once_is_successful():
 
 @pytest.mark.e2e
 def test_post_new_file_second_time_fails():
-    upload_bucket = '{"bucketName": "sds-local"}'
     new_filename = make_unique_name("post_new_file_test.txt")
     upload_file = test_md_file.get_data(new_filename)
 
     response1 = client.post(f"{HOST_URL}/save_file",
                             headers=token_getter.get_headers(),
                             files=upload_file,
-                            data={"body": upload_bucket})
+                            data=UPLOAD_BODY)
 
     response2 = client.post(f"{HOST_URL}/save_file",
                             headers=token_getter.get_headers(),
                             files=upload_file,
-                            data={"body": upload_bucket})
+                            data=UPLOAD_BODY)
 
     assert response1.status_code == 201
     assert str(response1.text).startswith('{"success":"File saved successfully')
@@ -336,24 +330,22 @@ def test_post_new_file_second_time_fails():
 
 @pytest.mark.e2e
 def test_post_file_with_virus_is_blocked():
-    upload_bucket = '{"bucketName": "sds-local"}'
     upload_virus_file = virus_file.get_data()
     response = client.post(f"{HOST_URL}/save_file",
                            headers=token_getter.get_headers(),
                            files=upload_virus_file,
-                           data={"body": upload_bucket})
+                           data=UPLOAD_BODY)
     assert response.status_code == 400
     assert response.json()["detail"] == ["Virus Found"]
 
 
 @pytest.mark.e2e
 def test_post_file_with_disallowed_file_type_is_blocked():
-    upload_bucket = '{"bucketName": "sds-local"}'
     upload_disallowed_file = disallowed_file.get_data()
     response = client.post(f"{HOST_URL}/save_file",
                            headers=token_getter.get_headers(),
                            files=upload_disallowed_file,
-                           data={"body": upload_bucket})
+                           data=UPLOAD_BODY)
     assert response.status_code == 415
     assert response.json()["detail"] == "File mimetype not allowed"
 
@@ -372,8 +364,7 @@ def test_post_file_with_missing_bucket_is_blocked():
 
 @pytest.mark.e2e
 def test_post_file_without_file_fails_as_expected():
-    upload_bucket = '{"bucketName": "sds-local"}'
-    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), data={"body": upload_bucket})
+    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), data=UPLOAD_BODY)
     assert response.status_code == 400
     assert response.json()["detail"] == ["File is required"]
 
