@@ -171,9 +171,11 @@ def test_put_new_file_once():
                           files=upload_file,
                           data=UPLOAD_BODY)
 
+    details = response.json()
     assert response.status_code == 201
-    assert str(response.text).startswith('{"success":"File saved successfully')
-    assert str(response.text).endswith(f'with key {new_filename}"}}')
+    assert details["success"].startswith("File saved successfully")
+    assert details["success"].endswith(f"with key {new_filename}")
+    assert details["checksum"] == "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
 
 
 @pytest.mark.e2e
@@ -301,9 +303,11 @@ def test_post_new_file_once_is_successful():
                            files=upload_file,
                            data=UPLOAD_BODY)
 
+    details = response.json()
     assert response.status_code == 201
-    assert str(response.text).startswith('{"success":"File saved successfully')
-    assert str(response.text).endswith(f'with key {new_filename}"}}')
+    assert details["success"].startswith("File saved successfully")
+    assert details["success"].endswith(f"with key {new_filename}")
+    assert details["checksum"] == "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
 
 
 @pytest.mark.e2e
@@ -323,7 +327,6 @@ def test_post_new_file_second_time_fails():
 
     assert response1.status_code == 201
     assert str(response1.text).startswith('{"success":"File saved successfully')
-    assert str(response1.text).endswith(f'with key {new_filename}"}}')
     assert response2.status_code == 409
     assert str(response2.text).startswith(f'{{"detail":"File {new_filename} already exists and cannot be overwritten')
 

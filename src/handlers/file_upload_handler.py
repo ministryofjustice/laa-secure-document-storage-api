@@ -6,9 +6,11 @@ from fastapi import HTTPException, UploadFile, Request
 from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload
 from src.services import audit_service, s3_service
+from src.services.checksum_service import get_file_checksum
 from src.utils.operation_types import OperationType
 from src.utils.request_types import RequestType
 from src.validation import clam_av_validator, client_configured_validator
+
 
 logger = structlog.get_logger()
 
@@ -30,6 +32,11 @@ async def handle_file_upload_logic(
 
     # Client-specific validation
     await client_configured_validator.validate_or_error(file, client_config.file_validators)
+
+    # Get checksum from file (before saving)
+    checksum, error_message = get_file_checksum(file)
+    if error_message:
+        raise HTTPException(status_code=500, detail=error_message)
 
     metadata = body.model_dump() or {}
     bucket_name = metadata.pop("bucketName", None)
@@ -72,7 +79,8 @@ async def handle_file_upload_logic(
             )
         actioned = "updated" if file_existed else "saved"
         return {
-            "success": f"File {actioned} successfully in {client_config.bucket_name} with key {full_filename}"
+            "success": f"File {actioned} successfully in {client_config.bucket_name} with key {full_filename}",
+            "checksum": checksum
         }, file_existed
 
     except HTTPException:
