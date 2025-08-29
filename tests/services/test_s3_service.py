@@ -78,14 +78,17 @@ def test_upload_file_obj_success(s3_service, mocker):
     file = BytesIO(b"Test data")
     bucket_name = 'test_bucket'
     filename = 'test_file'
+    checksum = "e27c8214be8b7cf5bccc7c08247e3cb0c1514a48ee1f63197fe4ef3ef51d7e6f"
     metadata = {'key1': 'value1'}
 
     # Act
-    s3_service.upload_file_obj(file, filename, metadata)
+    s3_service.upload_file_obj(file, filename, checksum, metadata)
 
-    # Assert
+    # Assert (Note ChecksumSHA256 is base 64 encoded version of checksum above)
     mock_put_object.assert_called_once_with(
         Bucket=bucket_name,
+        ChecksumAlgorithm="SHA256",
+        ChecksumSHA256="4nyCFL6LfPW8zHwIJH48sMFRSkjuH2MZf+TvPvUdfm8=",
         Key=filename,
         Body=file.getvalue(),
         Metadata=metadata
@@ -103,11 +106,12 @@ def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
 
     file = BytesIO(b"Test data")
     filename = 'test_file'
+    checksum = "e27c8214be8b7cf5bccc7c08247e3cb0c1514a48ee1f63197fe4ef3ef51d7e6f"
     metadata = {'key1': 'value1'}
 
     # Act and Assert
     with pytest.raises(ClientError) as ex:
-        s3_service.upload_file_obj(file, filename, metadata)
+        s3_service.upload_file_obj(file, filename, checksum, metadata)
 
     assert ex.value.response['Error']['Code'] == 'NoSuchBucket'
     assert str(ex.value) == (

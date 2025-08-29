@@ -1,5 +1,6 @@
 import hashlib
 import structlog
+import base64
 from fastapi import UploadFile
 
 logger = structlog.get_logger()
@@ -20,3 +21,17 @@ def get_file_checksum(file_object: UploadFile, algorithm: str = "sha256") -> tup
     # Return stream position to start, so contents remain available
     file_object.file.seek(0)
     return result, error_message
+
+
+def hex_string_to_base64_encoded_bytes(hexstring: str) -> str:
+    """
+    Convert string of hexadecimal digits to string of base 64 encoded bytes.
+    Note input string must have even number of characters.
+
+    e.g. converts "123abc" to "Ejq8"
+
+    Created because boto3's S3 client's put_object method only accepts checksums in this format.
+    """
+    as_bytes = bytes.fromhex(hexstring)
+    as_64bit = base64.b64encode(as_bytes).decode()
+    return as_64bit
