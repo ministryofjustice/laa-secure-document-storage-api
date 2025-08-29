@@ -120,6 +120,38 @@ def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
     )
 
 
+def test_upload_file_obj_fails_when_checksum_is_wrong(s3_service, mocker):
+    """
+    Note this is more of a demonstration that an error message is expected when checksum comparison fails.
+    There is not actual checksum comparison here. Comparison is performed by an AWS service when used for real.
+    """
+    # Arrange
+    error_message = ("ClientError uploading file to S3: An error occurred (BadDigest) when calling "
+                     "the PutObject operation (reached max retries: 4): The SHA256 you specified did "
+                     "not match the calculated checksum.")
+    error_response = {'Error': {'Code': 'ClientError', 'Message': error_message}}
+
+    mocker.patch.object(
+        s3_service.s3_client,
+        'put_object',
+        side_effect=ClientError(error_response=error_response, operation_name='PutObject')
+    )
+
+    file = BytesIO(b"Test data")
+    filename = 'test_file'
+    # This checksum is not right for the file content (final character shoudl be "f")
+    # Although we're not actually doing a true checksum comparison here, so the value doesn't really matter.
+    checksum = "e27c8214be8b7cf5bccc7c08247e3cb0c1514a48ee1f63197fe4ef3ef51d7e6e"
+    metadata = {'key1': 'value1'}
+
+    # Act and Assert
+    with pytest.raises(ClientError) as ex:
+        s3_service.upload_file_obj(file, filename, checksum, metadata)
+
+    assert ex.value.response['Error']['Code'] == 'ClientError'
+    assert str(ex.value) == 'An error occurred (ClientError) when calling the PutObject operation: ' + error_message
+
+
 def test_delete_file_obj_success(s3_service, mocker):
     mock_delete_object = mocker.patch.object(s3_service.s3_client, 'delete_object')
     mock_head_object = mocker.patch.object(s3_service.s3_client, 'head_object')
