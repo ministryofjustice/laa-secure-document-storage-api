@@ -12,6 +12,7 @@ from src.models.execeptions.file_not_found import FileNotFoundException
 from src.models.status_report import ServiceObservations, Category
 from src.services import client_config_service
 from src.utils.status_reporter import StatusReporter
+from src.services.checksum_service import hex_string_to_base64_encoded_bytes
 
 logger = structlog.get_logger()
 
@@ -89,15 +90,18 @@ class S3Service:
         except Exception as e:
             logger.debug(f"{e.__class__.__name__} reading file from S3: {str(e)}")
 
-    def upload_file_obj(self, file: BytesIO, filename: str, metadata: dict | None = None):
+    def upload_file_obj(self, file: BytesIO, filename: str, checksum: str, metadata: dict | None = None):
         if metadata is None:
             metadata = {}
         logger.debug(f"Uploading file with name {filename} to S3 bucket {self.client_config.bucket_name}")
+        checksum_base64 = hex_string_to_base64_encoded_bytes(checksum)
         try:
             self.s3_client.put_object(
                 Bucket=self.client_config.bucket_name,
                 Key=filename,
                 Body=file.read(),
+                ChecksumAlgorithm="SHA256",
+                ChecksumSHA256=checksum_base64,
                 Metadata=metadata
             )
         except Exception as e:
@@ -149,12 +153,13 @@ def retrieve_file_url(client: str | ClientConfig, file_name: str):
     return s3_service.generate_file_url(file_name)
 
 
-def save(client: str | ClientConfig, file: BytesIO, file_name: str, metadata: dict | None = None) -> bool:
+def save(client: str | ClientConfig, file: BytesIO, file_name: str,
+         checksum: str, metadata: dict | None = None) -> bool:
     if metadata is None:
         metadata = {}
 
     s3_service = S3Service.get_instance(client)
-    s3_service.upload_file_obj(file, file_name, metadata)
+    s3_service.upload_file_obj(file, file_name, checksum, metadata)
 
     return True
 

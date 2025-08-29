@@ -26,6 +26,7 @@ async def save_or_update_file(
     """
     Saves the specified file, allowing overwrites of existing files with the same name.
     Files are automatically scanned for viruses, and pre-configured validators are run.
+    Response json includes sha256 checksum as "checksum" value.
     See also /save_file for saving a file without allowing overwrites.
 
     * 200 OK if file replaced an earlier version

@@ -26,6 +26,7 @@ from src.utils.request_types import RequestType
         "POST_new_file_success",
     ]
 )
+@patch("src.handlers.file_upload_handler.get_file_checksum", return_value=("123456789abcdef", ""))
 @patch("src.handlers.file_upload_handler.s3_service.save", return_value=True)
 @patch("src.handlers.file_upload_handler.s3_service.file_exists")
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
@@ -38,6 +39,7 @@ async def test_handle_file_upload_success(
     audit_put_item_mock,
     file_exists_mock,
     save_mock,
+    get_file_checksum_mock,
     request_type,
     file_existed,
     expected_success_message,
@@ -63,12 +65,14 @@ async def test_handle_file_upload_success(
         )
 
     assert response["success"] == expected_success_message
+    assert response["checksum"] == "123456789abcdef"
     assert file_existed_return == file_existed
     audit_put_item_mock.assert_called_once()
     save_mock.assert_called_once()
     scan_request_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     file_exists_mock.assert_called_once()
+    get_file_checksum_mock.assert_called_once()
 
 
 # =========================== FAILURE =========================== #
@@ -186,3 +190,35 @@ async def test_handle_file_upload_save_failure(
     audit_put_item_mock.assert_called_once()
     save_mock.assert_called_once()
     file_exists_mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+@patch("src.handlers.file_upload_handler.get_file_checksum", return_value=("", "Unexpected error getting checksum"))
+@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
+       return_value=ValidationResponse(status_code=200, message=""))
+@patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
+async def test_handle_file_upload_checksum_failure(validate_or_error_mock,
+                                                   scan_request_mock,
+                                                   get_file_checksum_mock):
+
+    request = MagicMock(headers={})
+    file = MagicMock()
+    file.filename = "test_file.txt"
+    file.file = BytesIO(b"Test content")
+    body = MagicMock()
+    body.model_dump.return_value = {"bucketName": "test_bucket"}
+    client_config = MagicMock()
+    client_config.bucket_name = "test_bucket"
+    client_config.azure_display_name = "Test Client"
+
+    with pytest.raises(HTTPException) as exc_info:
+        await handle_file_upload_logic(
+            request=request,
+            file=file,
+            body=body,
+            client_config=client_config,
+            request_type=RequestType.POST
+        )
+
+    assert exc_info.value.status_code == 500
+    assert "Unexpected error getting checksum" in str(exc_info.value.detail)
