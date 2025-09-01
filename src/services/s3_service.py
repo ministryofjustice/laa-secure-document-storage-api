@@ -12,7 +12,7 @@ from src.models.execeptions.file_not_found import FileNotFoundException
 from src.models.status_report import ServiceObservations, Category
 from src.services import client_config_service
 from src.utils.status_reporter import StatusReporter
-from src.services.checksum_service import hex_string_to_base64_encoded_bytes
+from src.services.checksum_service import hex_string_to_base64_encoded
 
 logger = structlog.get_logger()
 
@@ -94,7 +94,7 @@ class S3Service:
         if metadata is None:
             metadata = {}
         logger.debug(f"Uploading file with name {filename} to S3 bucket {self.client_config.bucket_name}")
-        checksum_base64 = hex_string_to_base64_encoded_bytes(checksum)
+        checksum_base64 = hex_string_to_base64_encoded(checksum)
         try:
             self.s3_client.put_object(
                 Bucket=self.client_config.bucket_name,

@@ -2,7 +2,7 @@ from io import BytesIO
 from unittest.mock import MagicMock
 import pytest
 
-from src.services.checksum_service import get_file_checksum
+from src.services.checksum_service import get_file_checksum, hex_string_to_base64_encoded
 
 """
 Checksums from Python's standard hashlib library are likely correct but for
@@ -74,3 +74,17 @@ def test_get_error_response_when_checksum_fails():
     # Full error message not compared because it contains a memory address that varies, e.g. "object at 0x1064423c0"
     assert error.startswith("Unexpected error getting sha256 checksum from file 'doomed.txt'")
     assert error.endswith("is not a file-like object in binary reading mode.")
+
+
+# A source of values: https://base64.guru/converter/encode/hex
+hex_to_base64_examples = [
+    ("00", "AA=="), ("01", "AQ=="), ("FF", "/w=="), ("FFFF", "//8="), ("ffff", "//8="),
+    ("8257869896c140152baad438bdda45153309c73de96db45aef46c5f55131683f",
+     "gleGmJbBQBUrqtQ4vdpFFTMJxz3pbbRa70bF9VExaD8=")
+]
+
+
+@pytest.mark.parametrize("hex_string,expected_result", hex_to_base64_examples)
+def test_hex_string_to_base64_encoded(hex_string, expected_result):
+    base_64_string = hex_string_to_base64_encoded(hex_string)
+    assert base_64_string == expected_result
