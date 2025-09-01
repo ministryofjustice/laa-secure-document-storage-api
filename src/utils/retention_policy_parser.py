@@ -10,15 +10,17 @@ class RetentionPolicyError(ValueError):
 def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> datetime:
 
     """
-    Parses a string like '10y', '6m', '30d' and adds that interval to the given start datetime 
-    (which defaults to now if not provided as arg).
-    
-    Special cases:
-    - 'DO NOT DELETE' -> raises error
-    - 'UNKNOWN' -> raises error
+    Parses a string like '10y', '6m', '30d' and adds that time interval to the given start datetime, returning an expiry date.
 
-    Parameter retention_policy: String must currently take the format of years ('y'), months ('m') or days ('d').
-    The goal is to extend this in time to be more human readable (e.g '10 years' instead of '10y').
+    Param `retention_policy` must take the format of 'y', 'm' or 'd', representing years, months, days respectively.
+    The goal is to extend this in time to be more human readable (e.g. accept '10 years' instead of just '10y').
+    
+    Param `start` is optional and defaults to NOW if not provided.
+
+    Special cases:
+    - 'DO NOT DELETE' -> raises RetentionPolicyError
+    - 'UNKNOWN' -> raises RetentionPolicyError
+
     """
 
     if start is None:
