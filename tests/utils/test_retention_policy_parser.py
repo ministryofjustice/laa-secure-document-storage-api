@@ -46,6 +46,10 @@ class TestRetentionPolicy(unittest.TestCase):
     def test_non_numeric_value(self):
         with self.assertRaises(ValueError):
             get_retention_expiry_date("xd", self.start_date)
+    
+    def test_negative_numeric_value(self):
+        with self.assertRaises(ValueError):
+            get_retention_expiry_date("-7y", self.start_date)
 
     # Default start date
     def test_default_start_date(self):
