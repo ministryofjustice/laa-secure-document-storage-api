@@ -26,7 +26,7 @@ def get_file_checksum(file_object: UploadFile, algorithm: str = "sha256") -> tup
 def hex_string_to_base64_encoded(hexstring: str) -> str:
     """
     Convert string of hexadecimal digits to string of base 64 encoded values.
-    Note input string must have even number of characters (whole numebr of bytes).
+    Note input string must have even number of characters (whole number of bytes).
 
     e.g. converts "123abc" to "Ejq8"
 
