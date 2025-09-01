@@ -1,17 +1,19 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-class RetentionPolicyError(ValueError):
-    """ RetentionPolicyError is raised when retention period is DO NOT DELETE or UNKNOWN. """
+class DoNotDeleteRetentionError(ValueError):
+    """Raised when the retention policy is 'DO NOT DELETE', indicating the file should never be deleted."""
+    pass
+
+class UnknownRetentionPolicyError(ValueError):
+    """Raised when the retention policy is 'UNKNOWN', indicating missing or undefined retention information."""
     pass
 
 class InvalidRetentionFormatError(ValueError):
     """Raised when the retention policy format is invalid (e.g., wrong unit or malformed string)."""
     pass
 
-
 def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> datetime:
-
     
     """
     Calculates the expiry date based on a retention policy string and a start date.
@@ -33,14 +35,19 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
         datetime: The calculated expiry date.
 
     Raises:
-        RetentionPolicyError: If the policy is 'DO NOT DELETE' or 'UNKNOWN'.
+        DoNotDeleteRetentionError: If the policy is 'DO NOT DELETE'.
+        UnknownRetentionPolicyError: If the policy is 'UNKNOWN'.
         InvalidRetentionFormatError: If the format is invalid (e.g., wrong unit).
+        ValueError: If the numeric part of the policy is not a valid integer.
+
     """
 
-
     normalised = retention_policy.strip().upper()
-    if normalised in {"DO NOT DELETE", "UNKNOWN"}:
-        raise RetentionPolicyError(f"Invalid retention policy: {retention_policy}")
+    if normalised == "DO NOT DELETE":
+        raise DoNotDeleteRetentionError("File is marked as DO NOT DELETE and should not be expired.")
+    elif normalised == "UNKNOWN":
+        raise UnknownRetentionPolicyError("Retention policy is UNKNOWN and must be defined")
+
 
     if start is None:
         start = datetime.now()
