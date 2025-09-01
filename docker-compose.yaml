@@ -4,7 +4,7 @@ services:
     volumes:
       - .:/app
       - ./authz:/authz
-      - ../laa-secure-document-storage-configs/clientconfigs:/app/clientconfigs
+      - ../sds-api-configs/clientconfigs:/app/clientconfigs
     ports:
       - '8000:8000'
     environment:
