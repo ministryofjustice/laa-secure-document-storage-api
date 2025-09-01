@@ -23,6 +23,10 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
 
     """
 
+    normalised = retention_policy.strip().upper()
+    if normalised in {"DO NOT DELETE", "UNKNOWN"}:
+        raise RetentionPolicyError(f"Invalid retention policy: {retention_policy}")
+
     if start is None:
         start = datetime.now()
 
