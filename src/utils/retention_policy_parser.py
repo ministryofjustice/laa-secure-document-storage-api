@@ -56,6 +56,8 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
 
     try:
         value = int(retention_policy[:-1])
+        if value < 0:
+                raise ValueError("Retention period cannot be negative.")
     except ValueError:
         raise ValueError("Invalid number in input string")
     
