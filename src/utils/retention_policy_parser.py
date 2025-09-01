@@ -1,20 +1,24 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
 
 class DoNotDeleteRetentionError(ValueError):
     """Raised when the retention policy is 'DO NOT DELETE', indicating the file should never be deleted."""
     pass
 
+
 class UnknownRetentionPolicyError(ValueError):
     """Raised when the retention policy is 'UNKNOWN', indicating missing or undefined retention information."""
     pass
+
 
 class InvalidRetentionFormatError(ValueError):
     """Raised when the retention policy format is invalid (e.g., wrong unit or malformed string)."""
     pass
 
+
 def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> datetime:
-    
+
     """
     Calculates the expiry date based on a retention policy string and a start date.
 
@@ -48,7 +52,6 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
     elif normalised == "UNKNOWN":
         raise UnknownRetentionPolicyError("Retention policy is UNKNOWN and must be defined")
 
-
     if start is None:
         start = datetime.now()
 
@@ -57,15 +60,18 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
     try:
         value = int(retention_policy[:-1])
         if value < 0:
-                raise ValueError("Retention period cannot be negative.")
+            raise ValueError("Retention period cannot be negative.")
     except ValueError:
         raise ValueError("Invalid number in input string")
-    
+
     # calculate retention expiry date by adding retention_policy delta to start date.
     # relativedelta from dateutil library correctly accounts for leap years.
-        
+
     if unit not in {'y', 'm', 'd'}:
-        raise InvalidRetentionFormatError(f"Invalid unit in retention policy: '{unit}'. Must have format 'y', 'm', or 'd'.")
+        raise InvalidRetentionFormatError(
+            f"Invalid unit in retention policy: '{unit}'. "
+            "Must have format 'y', 'm', or 'd'.")
+
     if unit == "y":
         return start + relativedelta(years=value)
     if unit == "m":

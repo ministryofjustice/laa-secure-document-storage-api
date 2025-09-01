@@ -7,6 +7,7 @@ from src.utils.retention_policy_parser import (
     InvalidRetentionFormatError
 )
 
+
 class TestRetentionPolicy(unittest.TestCase):
 
     def setUp(self):
@@ -46,7 +47,7 @@ class TestRetentionPolicy(unittest.TestCase):
     def test_non_numeric_value(self):
         with self.assertRaises(ValueError):
             get_retention_expiry_date("xd", self.start_date)
-    
+
     def test_negative_numeric_value(self):
         with self.assertRaises(ValueError):
             get_retention_expiry_date("-7y", self.start_date)
@@ -55,6 +56,7 @@ class TestRetentionPolicy(unittest.TestCase):
     def test_default_start_date(self):
         result = get_retention_expiry_date("1d")
         self.assertTrue(isinstance(result, datetime))
+
 
 if __name__ == "__main__":
     unittest.main()
