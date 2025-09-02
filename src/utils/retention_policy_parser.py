@@ -31,12 +31,15 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
         - You cannot currently mix units (e.g. '10y6m' is not valid).
 
     Special cases:
-        - 'DO NOT DELETE': A valid retention policy indicating the file should never be deleted. Raises DoNotDeleteRetentionError.
-        - 'UNKNOWN': An invalid retention policy indicating missing or undefined retention. Raises UnknownRetentionPolicyError.
+        - 'DO NOT DELETE': A valid retention policy indicating the file should never be deleted.
+            Raises DoNotDeleteRetentionError.
+        - 'UNKNOWN': An invalid retention policy indicating missing or undefined retention.
+            Raises UnknownRetentionPolicyError.
 
 
     Args:
-        retention_policy (str): The retention policy string, representing a positive integer number of days, months or years. 
+        retention_policy (str): The retention policy string, representing a positive integer
+        number of days, months or years.
         start (datetime, optional): The start date from which to calculate the expiry.
         Defaults to the current datetime if not provided (datetime.now()).
 
