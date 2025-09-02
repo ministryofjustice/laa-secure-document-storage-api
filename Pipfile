@@ -27,6 +27,7 @@ fastapi-authz = "==1.0.0"
 h11 = ">=0.16.0"
 requests = "==2.32.4"
 python-jose = {extras = ["cryptography"], version = "==3.5.0"}
+python-dateutil = "*"
 
 [dev-packages]
 flake8 = "==7.3.0"
