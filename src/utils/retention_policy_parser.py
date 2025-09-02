@@ -20,20 +20,24 @@ class InvalidRetentionFormatError(ValueError):
 def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> datetime:
 
     """
-    Calculates the expiry date based on a retention policy string and a start date.
+    Calculates the expiry date based on a retention policy and a start date.
 
     The retention policy should be in the format of '10y', '6m', or '30d', where:
-    - 'y' stands for years
-    - 'm' stands for months
-    - 'd' stands for days
+        - 'y' stands for years
+        - 'm' stands for months
+        - 'd' stands for days
+        - The preceding numerical value must be a positive integer.
+        - You cannot currently mix units (e.g. '10y6m' is not valid).
 
     Special cases:
-    - 'DO NOT DELETE' or 'UNKNOWN' will raise RetentionPolicyError.
+        - 'DO NOT DELETE': A valid retention policy indicating the file should never be deleted. Raises DoNotDeleteRetentionError.
+        - 'UNKNOWN': An invalid retention policy indicating missing or undefined retention. Raises UnknownRetentionPolicyError.
+
 
     Args:
-        retention_policy (str): The retention policy string.
+        retention_policy (str): The retention policy string, representing a positive integer number of days, months or years. 
         start (datetime, optional): The start date from which to calculate the expiry.
-        Defaults to the current datetime if not provided.
+        Defaults to the current datetime if not provided (datetime.now()).
 
     Returns:
         datetime: The calculated expiry date.
