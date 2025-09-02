@@ -1,5 +1,6 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import re
 
 
 class DoNotDeleteRetentionError(ValueError):
@@ -26,7 +27,7 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
         - 'y' stands for years
         - 'm' stands for months
         - 'd' stands for days
-        - The preceding numerical value must be a positive integer.
+        - The preceding numerical value must be a positive integer or zero.
         - You cannot currently mix units (e.g. '10y6m' is not valid).
 
     Special cases:
@@ -59,14 +60,20 @@ def get_retention_expiry_date(retention_policy: str, start: datetime = None) -> 
     if start is None:
         start = datetime.now()
 
-    unit = retention_policy[-1].lower()
+    if not re.fullmatch(r"^\d+[ymd]$", normalised.lower()):
+        raise InvalidRetentionFormatError(
+            f"Invalid retention policy format: '{retention_policy}'. "
+            "Must be a single unit like '10y', '6m', or '30d'. Mixed units (e.g., '10y6m') are not supported."
+        )
+
+    unit = normalised[-1].lower()
 
     try:
-        value = int(retention_policy[:-1])
+        value = int(normalised[:-1])
         if value < 0:
             raise ValueError("Retention period cannot be negative.")
     except ValueError:
-        raise ValueError("Invalid number in input string")
+        raise ValueError("Retention policy must start with a positive integer or zero.")
 
     # calculate retention expiry date by adding retention_policy delta to start date.
     # relativedelta from dateutil library correctly accounts for leap years.

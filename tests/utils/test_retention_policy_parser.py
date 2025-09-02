@@ -55,8 +55,12 @@ def test_non_int_numeric_value(start_date):
         get_retention_expiry_date('5.6y', start_date)
 
 def test_mixed_units(start_date):
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidRetentionFormatError):
         get_retention_expiry_date('5y6m', start_date)
+
+def test_multiple_units(start_date):
+    with pytest.raises(InvalidRetentionFormatError):
+        get_retention_expiry_date('5dmy', start_date)
 
 # Default start date
 def test_default_start_date():
