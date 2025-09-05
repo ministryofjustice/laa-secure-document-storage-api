@@ -25,6 +25,7 @@ async def virus_check_file(
     * 400 If known viruses were detected
     """
     start_time = time.time()
+    logger.info("virus_check_file router start")
     validation_result = await clam_av_validator.scan_request(request.headers, file)
     duration = time.time() - start_time
     logger.info(f"virus_check_file router took {duration:10.4f}s")
