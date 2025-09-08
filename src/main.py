@@ -43,6 +43,9 @@ sentry_dsn = os.environ.get('SENTRY_DSN')
 if sentry_dsn:
     sentry_sdk.init(
         dsn=sentry_dsn,
+        traces_sample_rate=1.0,
+        enable_tracing=True,
+        environment='development',
 
         integrations=[
             StarletteIntegration(
@@ -58,7 +61,7 @@ if sentry_dsn:
 
 app = FastAPI(
     title='LAA Secure Document Storage API',
-    version='0.8.0'
+    version='0.8.1'
 )
 
 structlog.configure(
