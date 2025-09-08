@@ -46,6 +46,8 @@ if sentry_dsn:
         traces_sample_rate=1.0,
         enable_tracing=True,
         environment='development',
+        profile_session_sample_rate=1.0,
+        profile_lifecycle="trace",
 
         integrations=[
             StarletteIntegration(
