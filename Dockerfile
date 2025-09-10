@@ -12,5 +12,5 @@ USER 1000:1000
 USER root
 RUN apk add python3-dev musl-dev build-base linux-headers
 # Stop being root now, was only needed for above
-USER appuser
+USER 1000:1000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
