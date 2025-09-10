@@ -1,9 +1,14 @@
+import time
 import inspect
 import io
+import structlog
+
 
 from fastapi import Header, UploadFile
 from src.models.validation_response import ValidationResponse
 from src.services.clam_av_service import virus_check
+
+logger = structlog.get_logger()
 
 
 async def scan_request(headers: Header, file: UploadFile):
@@ -44,10 +49,14 @@ def check_file_exists(headers: Header, file: UploadFile):
 
 
 async def check_antivirus(headers: Header, file: UploadFile):
+    start_time = time.time()
     file_content = await file.read()
+    read_duration = time.time() - start_time
     response, status = await virus_check(io.BytesIO(file_content))
     # Return file reference point to start to make subsequent read possible
     await file.seek(0)
+    full_duration = time.time() - start_time
+    logger.info(f"check_antivirus took - file read: {read_duration:10.4f}s, overall {full_duration:10.4f}s")
     if status == 200:
         return 200, ""
     else:

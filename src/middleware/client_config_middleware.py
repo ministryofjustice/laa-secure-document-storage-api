@@ -14,4 +14,5 @@ async def client_config_middleware(request: Request) -> ClientConfig:
     :return: ClientConfig
     :raises HTTPException: 403 if the user is not authenticated or a config for the user is not found
     """
+    logger.info("client_config_middleware start")
     return client_config_service.get_config_for_client_or_error(request.user.username)

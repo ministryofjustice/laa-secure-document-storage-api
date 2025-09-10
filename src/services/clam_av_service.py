@@ -1,4 +1,5 @@
 import os
+import time
 from io import BytesIO
 
 import clamd
@@ -36,6 +37,7 @@ class ClamAVService:
     async def check(self, file: BytesIO):
         status = 200
         response = {}
+        start_time = time.time()
         scan_result = self._clamd.instream(file)
         if scan_result['stream'][0] == 'OK':
             message = 'file has no virus'
@@ -45,6 +47,8 @@ class ClamAVService:
         else:
             message = 'Error occurred while processing'
             status = 500
+        duration = time.time() - start_time
+        logger.info(f"Virus scan took {duration:10.4f}s")
 
         response['message'] = message
         return response, status

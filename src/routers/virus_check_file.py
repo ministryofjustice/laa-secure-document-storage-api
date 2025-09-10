@@ -1,4 +1,5 @@
 from typing import Optional
+import time
 
 import structlog
 from fastapi import APIRouter, HTTPException, UploadFile, Depends, Request
@@ -23,7 +24,11 @@ async def virus_check_file(
     * 200 If no known viruses were detected
     * 400 If known viruses were detected
     """
+    start_time = time.time()
+    logger.info("virus_check_file router start")
     validation_result = await clam_av_validator.scan_request(request.headers, file)
+    duration = time.time() - start_time
+    logger.info(f"virus_check_file router took {duration:10.4f}s")
     if validation_result.status_code != 200:
         raise HTTPException(
             status_code=validation_result.status_code,
