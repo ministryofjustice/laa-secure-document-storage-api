@@ -8,6 +8,9 @@ ENV PYTHONPATH=/app:$PYTHONPATH
 RUN pipenv install --system --deploy
 COPY . /app
 USER 1000:1000
-# Line below is dependency for installing Locust
+# The two lines below is dependency for installing Locust
+USER root
 RUN apk add gcc p3-dev musl-dev linux-headers
+# Stop being root now, was only needed for above
+USER appuser
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
