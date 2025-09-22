@@ -7,6 +7,7 @@ from tests.end_to_end.e2e_helpers import TokenManager, UploadFileData
 from tests.end_to_end.e2e_helpers import read_postman_env_file
 from tests.end_to_end.e2e_helpers import make_unique_name
 from tests.end_to_end.e2e_helpers import post_a_file
+from tests.end_to_end.e2e_helpers import LocalS3
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -37,6 +38,8 @@ token_getter = TokenManager(client_id=os.getenv('CLIENT_ID'),
 
 # Note the value is a str, not dict, and the single/double quotes need to be this particular way
 UPLOAD_BODY = {"body": '{"bucketName": "sds-local"}'}
+
+s3_client = LocalS3()
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -370,6 +373,27 @@ def test_post_file_without_file_fails_as_expected():
     response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), data=UPLOAD_BODY)
     assert response.status_code == 400
     assert response.json()["detail"] == ["File is required"]
+
+
+new_filename = make_unique_name("save_path_file.txt")
+paths = [f"{p}{new_filename}" for p in ("", "f1/", "f1/f2/")]
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("new_filename", paths)
+def test_post_file_paths_works_as_expected(new_filename):
+    upload_file = test_md_file.get_data(new_filename)
+
+    response = client.post(f"{HOST_URL}/save_file",
+                           headers=token_getter.get_headers(),
+                           files=upload_file,
+                           data=UPLOAD_BODY)
+
+    details = response.json()
+    assert response.status_code == 201
+    assert details["success"].startswith("File saved successfully")
+    assert details["success"].endswith(f"with key {new_filename}")
+    assert s3_client.check_file_exists(new_filename) is True
 
 
 # Delete File Tests
