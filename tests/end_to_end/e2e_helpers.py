@@ -2,6 +2,7 @@ import mimetypes
 import time
 import json
 import os
+from dotenv import load_dotenv
 import boto3
 import httpx as client
 
@@ -10,6 +11,8 @@ import httpx as client
 Everything here is intended to support end-to-end tests.
 This is not application code.
 """
+
+load_dotenv()
 
 
 class TokenManager:
@@ -146,3 +149,20 @@ def read_postman_env_file(postman_environment_json_file: str
             break
 
     return environment_info
+
+
+def get_token_maanger() -> TokenManager:
+    postman_env_details = read_postman_env_file()
+    postman_token_url = postman_env_details.get("AzureTokenUrl")
+    return TokenManager(client_id=os.getenv('CLIENT_ID'),
+                        client_secret=os.getenv('CLIENT_SECRET'),
+                        token_url=os.getenv('TOKEN_URL', postman_token_url)
+                        )
+
+
+def get_host_url() -> str:
+    return os.getenv('HOST_URL', 'http://127.0.0.1:8000')
+
+
+def get_upload_body() -> dict[str, dict[str, str]]:
+    return {"body": '{"bucketName": "sds-local"}'}
