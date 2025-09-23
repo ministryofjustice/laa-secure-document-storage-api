@@ -41,18 +41,14 @@ def setup_and_teardown_test_files():
     Code before the "yield" is executed before the tests.
     Code after the "yield" is exected after the last test.
     """
-    global test_md_file, virus_file, disallowed_file
+    global test_md_file
     test_md_file = UploadFileData("Postman/test_file.md")
-    virus_file = UploadFileData("Postman/eicar.txt")
-    disallowed_file = UploadFileData("Postman/test_file.exe")
     yield
     test_md_file.close_file()
-    virus_file.close_file()
-    disallowed_file.close_file()
 
 
-new_filename = make_unique_name("save_path_file.txt")
-paths = [f"{p}{new_filename}" for p in ("", "f1/", "f1/f2/")]
+new_base_filename = make_unique_name("save_path_file.txt")
+paths = [f"{p}{new_base_filename}" for p in ("", "f1/", "f1/f2/", "f1/f2/f3")]
 
 
 @pytest.mark.e2e
@@ -70,3 +66,34 @@ def test_post_file_paths_works_as_expected(new_filename):
     assert details["success"].startswith("File saved successfully")
     assert details["success"].endswith(f"with key {new_filename}")
     assert s3_client.check_file_exists(new_filename) is True
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("new_filename", [" . ", ":::.txt", "$.$", "<>:|?*.'", "😍.txt",
+                                          "ɐnbᴉlɐ.ɐ", "和製漢語.. ", "a.لإطلاق"])
+def test_put_unusual_but_valid_filename_is_accepted(new_filename):
+    upload_file = test_md_file.get_data(new_filename)
+
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=upload_file,
+                          data=UPLOAD_BODY)
+
+    details = response.json()
+    assert response.status_code in (200, 201)
+    assert details["success"].endswith(f"with key {new_filename}")
+    assert s3_client.check_file_exists(new_filename) is True
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("new_filename", [".", ".  ", "...", "a.", ".txt", "/", "//////", "/.txt"])
+def test_put_invalid_filename_is_rejected(new_filename):
+    upload_file = test_md_file.get_data(new_filename)
+
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=upload_file,
+                          data=UPLOAD_BODY)
+
+    assert response.status_code == 415
+    assert s3_client.check_file_exists(new_filename) is False
