@@ -6,6 +6,7 @@ from tests.end_to_end.e2e_helpers import get_token_maanger
 from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
+from tests.end_to_end.e2e_helpers import post_a_file
 from tests.end_to_end.e2e_helpers import LocalS3
 
 """
@@ -50,12 +51,12 @@ def setup_and_teardown_test_files():
     test_md_file.close_file()
 
 
-new_base_filename = make_unique_name("save_path_file.txt")
-paths = [f"{p}{new_base_filename}" for p in ("", "f1/", "f1/f2/", "f1/f2/f3/")]
+new_base_filename_post = make_unique_name("save_path_file.txt")
+post_paths = [f"{p}{new_base_filename_post}" for p in ("", "f1/", "f1/f2/", "f1/f2/f3/")]
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize("new_filename", paths)
+@pytest.mark.parametrize("new_filename", post_paths)
 def test_post_file_paths_works_as_expected(new_filename):
     upload_file = test_md_file.get_data(new_filename)
 
@@ -69,6 +70,24 @@ def test_post_file_paths_works_as_expected(new_filename):
     assert details["success"].startswith("File saved successfully")
     assert details["success"].endswith(f"with key {new_filename}")
     assert s3_client.check_file_exists(new_filename, mock_result=True) is True
+
+
+new_base_filename_get = make_unique_name("get_path_file.txt")
+get_paths = [f"{p}{new_base_filename_get}" for p in ("", "f1/", "f1/f2/", "f1/f2/f3/")]
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("new_filename", get_paths)
+def test_get_file_paths_works_as_expected(new_filename):
+    headers = token_getter.get_headers()
+    # Upload file to S3 so it's available to be retrieved
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
+    # Get the file using SDS API
+    response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": new_filename})
+    assert response.status_code == 200
+    assert "fileURL" in response.text
+    assert "Expires" in response.text
+    assert new_filename in response.text
 
 
 @pytest.mark.e2e
