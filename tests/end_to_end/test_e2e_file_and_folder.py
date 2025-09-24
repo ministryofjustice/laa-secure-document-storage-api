@@ -84,6 +84,8 @@ def test_get_file_paths_works_as_expected(new_filename):
     _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
     # Get the file using SDS API (this gives URL to file, not the actual content)
     get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": new_filename})
+    # Two blocks of commented-out code in this test concern downloading the actual file.
+    # These work locally but fail in code pipeline.
     """
     # Read the actual file content using URL extracted from SDS response
     json_data = get_response.json()
