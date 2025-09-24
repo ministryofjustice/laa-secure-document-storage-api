@@ -31,7 +31,7 @@ HOST_URL = get_host_url()
 UPLOAD_BODY = get_upload_body()
 token_getter = get_token_maanger()
 # Set to return genuine S3 responses when HOST is local ("http://127.0.0.1:8000")
-# otherwise s3_client.check_file_exists returns a moack value. This is to save on
+# otherwise s3_client.check_file_exists returns a mock value. This is to save on
 # having to set S3 credentials for every environment.
 s3_client = LocalS3(mocking_enabled=(HOST_URL != "http://127.0.0.1:8000"))
 
@@ -51,7 +51,7 @@ def setup_and_teardown_test_files():
 
 
 new_base_filename = make_unique_name("save_path_file.txt")
-paths = [f"{p}{new_base_filename}" for p in ("", "f1/", "f1/f2/", "f1/f2/f3")]
+paths = [f"{p}{new_base_filename}" for p in ("", "f1/", "f1/f2/", "f1/f2/f3/")]
 
 
 @pytest.mark.e2e
