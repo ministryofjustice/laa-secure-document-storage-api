@@ -3,7 +3,7 @@ import pytest
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
 from tests.end_to_end.e2e_helpers import UploadFileData
-from tests.end_to_end.e2e_helpers import get_token_maanger
+from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
@@ -29,7 +29,7 @@ Environment Variables
 
 HOST_URL = get_host_url()
 UPLOAD_BODY = get_upload_body()
-token_getter = get_token_maanger()
+token_getter = get_token_manager()
 
 
 @pytest.fixture(scope="module", autouse=True)

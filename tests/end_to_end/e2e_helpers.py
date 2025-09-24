@@ -161,7 +161,7 @@ def read_postman_env_file(postman_environment_json_file: str
     return environment_info
 
 
-def get_token_maanger() -> TokenManager:
+def get_token_manager() -> TokenManager:
     postman_env_details = read_postman_env_file()
     postman_token_url = postman_env_details.get("AzureTokenUrl")
     return TokenManager(client_id=os.getenv('CLIENT_ID'),

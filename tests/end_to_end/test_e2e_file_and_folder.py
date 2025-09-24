@@ -2,7 +2,7 @@ import pytest
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
 from tests.end_to_end.e2e_helpers import UploadFileData
-from tests.end_to_end.e2e_helpers import get_token_maanger
+from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
@@ -30,11 +30,14 @@ Environment Variables
 
 HOST_URL = get_host_url()
 UPLOAD_BODY = get_upload_body()
-token_getter = get_token_maanger()
+token_getter = get_token_manager()
 # Set to return genuine S3 responses when HOST is local ("http://127.0.0.1:8000")
 # otherwise s3_client.check_file_exists returns a mock value. This is to save on
 # having to set S3 credentials for every environment.
-s3_client = LocalS3(mocking_enabled=(HOST_URL != "http://127.0.0.1:8000"))
+if HOST_URL == "http://127.0.0.1:8000":
+    s3_client = LocalS3(mocking_enabled=False)
+else:
+    s3_client = LocalS3(mocking_enabled=True)
 
 
 @pytest.fixture(scope="module", autouse=True)
