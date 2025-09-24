@@ -3,6 +3,7 @@ import time
 import json
 import os
 from dotenv import load_dotenv
+from typing import Any
 import boto3
 import httpx as client
 
@@ -88,10 +89,16 @@ class LocalS3:
     default environment values within this class are sufficient for our Localstack.
 
     Could use SDS application's own S3 service to do the same but this:
-    (a) Gives independence, so e2e tests are not coupled to application code
+    (a) Gives independence, so e2e tests are not dependent on application code
     (b) Is deliberately shorter to be easier to understand
+    (c) Has built-in mocking
     """
-    def __init__(self, bucket_name: str = "sds-local"):
+    def __init__(self, bucket_name: str = "sds-local", mocking_enabled=False):
+        """
+        mocking_enabled - this flag causes the check_file_exists method to return
+        a mock value. This is for circumstances in which actual S3 access is not
+        wanted or possble.
+        """
         self.client = boto3.client(
             's3',
             region_name=os.getenv('AWS_REGION', 'eu-west-2'),
@@ -100,8 +107,11 @@ class LocalS3:
             endpoint_url=os.getenv('AWS_ENDPOINT_URL', 'http://localhost:4566')
             )
         self.bucket_name = bucket_name
+        self.mocking_enabled = mocking_enabled
 
-    def check_file_exists(self, key: str) -> bool:
+    def check_file_exists(self, key: str, mock_result: Any = "") -> bool:
+        if self.mocking_enabled:
+            return mock_result
         response = self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=key)
         for obj in response.get('Contents', []):
             if obj['Key'] == key:

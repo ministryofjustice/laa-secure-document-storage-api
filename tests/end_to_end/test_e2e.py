@@ -8,7 +8,6 @@ from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
 from tests.end_to_end.e2e_helpers import post_a_file
-from tests.end_to_end.e2e_helpers import LocalS3
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -31,7 +30,6 @@ Environment Variables
 HOST_URL = get_host_url()
 UPLOAD_BODY = get_upload_body()
 token_getter = get_token_maanger()
-s3_client = LocalS3()
 
 
 @pytest.fixture(scope="module", autouse=True)

@@ -30,7 +30,10 @@ Environment Variables
 HOST_URL = get_host_url()
 UPLOAD_BODY = get_upload_body()
 token_getter = get_token_maanger()
-s3_client = LocalS3()
+# Set to return genuine S3 responses when HOST is local ("http://127.0.0.1:8000")
+# otherwise s3_client.check_file_exists returns a moack value. This is to save on
+# having to set S3 credentials for every environment.
+s3_client = LocalS3(mocking_enabled=(HOST_URL != "http://127.0.0.1:8000"))
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -65,7 +68,7 @@ def test_post_file_paths_works_as_expected(new_filename):
     assert response.status_code == 201
     assert details["success"].startswith("File saved successfully")
     assert details["success"].endswith(f"with key {new_filename}")
-    assert s3_client.check_file_exists(new_filename) is True
+    assert s3_client.check_file_exists(new_filename, mock_result=True) is True
 
 
 @pytest.mark.e2e
@@ -82,7 +85,7 @@ def test_put_unusual_but_valid_filename_is_accepted(new_filename):
     details = response.json()
     assert response.status_code in (200, 201)
     assert details["success"].endswith(f"with key {new_filename}")
-    assert s3_client.check_file_exists(new_filename) is True
+    assert s3_client.check_file_exists(new_filename, mock_result=True) is True
 
 
 @pytest.mark.e2e
@@ -96,4 +99,4 @@ def test_put_invalid_filename_is_rejected(new_filename):
                           data=UPLOAD_BODY)
 
     assert response.status_code == 415
-    assert s3_client.check_file_exists(new_filename) is False
+    assert s3_client.check_file_exists(new_filename, mock_result=False) is False
