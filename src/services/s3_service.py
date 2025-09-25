@@ -118,7 +118,7 @@ class S3Service:
             except ClientError as e:
                 raise RuntimeError(f"Failed to list versions for {file_key}: {e}")
 
-    def delete_file_version(self, filename: str, version_id: str):
+    def delete_object_version(self, filename: str, version_id: str):
         try:
             logger.debug(
                 f"Attempting to delete version {version_id} of file {filename} from S3 bucket {self.client_config.bucket_name}"
@@ -185,11 +185,20 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str,
     return True
 
 
-def delete_file(client: str | ClientConfig, file_name: str):
-    s3_service = S3Service.get_instance(client)
-    s3_service.delete_file_obj(file_name)
+# def delete_file(client: str | ClientConfig, file_name: str):
+#     s3_service = S3Service.get_instance(client)
+#     s3_service.delete_file_obj(file_name)
 
-    return True
+#     return True
+
+
+def list_file_versions(client: str | ClientConfig, file_name: str):
+    s3_service = S3Service.get_instance(client)
+    return s3_service.list_object_versions(file_name)
+
+def delete_file_version(client: str | ClientConfig, file_name: str, version_id: str):
+    s3_service = S3Service.get_instance(client)
+    return s3_service.delete_file_version(file_name, version_id)
 
 
 class S3ServiceStatusReporter(StatusReporter):
