@@ -22,8 +22,8 @@ async def delete_files(
     """
     Always return a 202 ACCEPTED response, with the body containing each of the specified files and the status code
     for the deletion of that file:
-    * 204 if found and deleted
-    * 404 if not found
+    * 204 if all versions of file found and deleted
+    * 404 if file not found
     * 500 if an internal error occurred
     """
     if len(file_keys) == 0:
@@ -40,13 +40,32 @@ async def delete_files(
         # Set default outcome
         outcomes[file_key] = 500  # SERVER ERROR, should always process all files
         try:
-            audit_service.put_item(client_config.azure_display_name, file_key, OperationType.DELETE)
-            logger.info(f"Calling delete file operation to delete file {file_key}")
+            # List all versions of the object
+            versions = s3_service.list_file_versions(client_config, file_key)
+            
+            if not versions:
+                logger.warning(f"No versions found for {file_key}")
+                outcomes[file_key] = 404
+                continue
+            
+            # Delete each version
+            for version in versions:
+                version_id = version.get("VersionId")
+                try:
+                    logger.info(f"Attempting to delete version with versionId {version_id}")
+                    s3_service.delete_file_version(client_config, file_key, version_id)
+                    audit_service.put_item(
+                        client_config.azure_display_name, file_key, OperationType.DELETE
+                    )
+                    logger.info(f"Deleted version {version_id} of file {file_key}")
+                
+                except Exception as e:
+                    logger.error(f"Failed to delete version {version_id} of {file_key}: {e}")
+                    raise e  # Bubble up to outer exception handler
 
-            # s3 service will raise exceptions if errors are encountered...
-            s3_service.delete_file(client_config, file_key)
-            # ...therefore this was a success
-            outcomes[file_key] = 204  # NO CONTENT, delete was successful
+
+
+            outcomes[file_key] = 204  # NO CONTENT, all versions deleted successfully
 
         except FileNotFoundError:
             logger.error(f"File to be deleted {file_key} not found for client {client_config.azure_client_id}")
