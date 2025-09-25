@@ -43,7 +43,7 @@ async def delete_files(
             # List all versions of the object
             versions = s3_service.list_file_versions(client_config, file_key)
             
-            if not versions:
+            if len(versions) < 1:
                 logger.warning(f"No versions found for {file_key}")
                 outcomes[file_key] = 404
                 continue
@@ -51,6 +51,11 @@ async def delete_files(
             # Delete each version
             for version in versions:
                 version_id = version.get("VersionId")
+
+                if not version_id:
+                    logger.error(f"Missing VersionId for file {file_key}")
+                    raise RuntimeError(f"Missing VersionId for file {file_key}")
+
                 try:
                     logger.info(f"Attempting to delete version with versionId {version_id}")
                     s3_service.delete_file_version(client_config, file_key, version_id)
