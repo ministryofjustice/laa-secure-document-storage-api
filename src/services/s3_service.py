@@ -198,7 +198,7 @@ def list_file_versions(client: str | ClientConfig, file_name: str):
 
 def delete_file_version(client: str | ClientConfig, file_name: str, version_id: str):
     s3_service = S3Service.get_instance(client)
-    return s3_service.delete_file_version(file_name, version_id)
+    return s3_service.delete_object_version(file_name, version_id)
 
 
 class S3ServiceStatusReporter(StatusReporter):
