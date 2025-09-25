@@ -107,24 +107,45 @@ class S3Service:
         except Exception as e:
             logger.error(f"{e.__class__.__name__} uploading file to S3: {str(e)}")
             raise e
+   
+    def list_object_versions(self, file_key):
+            try:
+                response = self.s3_client.list_object_versions(
+                    Bucket=self.client_config.bucket_name,
+                    Prefix=file_key
+                )
+                return response.get('Versions', [])
+            except ClientError as e:
+                raise RuntimeError(f"Failed to list versions for {file_key}: {e}")
 
-    def delete_file_obj(self, filename: str):
+    def delete_file_version(self, filename: str, version_id: str):
         try:
-            logger.debug(f"Attempting to delete file {filename} from S3 bucket {self.client_config.bucket_name}")
-            self.s3_client.head_object(Bucket=self.client_config.bucket_name, Key=filename)
+            logger.debug(
+                f"Attempting to delete version {version_id} of file {filename} from S3 bucket {self.client_config.bucket_name}"
+            )
             self.s3_client.delete_object(
                 Bucket=self.client_config.bucket_name,
                 Key=filename,
+                VersionId=version_id
             )
-            logger.info(f"File {filename} successfully deleted from bucket {self.client_config.bucket_name}")
+            logger.info(
+                f"Version {version_id} of file {filename} successfully deleted from bucket {self.client_config.bucket_name}"
+            )
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "")
             if error_code == "NoSuchKey" or error_code == "404":
-                logger.warning(f"File {filename} not found in bucket {self.client_config.bucket_name}")
-                raise FileNotFoundError(f"File {filename} not found in bucket {self.client_config.bucket_name}")
+                logger.warning(
+                    f"Version {version_id} of file {filename} not found in bucket {self.client_config.bucket_name}"
+                )
+                raise FileNotFoundError(
+                    f"Version {version_id} of file {filename} not found in bucket {self.client_config.bucket_name}"
+                )
             else:
-                logger.error(f"{e.__class__.__name__} deleting file from S3: {str(e)}")
+                logger.error(
+                    f"{e.__class__.__name__} deleting version {version_id} of file {filename} from S3: {str(e)}"
+                )
                 raise
+
 
     def file_exists_in_bucket(self, key: str) -> bool:
         try:
