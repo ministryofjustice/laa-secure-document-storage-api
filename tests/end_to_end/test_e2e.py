@@ -1,10 +1,11 @@
 import os
 import pytest
-from dotenv import load_dotenv
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
-from tests.end_to_end.e2e_helpers import TokenManager, UploadFileData
-from tests.end_to_end.e2e_helpers import read_postman_env_file
+from tests.end_to_end.e2e_helpers import UploadFileData
+from tests.end_to_end.e2e_helpers import get_token_manager
+from tests.end_to_end.e2e_helpers import get_host_url
+from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
 from tests.end_to_end.e2e_helpers import post_a_file
 
@@ -12,6 +13,8 @@ from tests.end_to_end.e2e_helpers import post_a_file
 This file is for e2e tests that require an actual SDS application to run against.
 They all should be decorated with custom marker, @pytest.mark.e2e, to enable them
 to be run separately from pytest unit tests.
+
+* These tests mainly replicate our Postman tests but with a few differences *
 
 Manual test execution for e2e only or excluding e2e:
     `pipenv run pytest -m e2e` - to run e2e tests only
@@ -24,19 +27,9 @@ Environment Variables
     TOKEN_URL - optional, defaults to value in Postman/SDSLocal.postman_environment.json file
 """
 
-
-postman_env_details = read_postman_env_file()
-postman_token_url = postman_env_details.get("AzureTokenUrl")
-
-load_dotenv()
-HOST_URL = os.getenv('HOST_URL', 'http://127.0.0.1:8000')
-token_getter = TokenManager(client_id=os.getenv('CLIENT_ID'),
-                            client_secret=os.getenv('CLIENT_SECRET'),
-                            token_url=os.getenv('TOKEN_URL', postman_token_url)
-                            )
-
-# Note the value is a str, not dict, and the single/double quotes need to be this particular way
-UPLOAD_BODY = {"body": '{"bucketName": "sds-local"}'}
+HOST_URL = get_host_url()
+UPLOAD_BODY = get_upload_body()
+token_getter = get_token_manager()
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -60,7 +53,7 @@ def setup_and_teardown_test_files():
 @pytest.mark.e2e
 def test_token_can_be_retrieved():
     "Establish that token retrieval is working"
-    token_url = os.getenv('TOKEN_URL', postman_token_url)
+    token_url = os.getenv('TOKEN_URL', token_getter.token_url)
     params = {'client_id': os.getenv('CLIENT_ID'),
               'client_secret': os.getenv('CLIENT_SECRET'),
               'scope': 'api://laa-sds-local/.default',
@@ -75,7 +68,7 @@ def test_token_can_be_retrieved():
 def test_no_token_when_invalid_scope_provided():
     "Alternative to Postman 'invalid scope token' test"
     invalid_scope = 'api://laa-sds-local/default'
-    token_url = os.getenv('TOKEN_URL', postman_token_url)
+    token_url = os.getenv('TOKEN_URL', token_getter.token_url)
     params = {'client_id': os.getenv('CLIENT_ID'),
               'client_secret': os.getenv('CLIENT_SECRET'),
               'scope': invalid_scope,

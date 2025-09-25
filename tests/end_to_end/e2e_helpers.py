@@ -1,12 +1,19 @@
 import mimetypes
 import time
 import json
+import os
+from dotenv import load_dotenv
+from typing import Any
+import boto3
 import httpx as client
+
 
 """
 Everything here is intended to support end-to-end tests.
 This is not application code.
 """
+
+load_dotenv()
 
 
 class TokenManager:
@@ -74,6 +81,44 @@ def get_mimetype(filename: str) -> str:
     return mimetype
 
 
+class LocalS3:
+    """
+    Intended to enable independent checks of S3 content to support e2e tests.
+    Created to work with Localstack S3 but should work with actual AWS
+    as long as the environment variables are set appropriately. The
+    default environment values within this class are sufficient for our Localstack.
+
+    Could use SDS application's own S3 service to do the same but this:
+    (a) Gives independence, so e2e tests are not dependent on application code
+    (b) Is deliberately shorter to be easier to understand
+    (c) Has built-in mocking
+    """
+    def __init__(self, bucket_name: str = "sds-local", mocking_enabled=False):
+        """
+        mocking_enabled - this flag causes the check_file_exists method to return
+        a mock value. This is for circumstances in which actual S3 access is not
+        wanted or possble.
+        """
+        self.client = boto3.client(
+            's3',
+            region_name=os.getenv('AWS_REGION', 'eu-west-2'),
+            aws_access_key_id=os.getenv('AWS_KEY_ID', ''),
+            aws_secret_access_key=os.getenv('AWS_KEY', ''),
+            endpoint_url=os.getenv('AWS_ENDPOINT_URL', 'http://localhost:4566')
+            )
+        self.bucket_name = bucket_name
+        self.mocking_enabled = mocking_enabled
+
+    def check_file_exists(self, key: str, mock_result: Any = "") -> bool:
+        if self.mocking_enabled:
+            return mock_result
+        response = self.client.list_objects_v2(Bucket=self.bucket_name, Prefix=key)
+        for obj in response.get('Contents', []):
+            if obj['Key'] == key:
+                return True
+        return False
+
+
 def make_unique_name(original_name: str) -> str:
     time.sleep(0.001)
     return f"{time.time()}_{original_name}"
@@ -114,3 +159,20 @@ def read_postman_env_file(postman_environment_json_file: str
             break
 
     return environment_info
+
+
+def get_token_manager() -> TokenManager:
+    postman_env_details = read_postman_env_file()
+    postman_token_url = postman_env_details.get("AzureTokenUrl")
+    return TokenManager(client_id=os.getenv('CLIENT_ID'),
+                        client_secret=os.getenv('CLIENT_SECRET'),
+                        token_url=os.getenv('TOKEN_URL', postman_token_url)
+                        )
+
+
+def get_host_url() -> str:
+    return os.getenv('HOST_URL', 'http://127.0.0.1:8000')
+
+
+def get_upload_body() -> dict[str, dict[str, str]]:
+    return {"body": '{"bucketName": "sds-local"}'}
