@@ -5,6 +5,7 @@ from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 import structlog
 from datetime import datetime
+from typing import Optional
 
 from src.models.status_report import ServiceObservations, Category
 from src.utils.operation_types import OperationType
@@ -51,7 +52,7 @@ class AuditService:
         return dynamodb_client
 
 
-def put_item(service_id: str, file_id: str, operation: OperationType):
+def put_item(service_id: str, file_id: str, operation: OperationType, version_id: Optional[str] = None):
     auditDb = AuditService.get_instance()
     dynamodb_resource = auditDb.dynamodb_client
     table = dynamodb_resource.Table(os.getenv('AUDIT_TABLE'))
@@ -84,9 +85,12 @@ def put_item(service_id: str, file_id: str, operation: OperationType):
 
     else:
         logger.debug(f'Item with service_id={service_id}, file_id={file_id} found. Updating operation_history.')
+        entry = {'OPERATION_TYPE': operation.name, 'OPERATION_TIME': datetime.now().isoformat()}
+        if version_id:
+            entry['VERSION_ID'] == version_id
         item = response.get("Item")
         operation_history = item['operation_history']
-        operation_history.append({'OPERATION_TYPE': operation.name, 'OPERATION_TIME': datetime.now().isoformat()})
+        operation_history.append(entry)
         item['operation_history'] = operation_history
         item["last_updated_on"] = datetime.now().isoformat()
 
