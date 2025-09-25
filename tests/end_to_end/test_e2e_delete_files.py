@@ -152,7 +152,7 @@ def test_all_versions_of_file_are_deleted():
     # Assert that all versions exist in bucket
     s3_client = LocalS3(mocking_enabled=False)
     versions = s3_client.list_versions(new_filename)
-    assert len(versions) == 3, f"Expected 3 versions, but found {len(remaining_versions)}"
+    assert len(versions) == 3, f"Expected 3 versions, but found {len(versions)}"
     # Call delete_files endpoint
     params = {"file_keys": [new_filename]}
     _ = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)

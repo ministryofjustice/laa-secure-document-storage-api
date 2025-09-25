@@ -24,8 +24,7 @@ def test_delete_files_permission_denied(test_client):
 def test_delete_files_missing_file(test_client, audit_service_mock):
     file_key = 'test_file.md'
 
-    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock:
 
         list_versions_mock.return_value = []
 
@@ -38,8 +37,7 @@ def test_delete_files_missing_file(test_client, audit_service_mock):
 def test_delete_files_unexpected_error(test_client, audit_service_mock):
     file_key = 'test_file.md'
 
-    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock:
 
         list_versions_mock.side_effect = RuntimeError("Unexpected failure")
 
@@ -110,7 +108,7 @@ def test_delete_files_partial_version_failure(test_client, audit_service_mock):
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
          patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
-    
+
         list_versions_mock.return_value = [{"VersionId": "v1"}, {"VersionId": "v2"}]
         delete_version_mock.side_effect = [True, RuntimeError("Failed to delete v2")]
 

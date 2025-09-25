@@ -7,7 +7,6 @@ from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
-from tests.end_to_end.e2e_helpers import post_a_file
 
 """
 This file is for e2e tests that require an actual SDS application to run against.

@@ -209,7 +209,6 @@ def test_delete_object_version_unexpected_error(s3_service, mocker):
     assert "unexpected failure" in str(exc_info.value).lower()
 
 
-
 @patch('src.services.s3_service.S3Service.get_s3_client')
 def test_status_reporter_success(mock_client, mocker):
     # Success is counter-intuitive due to the way the check is implemented:

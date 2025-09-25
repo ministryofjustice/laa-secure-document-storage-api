@@ -42,12 +42,12 @@ async def delete_files(
         try:
             # List all versions of the object
             versions = s3_service.list_file_versions(client_config, file_key)
-            
+
             if len(versions) < 1:
                 logger.warning(f"No versions found for {file_key}")
                 outcomes[file_key] = 404
                 continue
-            
+
             # Delete each version
             for version in versions:
                 version_id = version.get("VersionId")
@@ -63,12 +63,10 @@ async def delete_files(
                         client_config.azure_display_name, file_key, OperationType.DELETE
                     )
                     logger.info(f"Deleted version {version_id} of file {file_key}")
-                
+
                 except Exception as e:
                     logger.error(f"Failed to delete version {version_id} of {file_key}: {e}")
                     raise e  # Bubble up to outer exception handler
-
-
 
             outcomes[file_key] = 204  # NO CONTENT, all versions deleted successfully
 

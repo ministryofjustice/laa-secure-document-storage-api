@@ -107,29 +107,32 @@ class S3Service:
         except Exception as e:
             logger.error(f"{e.__class__.__name__} uploading file to S3: {str(e)}")
             raise e
-   
+
     def list_object_versions(self, file_key):
-            try:
-                response = self.s3_client.list_object_versions(
-                    Bucket=self.client_config.bucket_name,
-                    Prefix=file_key
-                )
-                return response.get('Versions', [])
-            except ClientError as e:
-                raise RuntimeError(f"Failed to list versions for {file_key}: {e}")
+        try:
+            response = self.s3_client.list_object_versions(
+                Bucket=self.client_config.bucket_name,
+                Prefix=file_key
+            )
+            return response.get('Versions', [])
+        except ClientError as e:
+            raise RuntimeError(f"Failed to list versions for {file_key}: {e}")
 
     def delete_object_version(self, filename: str, version_id: str):
         try:
             logger.debug(
-                f"Attempting to delete version {version_id} of file {filename} from S3 bucket {self.client_config.bucket_name}"
+                f"Attempting to delete version {version_id} of file {filename} "
+                f"from S3 bucket {self.client_config.bucket_name}"
             )
+
             self.s3_client.delete_object(
                 Bucket=self.client_config.bucket_name,
                 Key=filename,
                 VersionId=version_id
             )
             logger.info(
-                f"Version {version_id} of file {filename} successfully deleted from bucket {self.client_config.bucket_name}"
+                f"Version {version_id} of file {filename} "
+                f"successfully deleted from bucket {self.client_config.bucket_name}"
             )
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "")
@@ -145,7 +148,6 @@ class S3Service:
                     f"{e.__class__.__name__} deleting version {version_id} of file {filename} from S3: {str(e)}"
                 )
                 raise
-
 
     def file_exists_in_bucket(self, key: str) -> bool:
         try:
@@ -195,6 +197,7 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str,
 def list_file_versions(client: str | ClientConfig, file_name: str):
     s3_service = S3Service.get_instance(client)
     return s3_service.list_object_versions(file_name)
+
 
 def delete_file_version(client: str | ClientConfig, file_name: str, version_id: str):
     s3_service = S3Service.get_instance(client)
