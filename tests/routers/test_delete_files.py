@@ -21,7 +21,7 @@ def test_delete_files_permission_denied(test_client):
         assert response.status_code == 403
 
 
-def test_delete_files_missing_file(test_client, audit_service_mock):
+def test_delete_files_missing_file(test_client):
     file_key = 'test_file.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock:
@@ -34,7 +34,7 @@ def test_delete_files_missing_file(test_client, audit_service_mock):
         assert response.json()[file_key] == 404
 
 
-def test_delete_files_unexpected_error(test_client, audit_service_mock):
+def test_delete_files_unexpected_error(test_client):
     file_key = 'test_file.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock:
@@ -47,7 +47,7 @@ def test_delete_files_unexpected_error(test_client, audit_service_mock):
         assert response.json()[file_key] == 500
 
 
-def test_delete_files_single_key(test_client, audit_service_mock):
+def test_delete_files_single_key(test_client):
     file_key = 'test_file.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
@@ -62,7 +62,7 @@ def test_delete_files_single_key(test_client, audit_service_mock):
         assert response.json()[file_key] == 204
 
 
-def test_delete_files_multiple_keys(test_client, audit_service_mock):
+def test_delete_files_multiple_keys(test_client):
     file_a = 'test_file_a.md'
     file_b = 'test_file_b.md'
 
@@ -79,7 +79,7 @@ def test_delete_files_multiple_keys(test_client, audit_service_mock):
             assert response.json()[file_key] == 204
 
 
-def test_delete_files_multiple_status(test_client, audit_service_mock):
+def test_delete_files_multiple_status(test_client):
     file_a = 'file_a.md'
     file_b = 'file_b.md'
     file_c = 'file_c.md'
@@ -103,7 +103,7 @@ def test_delete_files_multiple_status(test_client, audit_service_mock):
         assert outcomes[file_c] == 500
 
 
-def test_delete_files_partial_version_failure(test_client, audit_service_mock):
+def test_delete_files_partial_version_failure(test_client):
     file_a = 'file_a.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
@@ -119,7 +119,7 @@ def test_delete_files_partial_version_failure(test_client, audit_service_mock):
         assert outcomes[file_a] == 500
 
 
-def test_delete_files_missing_version_id(test_client, audit_service_mock):
+def test_delete_files_missing_version_id(test_client):
     file_key = 'file_with_bad_version.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
