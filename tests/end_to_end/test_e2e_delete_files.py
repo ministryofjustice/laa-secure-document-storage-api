@@ -32,8 +32,8 @@ HOST_URL = get_host_url()
 UPLOAD_BODY = get_upload_body()
 token_getter = get_token_manager()
 # Set to return genuine S3 responses when HOST is local ("http://127.0.0.1:8000")
-# otherwise s3_client.check_file_exists returns a mock value. This is to save on
-# having to set S3 credentials for every environment.
+# otherwise s3_client.check_file_exists & s3_client.list_versions return mock values. 
+# This is to save on having to set S3 credentials for every environment.
 if HOST_URL == "http://127.0.0.1:8000":
     s3_client = LocalS3(mocking_enabled=False)
 else:
@@ -146,16 +146,15 @@ def test_all_versions_of_file_are_deleted():
     headers = token_getter.get_headers()
     # Upload multiple versions of a file to be deleted
     new_filename = make_unique_name("file_to_be_deleted.txt")
-    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
-    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
-    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
-    # Assert that all versions exist in bucket
-    s3_client = LocalS3(mocking_enabled=False)
-    versions = s3_client.list_versions(new_filename)
+    for _ in range(3):
+        post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
+    # Use global s3_client that adapts to environment to assert that all versions exist in bucket
+    mock_versions = [f"{new_filename}_v{i}" for i in range(1, 4)]
+    versions = s3_client.list_versions(new_filename, mock_keys=mock_versions if s3_client.mocking_enabled else None)
     assert len(versions) == 3, f"Expected 3 versions, but found {len(versions)}"
     # Call delete_files endpoint
     params = {"file_keys": [new_filename]}
-    _ = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
-    # Assert that all versions are now gone
-    remaining_versions = s3_client.list_versions(new_filename)
+    client.delete(f"{HOST_URL}/delete_files", headers=headers, params=params)
+    # Check that all versions are deleted
+    remaining_versions = s3_client.list_versions(new_filename, mock_keys=[new_filename] if s3_client.mocking_enabled else None)
     assert len(remaining_versions) == 0, f"Expected no versions, but found {len(remaining_versions)}"

@@ -118,9 +118,10 @@ class LocalS3:
                 return True
         return False
 
-    def list_versions(self, key: str, mock_result: Any = "") -> list:
+    def list_versions(self, key: str, mock_keys: list[str] = None) -> list[str]:
         if self.mocking_enabled:
-            return mock_result
+            # Return mock version IDs if mocking is enabled
+            return mock_keys or []
         response = self.client.list_object_versions(
             Bucket=self.bucket_name,
             Prefix=key
