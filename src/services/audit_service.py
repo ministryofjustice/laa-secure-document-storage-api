@@ -87,7 +87,7 @@ def put_item(service_id: str, file_id: str, operation: OperationType, version_id
         logger.debug(f'Item with service_id={service_id}, file_id={file_id} found. Updating operation_history.')
         entry = {'OPERATION_TYPE': operation.name, 'OPERATION_TIME': datetime.now().isoformat()}
         if version_id:
-            entry['VERSION_ID'] == version_id
+            entry['VERSION_ID'] = version_id
         item = response.get("Item")
         operation_history = item['operation_history']
         operation_history.append(entry)
