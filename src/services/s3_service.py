@@ -187,13 +187,6 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str,
     return True
 
 
-# def delete_file(client: str | ClientConfig, file_name: str):
-#     s3_service = S3Service.get_instance(client)
-#     s3_service.delete_file_obj(file_name)
-
-#     return True
-
-
 def list_file_versions(client: str | ClientConfig, file_name: str):
     s3_service = S3Service.get_instance(client)
     return s3_service.list_object_versions(file_name)
