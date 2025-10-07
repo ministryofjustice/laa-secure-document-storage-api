@@ -50,8 +50,11 @@ def test_delete_files_unexpected_error(test_client):
 def test_delete_files_single_key(test_client):
     file_key = 'test_file.md'
 
-    with patch("src.services.s3_service.list_file_versions", return_value=[{"VersionId": "v1"}]), \
-         patch("src.services.s3_service.delete_file_version", return_value=True):
+    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
+         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+
+        list_versions_mock.return_value = [{"VersionId": "v1"}]
+        delete_version_mock.return_value = True
 
         response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
@@ -63,8 +66,13 @@ def test_delete_files_multiple_keys(test_client):
     file_a = 'test_file_a.md'
     file_b = 'test_file_b.md'
 
-    with patch("src.services.s3_service.list_file_versions", return_value=[{"VersionId": "v1"}]), \
-         patch("src.services.s3_service.delete_file_version", return_value=True):
+    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
+         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+
+        list_versions_mock.return_value = [{"VersionId": "v1"}]
+        delete_version_mock.return_value = True
+    # with patch("src.services.s3_service.list_file_versions", return_value=[{"VersionId": "v1"}]), \
+    #      patch("src.services.s3_service.delete_file_version", return_value=True):
 
         response = test_client.delete(f'/delete_files?file_keys={file_a}&file_keys={file_b}')
 
@@ -79,13 +87,14 @@ def test_delete_files_multiple_status(test_client):
     file_c = 'file_c.md'
 
     with patch("src.services.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.services.s3_service.delete_file_version", return_value=True):
+         patch("src.services.s3_service.delete_file_version") as delete_version_mock:
 
         list_versions_mock.side_effect = [
             [{"VersionId": "v1"}],  # file_a: success
             [],                     # file_b: not found
             RuntimeError("Simulated error")  # file_c: error
         ]
+        delete_version_mock.return_value = True
 
         response = test_client.delete(
             f'/delete_files?file_keys={file_a}&file_keys={file_b}&file_keys={file_c}'
