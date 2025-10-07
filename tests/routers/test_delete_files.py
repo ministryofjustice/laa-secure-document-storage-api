@@ -47,23 +47,6 @@ def test_delete_files_unexpected_error(test_client):
         assert response.json()[file_key] == 500
 
 
-# def test_delete_files_single_key(test_client):
-#     file_key = 'test_file.md'
-
-#     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-#          patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
-
-#         list_versions_mock.return_value = [{"VersionId": "v1"}]
-#         delete_version_mock.return_value = True
-
-#         response = test_client.delete(f'/delete_files?file_keys={file_key}')
-
-#         assert response.status_code == 202
-#         assert response.json()[file_key] == 204
-
-
-from unittest.mock import patch, MagicMock
-
 def test_delete_files_single_key(test_client):
     file_key = 'test_file.md'
 
@@ -77,11 +60,11 @@ def test_delete_files_single_key(test_client):
         mock_s3_instance.return_value = mock_s3
         mock_s3.list_object_versions.return_value = [{"VersionId": "v1"}]
         mock_s3.delete_object.return_value = {}
-        
+
         # Mock list_file_versions and delete_file_version
         list_versions_mock.return_value = [{"VersionId": "v1"}]
         delete_version_mock.return_value = True
-        
+
         # Mock audit service
         mock_audit = MagicMock()
         mock_audit_instance.return_value = mock_audit
@@ -94,9 +77,6 @@ def test_delete_files_single_key(test_client):
         assert response.status_code == 202
         assert response.json()[file_key] == 204
 
-
-
-from unittest.mock import patch, MagicMock
 
 def test_delete_files_multiple_keys(test_client):
     file_a = 'test_file_a.md'
@@ -130,8 +110,6 @@ def test_delete_files_multiple_keys(test_client):
         for file_key in [file_a, file_b]:
             assert response.json()[file_key] == 204
 
-
-from unittest.mock import patch, MagicMock
 
 def test_delete_files_multiple_status(test_client):
     file_a = 'file_a.md'
