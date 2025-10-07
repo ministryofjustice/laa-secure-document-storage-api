@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from fastapi import HTTPException
 
 
@@ -50,13 +50,8 @@ def test_delete_files_unexpected_error(test_client):
 def test_delete_files_single_key(test_client):
     file_key = 'test_file.md'
 
-    mock_s3_service = MagicMock()
-    mock_s3_service.delete_object_version.return_value = True
-
-    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.services.s3_service.S3Service.get_instance", return_value=mock_s3_service):
-
-        list_versions_mock.return_value = [{"VersionId": "v1"}]
+    with patch("src.services.s3_service.list_file_versions", return_value=[{"VersionId": "v1"}]), \
+         patch("src.services.s3_service.delete_file_version", return_value=True):
 
         response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
@@ -68,13 +63,8 @@ def test_delete_files_multiple_keys(test_client):
     file_a = 'test_file_a.md'
     file_b = 'test_file_b.md'
 
-    mock_s3_service = MagicMock()
-    mock_s3_service.delete_object_version.return_value = True
-
-    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.services.s3_service.S3Service.get_instance", return_value=mock_s3_service):
-
-        list_versions_mock.return_value = [{"VersionId": "v1"}]
+    with patch("src.services.s3_service.list_file_versions", return_value=[{"VersionId": "v1"}]), \
+         patch("src.services.s3_service.delete_file_version", return_value=True):
 
         response = test_client.delete(f'/delete_files?file_keys={file_a}&file_keys={file_b}')
 
@@ -88,19 +78,18 @@ def test_delete_files_multiple_status(test_client):
     file_b = 'file_b.md'
     file_c = 'file_c.md'
 
-    mock_s3_service = MagicMock()
-    mock_s3_service.delete_object_version.return_value = True
-
-    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.services.s3_service.S3Service.get_instance", return_value=mock_s3_service):
+    with patch("src.services.s3_service.list_file_versions") as list_versions_mock, \
+         patch("src.services.s3_service.delete_file_version", return_value=True):
 
         list_versions_mock.side_effect = [
             [{"VersionId": "v1"}],  # file_a: success
             [],                     # file_b: not found
-            RuntimeError()          # file_c: error
+            RuntimeError("Simulated error")  # file_c: error
         ]
 
-        response = test_client.delete(f'/delete_files?file_keys={file_a}&file_keys={file_b}&file_keys={file_c}')
+        response = test_client.delete(
+            f'/delete_files?file_keys={file_a}&file_keys={file_b}&file_keys={file_c}'
+        )
         outcomes = response.json()
 
         assert response.status_code == 202
