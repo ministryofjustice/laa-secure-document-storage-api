@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from fastapi import HTTPException
 
 
@@ -47,48 +47,108 @@ def test_delete_files_unexpected_error(test_client):
         assert response.json()[file_key] == 500
 
 
+# def test_delete_files_single_key(test_client):
+#     file_key = 'test_file.md'
+
+#     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
+#          patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+
+#         list_versions_mock.return_value = [{"VersionId": "v1"}]
+#         delete_version_mock.return_value = True
+
+#         response = test_client.delete(f'/delete_files?file_keys={file_key}')
+
+#         assert response.status_code == 202
+#         assert response.json()[file_key] == 204
+
+
+from unittest.mock import patch, MagicMock
+
 def test_delete_files_single_key(test_client):
     file_key = 'test_file.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock, \
+         patch("src.routers.delete_files.s3_service.S3Service.get_instance") as mock_s3_instance, \
+         patch("src.routers.delete_files.audit_service.AuditService.get_instance") as mock_audit_instance:
 
+        # Mock S3Service
+        mock_s3 = MagicMock()
+        mock_s3_instance.return_value = mock_s3
+        mock_s3.list_object_versions.return_value = [{"VersionId": "v1"}]
+        mock_s3.delete_object.return_value = {}
+        
+        # Mock list_file_versions and delete_file_version
         list_versions_mock.return_value = [{"VersionId": "v1"}]
         delete_version_mock.return_value = True
+        
+        # Mock audit service
+        mock_audit = MagicMock()
+        mock_audit_instance.return_value = mock_audit
+        mock_audit.log_event.return_value = None
 
+        # Perform the DELETE request
         response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
+        # Assertions
         assert response.status_code == 202
         assert response.json()[file_key] == 204
 
+
+
+from unittest.mock import patch, MagicMock
 
 def test_delete_files_multiple_keys(test_client):
     file_a = 'test_file_a.md'
     file_b = 'test_file_b.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock, \
+         patch("src.routers.delete_files.s3_service.S3Service.get_instance") as mock_s3_instance, \
+         patch("src.routers.delete_files.audit_service.AuditService.get_instance") as mock_audit_instance:
 
+        # Mock S3Service
+        mock_s3 = MagicMock()
+        mock_s3_instance.return_value = mock_s3
+        mock_s3.list_object_versions.return_value = [{"VersionId": "v1"}]
+        mock_s3.delete_object.return_value = {}
+
+        # Mock list_file_versions and delete_file_version
         list_versions_mock.return_value = [{"VersionId": "v1"}]
         delete_version_mock.return_value = True
-    # with patch("src.services.s3_service.list_file_versions", return_value=[{"VersionId": "v1"}]), \
-    #      patch("src.services.s3_service.delete_file_version", return_value=True):
 
+        # Mock audit service
+        mock_audit = MagicMock()
+        mock_audit_instance.return_value = mock_audit
+        mock_audit.log_event.return_value = None
+
+        # Perform the DELETE request
         response = test_client.delete(f'/delete_files?file_keys={file_a}&file_keys={file_b}')
 
+        # Assertions
         assert response.status_code == 202
         for file_key in [file_a, file_b]:
             assert response.json()[file_key] == 204
 
+
+from unittest.mock import patch, MagicMock
 
 def test_delete_files_multiple_status(test_client):
     file_a = 'file_a.md'
     file_b = 'file_b.md'
     file_c = 'file_c.md'
 
-    with patch("src.services.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.services.s3_service.delete_file_version") as delete_version_mock:
+    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
+         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock, \
+         patch("src.routers.delete_files.s3_service.S3Service.get_instance") as mock_s3_instance, \
+         patch("src.routers.delete_files.audit_service.AuditService.get_instance") as mock_audit_instance:
 
+        # Mock S3Service
+        mock_s3 = MagicMock()
+        mock_s3_instance.return_value = mock_s3
+        mock_s3.delete_object.return_value = {}
+
+        # Mock list_file_versions with different outcomes
         list_versions_mock.side_effect = [
             [{"VersionId": "v1"}],  # file_a: success
             [],                     # file_b: not found
@@ -96,11 +156,18 @@ def test_delete_files_multiple_status(test_client):
         ]
         delete_version_mock.return_value = True
 
+        # Mock audit service
+        mock_audit = MagicMock()
+        mock_audit_instance.return_value = mock_audit
+        mock_audit.log_event.return_value = None
+
+        # Perform the DELETE request
         response = test_client.delete(
             f'/delete_files?file_keys={file_a}&file_keys={file_b}&file_keys={file_c}'
         )
         outcomes = response.json()
 
+        # Assertions
         assert response.status_code == 202
         assert outcomes[file_a] == 204
         assert outcomes[file_b] == 404
