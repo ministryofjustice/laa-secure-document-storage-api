@@ -118,6 +118,17 @@ class LocalS3:
                 return True
         return False
 
+    def list_versions(self, key: str, mock_keys: list[str] = None) -> list[str]:
+        if self.mocking_enabled:
+            # Return mock version IDs if mocking is enabled
+            return mock_keys or []
+        response = self.client.list_object_versions(
+            Bucket=self.bucket_name,
+            Prefix=key
+        )
+        versions = response.get("Versions", [])
+        return [v["VersionId"] for v in versions if v["Key"] == key]
+
 
 def make_unique_name(original_name: str) -> str:
     time.sleep(0.001)

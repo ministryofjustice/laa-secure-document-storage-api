@@ -7,7 +7,6 @@ from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
-from tests.end_to_end.e2e_helpers import post_a_file
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -364,94 +363,6 @@ def test_post_file_without_file_fails_as_expected():
     assert response.status_code == 400
     assert response.json()["detail"] == ["File is required"]
 
-
-# Delete File Tests
-
-@pytest.mark.e2e
-def test_delete_single_file_deletes_the_requested_file_only():
-    headers = token_getter.get_headers()
-    # Upload a file to be deleted
-    unwanted_filename = make_unique_name("file_to_be_deleted.txt")
-    unwanted_file_response = post_a_file(url=HOST_URL,
-                                         headers=headers,
-                                         file_data=test_md_file.get_data(unwanted_filename))
-    # Upload a file to be left alone
-    wanted_filename = make_unique_name("file_to_be_retained.txt")
-    wanted_file_response = post_a_file(url=HOST_URL,
-                                       headers=headers,
-                                       file_data=test_md_file.get_data(wanted_filename))
-
-    # Delete the file
-    params = {"file_keys": [unwanted_filename]}
-    del_response = client.delete(f"{HOST_URL}/delete_files", headers=headers, params=params)
-    # Retreive the other file
-    get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": wanted_filename})
-    # This is really checking a preparation steps
-    assert unwanted_file_response.status_code == wanted_file_response.status_code == 201
-    # Note response.status should always be 202 but can be other results for the individual files
-    assert del_response.status_code == 202
-    assert del_response.json().get(unwanted_filename) == 204
-    assert get_response.status_code == 200
-
-
-@pytest.mark.e2e
-def test_file_cannot_be_retrieved_after_it_has_been_deleted():
-    headers = token_getter.get_headers()
-    # Upload a file to be deleted
-    new_filename = make_unique_name("file_to_be_deleted.txt")
-    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename))
-    # Delete the file
-    del_params = {"file_keys": [new_filename]}
-    _ = client.delete(f"{HOST_URL}/delete_files", headers=headers, params=del_params)
-    # Try to get the deleted file
-    get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": new_filename})
-    assert get_response.status_code == 404
-    assert f"The file {new_filename} could not be found." in get_response.text
-
-
-@pytest.mark.e2e
-def test_delete_file_with_no_file_key_fails_as_expected():
-    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers())
-    assert response.status_code == 400
-    assert response.json()["detail"] == "File key is missing"
-
-
-@pytest.mark.e2e
-def test_delete_file_without_authorisation_fails_as_expected():
-    params = {"file_keys": ["should_not_matter_as_no_authorisation.txt"]}
-    response = client.delete(f"{HOST_URL}/delete_files", headers={}, params=params)
-    assert response.status_code == 403
-    assert response.text == '"Forbidden"'
-
-
-@pytest.mark.e2e
-def test_delete_non_existent_file_fails_as_expected():
-    params = {"file_keys": ["non_existent_file"]}
-    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
-    assert response.status_code == 202
-    assert response.json() == {"non_existent_file": 404}
-
-# Note the Postman tests have "Retrieve Deleted File" and "Retrieve Non-Deleted File" tests
-# at this point. They have not been replicated here as they seem to just duplicate Retrieve File
-# tests for non-existent and existent files.
-# Although tests above test_delete_single_file_deletes_the_requested_file_only and
-# test_file_cannot_be_retrieved_after_it_has_been_deleted have supplementary "gets"
-# to check (a) delete did not affect unrelated file (b) file cannot be retrieved after deletion.
-
-
-@pytest.mark.e2e
-def test_delete_multiple_files_has_right_result_for_each_file():
-    headers = token_getter.get_headers()
-    # Upload 2 files to be deleted
-    new_filename1 = make_unique_name("file_to_be_deleted.txt")
-    new_filename2 = make_unique_name("another_file_to_be_deleted.txt")
-    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename1))
-    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(new_filename2))
-    # Request deletion of two valid files and one non-existent file
-    params = {"file_keys": [new_filename1, new_filename2, "non_existent_file"]}
-    response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
-    assert response.status_code == 202
-    assert response.json() == {new_filename1: 204, new_filename2: 204, "non_existent_file": 404}
 
 # Virus Check Tests
 

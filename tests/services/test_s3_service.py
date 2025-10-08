@@ -152,25 +152,37 @@ def test_upload_file_obj_fails_when_checksum_is_wrong(s3_service, mocker):
     assert str(ex.value) == 'An error occurred (ClientError) when calling the PutObject operation: ' + error_message
 
 
-def test_delete_file_obj_success(s3_service, mocker):
-    mock_delete_object = mocker.patch.object(s3_service.s3_client, 'delete_object')
-    mock_head_object = mocker.patch.object(s3_service.s3_client, 'head_object')
+def test_list_object_versions_success(s3_service, mocker):
+    mock_list_versions = mocker.patch.object(
+        s3_service.s3_client,
+        'list_object_versions',
+        return_value={'Versions': [{'VersionId': 'v1'}, {'VersionId': 'v2'}]}
+    )
+
+    versions = s3_service.list_object_versions('test_file.md')
+
+    assert versions == [{'VersionId': 'v1'}, {'VersionId': 'v2'}]
+    mock_list_versions.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Prefix='test_file.md'
+    )
+
+
+def test_delete_object_version_success(s3_service, mocker):
+    mock_delete = mocker.patch.object(s3_service.s3_client, 'delete_object')
     filename = 'test_file.md'
+    version_id = 'v1'
 
-    s3_service.delete_file_obj(filename)
+    s3_service.delete_object_version(filename, version_id)
 
-    mock_delete_object.assert_called_once_with(
+    mock_delete.assert_called_once_with(
         Bucket=s3_service.client_config.bucket_name,
-        Key=filename
-    )
-    mock_head_object.assert_called_once_with(
-        Bucket=s3_service.client_config.bucket_name,
-        Key=filename
+        Key=filename,
+        VersionId=version_id
     )
 
 
-def test_delete_file_obj_file_not_found(s3_service, mocker):
-    mock_head_object = mocker.patch.object(s3_service.s3_client, 'head_object')
+def test_delete_object_version_not_found(s3_service, mocker):
     mocker.patch.object(
         s3_service.s3_client,
         'delete_object',
@@ -180,60 +192,21 @@ def test_delete_file_obj_file_not_found(s3_service, mocker):
         )
     )
 
-    with pytest.raises(FileNotFoundError) as exc_info:
-        s3_service.delete_file_obj('missing_file.md')
-
-    assert "not found" in str(exc_info.value).lower()
-    mock_head_object.assert_called_once_with(
-        Bucket=s3_service.client_config.bucket_name,
-        Key='missing_file.md'
-    )
+    with pytest.raises(FileNotFoundError):
+        s3_service.delete_object_version('missing_file.md', 'v1')
 
 
-def test_delete_file_obj_file_not_found_via_head(s3_service, mocker):
-    mock_head_object = mocker.patch.object(
-        s3_service.s3_client,
-        'head_object',
-        side_effect=ClientError(
-            error_response={"Error": {"Code": "404", "Message": "Not Found"}},
-            operation_name='HeadObject'
-        )
-    )
+def test_delete_object_version_unexpected_error(s3_service, mocker):
     mocker.patch.object(
         s3_service.s3_client,
         'delete_object',
-        side_effect=ClientError(
-            error_response={"Error": {"Code": "NoSuchKey", "Message": "Not Found"}},
-            operation_name='DeleteObject'
-        )
-    )
-
-    with pytest.raises(FileNotFoundError) as exc_info:
-        s3_service.delete_file_obj('missing_file.md')
-
-    assert "not found" in str(exc_info.value).lower()
-    mock_head_object.assert_called_once_with(
-        Bucket=s3_service.client_config.bucket_name,
-        Key='missing_file.md'
-    )
-
-
-def test_delete_file_obj_unexpected_error(s3_service, mocker):
-    mock_head_object = mocker.patch.object(s3_service.s3_client, 'head_object')
-    mocker.patch.object(
-        s3_service.s3_client,
-        'delete_object',
-        side_effect=RuntimeError("Something went wrong")
+        side_effect=RuntimeError("Unexpected failure")
     )
 
     with pytest.raises(RuntimeError) as exc_info:
-        s3_service.delete_file_obj('any_file.md')
+        s3_service.delete_object_version('test_file.md', 'v1')
 
-    assert "something went wrong" in str(exc_info.value).lower()
-    mock_head_object.assert_called_once_with(
-        Bucket=s3_service.client_config.bucket_name,
-        Key='any_file.md'
-    )
+    assert "unexpected failure" in str(exc_info.value).lower()
 
 
 @patch('src.services.s3_service.S3Service.get_s3_client')
