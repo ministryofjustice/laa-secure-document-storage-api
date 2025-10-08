@@ -156,7 +156,12 @@ def test_delete_files_partial_version_failure(test_client):
     file_a = 'file_a.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock, \
+         patch("src.routers.delete_files.audit_service.AuditService.get_instance") as mock_audit_instance:
+        
+        mock_audit = MagicMock()
+        mock_audit_instance.return_value = mock_audit
+        mock_audit.log_event.return_value = None
 
         list_versions_mock.return_value = [{"VersionId": "v1"}, {"VersionId": "v2"}]
         delete_version_mock.side_effect = [True, RuntimeError("Failed to delete v2")]
