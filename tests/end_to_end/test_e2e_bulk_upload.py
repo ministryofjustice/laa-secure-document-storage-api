@@ -57,8 +57,8 @@ def test_bulk_upload_works_with_files_payload_example():
 
     # Two types of success - 201 on initial save, 200 on update
     # Both included to cater for re-runs as this is a simple example with fixed filenames
-    successful_outcomes = [{'file1.txt': 201, 'file2.txt': 201, 'file3.txt': 201},
-                           {'file1.txt': 200, 'file2.txt': 200, 'file3.txt': 200}]
+    successful_outcomes = [{'file1.txt': [201], 'file2.txt': [201], 'file3.txt': [201]},
+                           {'file1.txt': [200], 'file2.txt': [200], 'file3.txt': [200]}]
 
     assert response.status_code == 202
     assert response.json() in successful_outcomes

@@ -19,29 +19,40 @@ async def bulk_upload(
     files: list[UploadFile],
     body: FileUpload = Depends(validate_json(FileUpload)),
     client_config: ClientConfig = Depends(client_config_middleware)
-    # Horrible formating below is to keep flake8 happy
+    # Ugly formating of line below is to keep flake8 happy
 ) -> dict:
     """
     Process a list of upload files.
-    Always return a 202 ACCEPTED response, with the body containing each filename and the individual
-    status code for the upload of that file:
-    * 200 if file created
-    * 201 if file updated
-    * 4xx if various validations fail
-    * 500 if an internal error occurred
+    Always return a 202 ACCEPTED status code, with the body containing each filename and the per-file
+    results.
+
+    Response body is structured as a dictionary with filenames as keys and values that are lists of
+    outcomes. This is because the same filename could be included more than once, so we need to cater
+    for multiple outcomes per filename, e.g.
+
+    {"file1.txt":[201],"file2.txt":[201,200],"...":["415: File extension not allowed"]}
+
+    This shows successful creation of file1.txt, creation and subsequent update of file2.txt, error
+    response from invalid filename "...".
+
+    status code summary:
+    * 201 if file created
+    * 200 if file updated
+    * 4xx if various validation fails
+    * 500 other unexpected error
     """
-    # Not included validation for empty file list because we get 422 error automatically
+    # Not included validation for empty files list because Fast API gives 422 error automatically
 
-    # Log total number of uploads requested to help trace large requests
-    logger.info(f'Uploading {len(files)} file(s)')
+    outcomes = {f.filename: [] for f in files}
 
-    outcomes = {}
-    for file in files:
-        logger.info(f"Attempting to upload file: {file.filename}")
-        if file.filename in outcomes:
-            logger.warning(f"File {file.filename} already loaded during same run.")
-        # Set default outcome
-        outcomes[file.filename] = 500  # SERVER ERROR, should always process all files
+    # Log number of files, number of filenames and if duplicates are present
+    logger.info(f'Uploading {len(files)} file(s) with {len(outcomes)} unique filenames')
+    if len(outcomes) < len(files):
+        logger.warning("Duplicate filnames present in the bulk load. Files with same name will be updated.")
+
+    for fi, file in enumerate(files):
+        logger.info(f"Attempting to upload file number {fi}: {file.filename}")
+
         try:
             # Upload file
             _, file_existed = await handle_file_upload_logic(
@@ -51,11 +62,11 @@ async def bulk_upload(
                 client_config=client_config,
                 request_type=RequestType.PUT)
 
-            outcomes[file.filename] = 200 if file_existed else 201
+            outcomes[file.filename].append(200 if file_existed else 201)
 
         except Exception as e:
-            msg = f"Unexpected error uploading {file.filename}: {e.__class__.__name__} - {str(e)}"
+            msg = f"Error uploading {file.filename}: {e.__class__.__name__} - {str(e)}"
             logger.exception(msg)
-            outcomes[file.filename] = str(e)
+            outcomes[file.filename].append(str(e))
 
     return JSONResponse(outcomes, status_code=202)
