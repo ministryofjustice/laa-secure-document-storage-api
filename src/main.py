@@ -27,6 +27,7 @@ from src.routers.save_or_update_file import router as save_or_update_file
 from src.routers.status import router as status
 from src.routers.virus_check_file import router as virus_check_file
 from src.routers.available_validators import router as available_validators
+from src.routers.bulk_upload import router as bulk_upload
 
 
 def add_correlation(
@@ -85,6 +86,7 @@ app.add_middleware(CorrelationIdMiddleware)
 app.include_router(retrieve_file)
 app.include_router(save_or_update_file)
 app.include_router(save_file)
+app.include_router(bulk_upload)
 app.include_router(delete_files)
 app.include_router(virus_check_file)
 
