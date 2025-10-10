@@ -22,19 +22,24 @@ async def bulk_upload(
 ) -> dict[str, BulkUploadFileResponse]:
     """
     Process a list of upload files.
-    Always return a 202 ACCEPTED status code, with the body containing each filename and the per-file
-    results.
+    Always return a 200 success status code, with the body containing result for each filename.
 
-    Response body is structured as a dictionary with filenames as keys and values that are lists of
-    outcomes. This is because the same filename could be included more than once, so we need to cater
-    for multiple outcomes per filename, e.g.
+    Response is a dictionary with filenames as keys and second dictionary with details of filename, positions in
+    supplied list, checksum and outcomes. This is to enable multiple outcomes when same file included more than once.
+    Also includes checksum from the most recent successful save, e.g:
 
-    {"file1.txt":[201],"file2.txt":[201,200],"...":["415: File extension not allowed"]}
+    ```
+    {"file1.txt":{"filename":"file1.txt","positions":[0],"checksum":"2248209fd84772fec1e4ddb7dc1c7647751c98abffd85c26c35ca44398dec82f","outcomes":[201]},
+     "file2.txt":{"filename":"file2.txt","positions":[1,2],"checksum":"718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a","outcomes":[201,200]},
+     "...":{"filename":"...","positions":[3],"checksum":null,"outcomes":["415: File extension not allowed"]}}
+     ```
 
-    This shows successful creation of file1.txt, creation and subsequent update of file2.txt, error
-    response from invalid filename "...".
+    This shows:
+    - `file1.txt` was included once, so saved with 201 outcome
+    - `file2.txt` was included twice, so was saved with 201 and 200 outcomes, and updated with checksum from last save
+    - `...` is invalid filename and so receives 415 error response.
 
-    status code summary:
+    Status code summary for outcomes:
     * 201 if file created
     * 200 if file updated
     * 4xx if various validation fails
@@ -42,15 +47,17 @@ async def bulk_upload(
     """
     # Not included validation for empty files list because Fast API gives 422 error automatically
 
-    results = {f.filename: BulkUploadFileResponse(filename=f.filename, outcomes=[]) for f in files}
+    # Create dictionary for storing results for each filename supplied
+    results = {f.filename: BulkUploadFileResponse(filename=f.filename, positions=[], outcomes=[], ) for f in files}
 
-    # Log number of files, number of filenames and if duplicates are present
+    # Log number of files, number of filenames and if duplicate filenames are present
     logger.info(f'Uploading {len(files)} file(s) with {len(results)} unique filenames')
     if len(results) < len(files):
         logger.warning("Duplicate filnames present in the bulk load. Files with same name will be updated.")
 
     for fi, file in enumerate(files):
-        logger.info(f"Attempting to upload file number {fi}: {file.filename}")
+        logger.info(f"Attempting to upload file number {fi+1}: {file.filename}")
+        results[file.filename].positions.append(fi)
 
         try:
             # Upload file
