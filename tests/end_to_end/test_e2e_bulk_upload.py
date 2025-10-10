@@ -55,10 +55,19 @@ def test_bulk_upload_works_with_files_payload_example():
                           files=files,
                           data=UPLOAD_BODY)
 
-    # Two types of success - 201 on initial save, 200 on update
+    # Two types of expected success - 201 on initial save, 200 on update
     # Both included to cater for re-runs as this is a simple example with fixed filenames
-    successful_outcomes = [{'file1.txt': [201], 'file2.txt': [201], 'file3.txt': [201]},
-                           {'file1.txt': [200], 'file2.txt': [200], 'file3.txt': [200]}]
-
-    assert response.status_code == 202
+    expected_checksum = "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
+    successful_outcomes = [
+        # Save result
+        {'file1.txt': {"filename": "file1.txt", "checksum": expected_checksum, "outcomes": [201]},
+         'file2.txt': {"filename": "file2.txt", "checksum": expected_checksum, "outcomes": [201]},
+         'file3.txt': {"filename": "file3.txt", "checksum": expected_checksum, "outcomes": [201]}},
+        # Update result
+        {'file1.txt': {"filename": "file1.txt", "checksum": expected_checksum, "outcomes": [200]},
+         'file2.txt': {"filename": "file2.txt", "checksum": expected_checksum, "outcomes": [200]},
+         'file3.txt': {"filename": "file3.txt", "checksum": expected_checksum, "outcomes": [200]}
+         }
+        ]
+    assert response.status_code == 200
     assert response.json() in successful_outcomes

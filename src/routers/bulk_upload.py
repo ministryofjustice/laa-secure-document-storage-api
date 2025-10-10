@@ -1,11 +1,10 @@
 import structlog
 from fastapi import APIRouter, Depends, UploadFile, Request
-from starlette.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.validation.json_validator import validate_json
 from src.models.client_config import ClientConfig
-from src.models.file_upload import FileUpload
+from src.models.file_upload import FileUpload, BulkUploadFileResponse
 from src.utils.request_types import RequestType
 from src.handlers.file_upload_handler import handle_file_upload_logic
 
@@ -20,7 +19,7 @@ async def bulk_upload(
     body: FileUpload = Depends(validate_json(FileUpload)),
     client_config: ClientConfig = Depends(client_config_middleware)
     # Ugly formating of line below is to keep flake8 happy
-) -> dict:
+) -> dict[str, BulkUploadFileResponse]:
     """
     Process a list of upload files.
     Always return a 202 ACCEPTED status code, with the body containing each filename and the per-file
@@ -43,11 +42,11 @@ async def bulk_upload(
     """
     # Not included validation for empty files list because Fast API gives 422 error automatically
 
-    outcomes = {f.filename: [] for f in files}
+    results = {f.filename: BulkUploadFileResponse(filename=f.filename, outcomes=[]) for f in files}
 
     # Log number of files, number of filenames and if duplicates are present
-    logger.info(f'Uploading {len(files)} file(s) with {len(outcomes)} unique filenames')
-    if len(outcomes) < len(files):
+    logger.info(f'Uploading {len(files)} file(s) with {len(results)} unique filenames')
+    if len(results) < len(files):
         logger.warning("Duplicate filnames present in the bulk load. Files with same name will be updated.")
 
     for fi, file in enumerate(files):
@@ -55,18 +54,19 @@ async def bulk_upload(
 
         try:
             # Upload file
-            _, file_existed = await handle_file_upload_logic(
+            file_result, file_existed = await handle_file_upload_logic(
                 request=request,
                 file=file,
                 body=body,
                 client_config=client_config,
                 request_type=RequestType.PUT)
 
-            outcomes[file.filename].append(200 if file_existed else 201)
+            results[file.filename].outcomes.append(200 if file_existed else 201)
+            results[file.filename].checksum = file_result.get("checksum")
 
         except Exception as e:
             msg = f"Error uploading {file.filename}: {e.__class__.__name__} - {str(e)}"
             logger.exception(msg)
-            outcomes[file.filename].append(str(e))
+            results[file.filename].outcomes.append(str(e))
 
-    return JSONResponse(outcomes, status_code=202)
+    return results
