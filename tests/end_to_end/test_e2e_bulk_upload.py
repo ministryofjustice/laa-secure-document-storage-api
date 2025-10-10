@@ -5,7 +5,7 @@ from tests.end_to_end.e2e_helpers import UploadFileData
 from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
-# from tests.end_to_end.e2e_helpers import make_unique_name
+from tests.end_to_end.e2e_helpers import make_unique_name
 # from tests.end_to_end.e2e_helpers import post_a_file
 from tests.end_to_end.e2e_helpers import LocalS3
 
@@ -71,3 +71,22 @@ def test_bulk_upload_works_with_files_payload_example():
         ]
     assert response.status_code == 200
     assert response.json() in successful_outcomes
+
+
+@pytest.mark.e2e
+def test_bulk_upload():
+    new_filename = make_unique_name("test.txt")
+    files = [test_md_file.get_data_tuple(new_filename=new_filename)]
+
+    response = client.put(f"{HOST_URL}/bulk_upload",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
+
+    expected_result = {new_filename: {'filename': new_filename,
+                                      'positions': [0],
+                                      'checksum': '718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a',
+                                      'outcomes': [201]}}
+
+    assert response.status_code == 200
+    assert response.json() == expected_result
