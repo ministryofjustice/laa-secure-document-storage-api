@@ -1,5 +1,6 @@
 import abc
 import os
+import re
 from typing import Tuple, List
 
 from fastapi import UploadFile
@@ -178,15 +179,15 @@ class NoDirectoryPathInFilename(FileValidator):
 class NoWindowsVolumeInFilename(FileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:
         """
-        Validates that the filename does not contain Windows volume information.
+        Validates that the filename does not contain Windows volume information (e.g., C:\ or D:/).
 
-        Rejects filenames that include a drive letter followed by a colon (e.g., C:\ or D:/).
+        Rejects any substring matching a drive letter followed by a colon and slash or backslash.
         """
         filename = file_object.filename
 
-        # Check for patterns like "C:\" or "D:/"
-        if len(filename) >= 2 and filename[1] == ":" and filename[0].isalpha(): # Extend for volume info anywhere in filename?
-            return 400, "Filename must not contain Windows volume information (e.g., C:\\)"
+        # Regex matches patterns like C:\ or D:/ anywhere in the filename
+        if re.search(r"[A-Za-z]:[\\/]", filename):
+            return 400, "Filename must not contain Windows volume information (e.g., C:\\ or D:/)"
         return 200, ""
 
 
@@ -228,7 +229,3 @@ class NoUnacceptableCharactersInFilename(FileValidator):
             return 400, "Filename contains characters that are not allowed"
 
         return 200, ""
-
-
-
-    # class NonZeroFileSize(FileValidator):
