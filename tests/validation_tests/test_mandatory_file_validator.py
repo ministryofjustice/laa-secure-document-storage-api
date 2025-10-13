@@ -4,6 +4,7 @@ from src.validation.mandatory_file_validator import (
     NoWindowsVolumeInFilename,
     NoUrlInFilename,
     NoUnacceptableCharactersInFilename,
+    run_mandatory_validators
 )
 from .test_file_validator import make_uploadfile
 
@@ -37,3 +38,27 @@ def test_mandatory_file_validators(
     status, detail = validator.validate(file)
     assert status == expected_status, assert_msg
     assert detail == expected_detail, assert_msg
+
+
+def test_run_mandatory_validators_all_pass():
+    file = make_uploadfile(name="safe_filename.txt", content=b"dummy")
+    status, detail = run_mandatory_validators(file)
+    assert status == 200
+    assert detail == ""
+
+
+def test_run_mandatory_validators_one_fails():
+    file = make_uploadfile(name="bad|name.txt", content=b"dummy")
+    status, detail = run_mandatory_validators(file)
+    assert status == 400
+    assert detail == "Filename contains characters that are not allowed"
+
+
+def test_run_mandatory_validators_multiple_failures():
+    file = make_uploadfile(name="www.&.com", content=b"dummy")
+    status, detail = run_mandatory_validators(file)
+
+    # Expect the first failing validator to return its error
+    # Depending on subclass order, this will likely be NoUrlInFilename
+    assert status == 400
+    assert detail == "Filename must not contain URLs or web addresses"
