@@ -174,9 +174,19 @@ class NoDirectoryPathInFilename(FileValidator):
             return 400, "Filename must not contain directory path separators"
 
 
+class NoWindowsVolumeInFilename(FileValidator):
+    def validate(self, file_object, **kwargs) -> Tuple[int, str]:
+        """
+        Validates that the filename does not contain Windows volume information.
 
+        Rejects filenames that include a drive letter followed by a colon (e.g., C:\ or D:/).
+        """
+        filename = file_object.filename
 
-    # class NoWindowsVolumeInFilename(FileValidator):
+        # Check for patterns like "C:\" or "D:/"
+        if len(filename) >= 2 and filename[1] == ":" and filename[0].isalpha(): # Extend for volume info anywhere in filename?
+            return 400, "Filename must not contain Windows volume information (e.g., C:\\)"
+
     # class NoUrlInFilename(FileValidator):
     # class NoDirectoryPathInFilename(FileValidator):
     # class NoUnacceptableCharactersInFilename(FileValidator):
