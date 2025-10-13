@@ -22,11 +22,11 @@ async def bulk_upload(
 ) -> dict[str, BulkUploadFileResponse]:
     """
     Process a list of upload files. If the same filename is included more than once, it will be
-    updated when second and subsequent instances are reached.
+    updated when subsequent instances are reached.
 
     The response status code just indicates success/failure in the ability to process the supplied
-    files, not the sucess of each file operation, and should always be 200 unless there is an
-    unexpected error.
+    files, not the sucess of each file operation, and should always be 200 unless invalid file
+    details or unexpected error.
 
     Results for individual files are recorded in the response json which caters for
     multiple files and also having the same filename included more than once in the load.

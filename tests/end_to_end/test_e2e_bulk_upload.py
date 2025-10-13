@@ -30,10 +30,14 @@ def setup_and_teardown_test_files():
     Code before the "yield" is executed before the tests.
     Code after the "yield" is exected after the last test.
     """
-    global test_md_file
+    global test_md_file, virus_file, disallowed_file
     test_md_file = UploadFileData("Postman/test_file.md")
+    virus_file = UploadFileData("Postman/eicar.txt")
+    disallowed_file = UploadFileData("Postman/test_file.exe")
     yield
     test_md_file.close_file()
+    virus_file.close_file()
+    disallowed_file.close_file()
 
 
 @pytest.mark.e2e
@@ -78,19 +82,108 @@ def test_bulk_upload_works_with_files_payload_example():
 
 
 @pytest.mark.e2e
-def test_bulk_upload():
-    new_filename = make_unique_name("test.txt")
-    files = [test_md_file.get_data_tuple(new_filename=new_filename)]
+@pytest.mark.parametrize("file_count", [1, 2, 4, 8, 64])
+def test_bulk_upload_multiple_files_with_different_filenames(file_count):
+    expected_checksum = "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
+    files = []
+    expected_result = {}
+    for i in range(file_count):
+        # Construct files payload
+        new_filename = make_unique_name("test.txt")
+        files.append(('files', (new_filename, open('Postman/test_file.md', 'rb'), 'text/plain')))
+        # Add expected result
+        expected_result[new_filename] = {"filename": new_filename,
+                                         "positions": [i], "checksum": expected_checksum,
+                                         "outcomes": [{"status_code": 201, "detail": "saved"}]}
 
     response = client.put(f"{HOST_URL}/bulk_upload",
                           headers=token_getter.get_headers(),
                           files=files,
                           data=UPLOAD_BODY)
 
-    expected_result = {new_filename: {'filename': new_filename,
-                                      'positions': [0],
-                                      'checksum': '718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a',
-                                      'outcomes': [{"status_code": 201, "detail": "saved"}]}}
+    assert response.status_code == 200
+    assert response.json() == expected_result
+
+
+# This one was troublesome to setup - care needed to get expected result right
+@pytest.mark.e2e
+@pytest.mark.parametrize("file_count", [1, 2, 4, 8, 64])
+def test_bulk_upload_same_filename_multiple_times(file_count):
+    # Construct files payload
+    new_filename = make_unique_name("test.txt")
+    files = [('files', (new_filename, open('Postman/test_file.md', 'rb'), 'text/plain'))] * file_count
+    # Construct expected result - one filename with mulitple outcomes
+    expected_checksum = "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
+    expected_outcomes = [{"status_code": 201, "detail": "saved"}] + \
+        [{"status_code": 200, "detail": "updated"}] * (file_count-1)
+    expected_result = {new_filename: {"filename": new_filename,
+                                      "positions": list(range(file_count)),
+                                      "outcomes": expected_outcomes,
+                                      "checksum": expected_checksum
+                                      }
+                       }
+
+    response = client.put(f"{HOST_URL}/bulk_upload",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
 
     assert response.status_code == 200
     assert response.json() == expected_result
+
+
+@pytest.mark.e2e
+def test_bulk_upload_gives_expected_error_when_no_files_supplied():
+    response = client.put(f"{HOST_URL}/bulk_upload",
+                          headers=token_getter.get_headers(),
+                          files=[],
+                          data=UPLOAD_BODY)
+
+    expected_error = '{"detail":[{"type":"missing","loc":["body","files"],"msg":"Field required","input":null}]}'
+    assert response.status_code == 422
+    assert response.text == expected_error
+
+
+@pytest.mark.e2e
+def test_bulk_upload_with_invalid_files_returns_expected_errors():
+    expected_checksum = '718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a'
+    good_file1 = make_unique_name("good_file.txt")
+    good_file2 = make_unique_name("good_file.txt")
+    files = [
+        test_md_file.get_data_tuple(good_file1),  # Valid file
+        virus_file.get_data_tuple("virus_file.txt"),  # Virus
+        disallowed_file.get_data_tuple("bad_type.exe"),  # Bad mimetype
+        test_md_file.get_data_tuple("..."),  # Bad filename
+        test_md_file.get_data_tuple(good_file2),  # Another valid file
+        ]
+    response = client.put(f"{HOST_URL}/bulk_upload",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
+
+    response_details = response.json()
+    assert response.status_code == 200
+    # Asserting the whole result in one go would be a bit much - file-by-file easier to maintain
+    assert response_details[good_file1] == {'filename': good_file1,
+                                            'positions': [0],
+                                            'outcomes': [{'status_code': 201, 'detail': 'saved'}],
+                                            'checksum': expected_checksum}
+    assert response_details["virus_file.txt"] == {'filename': 'virus_file.txt',
+                                                  'positions': [1],
+                                                  'outcomes': [{'status_code': 400, 'detail': ['Virus Found']}],
+                                                  'checksum': None}  # likely auto-convert of json null to Python None
+    assert response_details["bad_type.exe"] == {'filename': 'bad_type.exe',
+                                                'positions': [2],
+                                                'outcomes': [{'status_code': 415,
+                                                              'detail': 'File mimetype not allowed'}],
+                                                'checksum': None}  # likely auto-convert of json null to Python None
+    assert response_details["..."] == {'filename': '...',
+                                       'positions': [3],
+                                       'outcomes': [{'status_code': 415, 'detail': 'File extension not allowed'}],
+                                       'checksum': None}  # likely auto-convert of json null to Python None
+    assert response_details[good_file2] == {'filename': good_file2,
+                                            'positions': [4],
+                                            'outcomes': [{'status_code': 201, 'detail': 'saved'}],
+                                            'checksum': expected_checksum}
+    # Check no sneaky extra results
+    assert len(response_details) == 5
