@@ -159,3 +159,25 @@ class AllowedMimetypes(FileValidator):
             logger.error(f"File mimetype {file_object.content_type} not in allowed mimetypes {content_types}")
             return 415, "File mimetype not allowed"
         return 200, ""
+
+
+class NoDirectoryPathInFilename(FileValidator):
+    def validate(self, file_object, **kwargs) -> Tuple[int, str]:
+        """
+        Validates that the filename does not contain directory path separators.
+
+        Rejects filenames with backslashes (\\) or forward slashes (/), which may indicate directory paths.
+        """
+        filename = file_object.filename
+
+        if "\\" in filename or "/" in filename:
+            return 400, "Filename must not contain directory path separators"
+
+
+
+
+    # class NoWindowsVolumeInFilename(FileValidator):
+    # class NoUrlInFilename(FileValidator):
+    # class NoDirectoryPathInFilename(FileValidator):
+    # class NoUnacceptableCharactersInFilename(FileValidator):
+    # class NonZeroFileSize(FileValidator):
