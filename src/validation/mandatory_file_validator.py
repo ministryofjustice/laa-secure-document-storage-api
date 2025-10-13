@@ -5,7 +5,7 @@ import structlog
 from typing import Tuple
 
 logger = structlog.get_logger()
-    
+
 
 class MandatoryFileValidator(abc.ABC):
     """Base class for validators that always run and are not client-configurable."""
@@ -18,7 +18,7 @@ class MandatoryFileValidator(abc.ABC):
         """
         # This method should be overridden by subclasses, so raise an error if this is called
         raise NotImplementedError()
-    
+
 
 class NoUrlInFilename(MandatoryFileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:

@@ -1,6 +1,5 @@
 import abc
 import os
-import re
 from typing import Tuple, List
 
 from fastapi import UploadFile
