@@ -1,5 +1,5 @@
 import structlog
-from fastapi import APIRouter, Depends, UploadFile, Request
+from fastapi import APIRouter, Depends, UploadFile, Request, HTTPException
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.validation.json_validator import validate_json
@@ -21,29 +21,46 @@ async def bulk_upload(
     # Ugly formating of line below is to keep flake8 happy
 ) -> dict[str, BulkUploadFileResponse]:
     """
-    Process a list of upload files.
-    Always return a 200 success status code, with the body containing result for each filename.
+    Process a list of upload files. If the same filename is included more than once, it will be
+    updated when second and subsequent instances are reached.
 
-    Response is a dictionary with filenames as keys and second dictionary with details of filename, positions in
-    supplied list, checksum and outcomes. This is to enable multiple outcomes when same file included more than once.
-    Also includes checksum from the most recent successful save, e.g:
+    The response status code just indicates success/failure in the ability to process the supplied
+    files, not the sucess of each file operation, and should always be 200 unless there is an
+    unexpected error.
+
+    Results for individual files are recorded in the response json which caters for
+    multiple files and also having the same filename included more than once in the load.
+    This includes the `filename`, the `postitions` of the filename in the supplied file list,
+    the `checksum` of the latest successful file operation concerning the filename, `outcomes`
+    with `status_code` and `detail` for each file operation, e.g. as below:
 
     ```
-    {"file1.txt":{"filename":"file1.txt","positions":[0],"checksum":"2248209fd84772fec1e4ddb7dc1c7647751c98abffd85c26c35ca44398dec82f","outcomes":[201]},
-     "file2.txt":{"filename":"file2.txt","positions":[1,2],"checksum":"718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a","outcomes":[201,200]},
-     "...":{"filename":"...","positions":[3],"checksum":null,"outcomes":["415: File extension not allowed"]}}
-     ```
+    {'file1.txt': {'filename': 'file1.txt',
+    'positions': [0],
+    'outcomes': [{'status_code': 201, 'detail': 'saved'}],
+    'checksum': '2248209fd84772fec1e4ddb7dc1c7647751c98abffd85c26c35ca44398dec82f'},
+    'file2.txt': {'filename': 'file2.txt',
+    'positions': [1, 2],
+    'outcomes': [{'status_code': 201, 'detail': 'saved'},
+    {'status_code': 200, 'detail': 'updated'}],
+    'checksum': '2248209fd84772fec1e4ddb7dc1c7647751c98abffd85c26c35ca44398dec82f'},
+    '...': {'filename': '...',
+    'positions': [3],
+    'outcomes': [{'status_code': 415, 'detail': 'File extension not allowed'}],
+    'checksum': null}}
+    ```
 
     This shows:
-    - `file1.txt` was included once, so saved with 201 outcome
-    - `file2.txt` was included twice, so was saved with 201 and 200 outcomes, and updated with checksum from last save
-    - `...` is invalid filename and so receives 415 error response.
+    - `file1.txt` was included once, so saved with a single 201 outcome
+    - `file2.txt` was included twice, so was saved with 201 and then updated with a 200 outcomes.
+        Checksum is from the second save.
+    - `...` is invalid filename and so received 415 error response and null checksum.
 
     Status code summary for outcomes:
-    * 201 if file created
-    * 200 if file updated
-    * 4xx if various validation fails
-    * 500 other unexpected error
+    * 201 file created
+    * 200 file updated
+    * 4xx various validation failures
+    * 500 unexpected error
     """
     # Not included validation for empty files list because Fast API gives 422 error automatically
 
@@ -68,12 +85,21 @@ async def bulk_upload(
                 client_config=client_config,
                 request_type=RequestType.PUT)
 
-            results[file.filename].outcomes.append(200 if file_existed else 201)
+            outcome = {"status_code": 200, "detail": "updated"} if file_existed \
+                else {"status_code": 201, "detail": "saved"}
+
             results[file.filename].checksum = file_result.get("checksum")
 
-        except Exception as e:
-            msg = f"Error uploading {file.filename}: {e.__class__.__name__} - {str(e)}"
+        except HTTPException as httpe:
+            msg = f"HTTP error uploading {file.filename}: {httpe.__class__.__name__} - {httpe}"
             logger.exception(msg)
-            results[file.filename].outcomes.append(str(e))
+            outcome = {"status_code": httpe.status_code, "detail": httpe.detail}
+
+        except Exception as e:
+            msg = f"Unexpected error uploading {file.filename}: {e.__class__.__name__} - {e}"
+            logger.exception(msg)
+            outcome = {"status_code": 500, "detail": str(e)}
+
+        results[file.filename].outcomes.append(outcome)
 
     return results

@@ -58,16 +58,20 @@ def test_bulk_upload_works_with_files_payload_example():
     # Two types of expected success - 201 on initial save, 200 on update
     # Both included to cater for re-runs as this is a simple example with fixed filenames
     expected_checksum = "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
+
+    # "saved" and "updated" outcomes - short variable names to keep line lengths below 119 chars
+    os = {"status_code": 201, "detail": "saved"}
+    ou = {"status_code": 200, "detail": "updated"}
+
     successful_outcomes = [
-        # Save result
-        {'file1.txt': {"filename": "file1.txt", "positions": [0], "checksum": expected_checksum, "outcomes": [201]},
-         'file2.txt': {"filename": "file2.txt", "positions": [1], "checksum": expected_checksum, "outcomes": [201]},
-         'file3.txt': {"filename": "file3.txt", "positions": [2], "checksum": expected_checksum, "outcomes": [201]}},
-        # Update result
-        {'file1.txt': {"filename": "file1.txt", "positions": [0], "checksum": expected_checksum, "outcomes": [200]},
-         'file2.txt': {"filename": "file2.txt", "positions": [1], "checksum": expected_checksum, "outcomes": [200]},
-         'file3.txt': {"filename": "file3.txt", "positions": [2], "checksum": expected_checksum, "outcomes": [200]}
-         }
+        # Saved result
+        {'file1.txt': {"filename": "file1.txt", "positions": [0], "checksum": expected_checksum, "outcomes": [os]},
+         'file2.txt': {"filename": "file2.txt", "positions": [1], "checksum": expected_checksum, "outcomes": [os]},
+         'file3.txt': {"filename": "file3.txt", "positions": [2], "checksum": expected_checksum, "outcomes": [os]}},
+        # Updated result
+        {'file1.txt': {"filename": "file1.txt", "positions": [0], "checksum": expected_checksum, "outcomes": [ou]},
+         'file2.txt': {"filename": "file2.txt", "positions": [1], "checksum": expected_checksum, "outcomes": [ou]},
+         'file3.txt': {"filename": "file3.txt", "positions": [2], "checksum": expected_checksum, "outcomes": [ou]}}
         ]
     assert response.status_code == 200
     assert response.json() in successful_outcomes
@@ -86,7 +90,7 @@ def test_bulk_upload():
     expected_result = {new_filename: {'filename': new_filename,
                                       'positions': [0],
                                       'checksum': '718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a',
-                                      'outcomes': [201]}}
+                                      'outcomes': [{"status_code": 201, "detail": "saved"}]}}
 
     assert response.status_code == 200
     assert response.json() == expected_result
