@@ -18,6 +18,27 @@ class MandatoryFileValidator(abc.ABC):
         """
         # This method should be overridden by subclasses, so raise an error if this is called
         raise NotImplementedError()
+    
+
+class NoUrlInFilename(MandatoryFileValidator):
+    def validate(self, file_object, **kwargs) -> Tuple[int, str]:
+        """
+        Validates that the filename does not contain any URLs.
+
+        Rejects filenames that include common URL patterns such as http://, https://, or www.
+        """
+        filename = file_object.filename.lower()
+
+        # Match common URL patterns
+        url_patterns = [
+            r"http://",
+            r"https://",
+            r"www."
+        ]
+
+        if any(re.search(pattern, filename) for pattern in url_patterns):
+            return 400, "Filename must not contain URLs or web addresses"
+        return 200, ""
 
 
 class NoDirectoryPathInFilename(MandatoryFileValidator):
@@ -49,27 +70,6 @@ class NoWindowsVolumeInFilename(MandatoryFileValidator):
         return 200, ""
 
 
-class NoUrlInFilename(MandatoryFileValidator):
-    def validate(self, file_object, **kwargs) -> Tuple[int, str]:
-        """
-        Validates that the filename does not contain any URLs.
-
-        Rejects filenames that include common URL patterns such as http://, https://, or www.
-        """
-        filename = file_object.filename.lower()
-
-        # Match common URL patterns
-        url_patterns = [
-            r"http://",
-            r"https://",
-            r"www."
-        ]
-
-        if any(re.search(pattern, filename) for pattern in url_patterns):
-            return 400, "Filename must not contain URLs or web addresses"
-        return 200, ""
-
-
 class NoUnacceptableCharactersInFilename(MandatoryFileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:
         """
@@ -94,4 +94,12 @@ class NoUnacceptableCharactersInFilename(MandatoryFileValidator):
             return 400, "Filename contains characters that are not allowed"
 
         return 200, ""
-    
+
+
+def run_mandatory_validators(file_object):
+    for validator_class in MandatoryFileValidator.__subclasses__():
+        validator = validator_class()
+        status, detail = validator.validate(file_object)
+        if status != 200:
+            return status, detail
+    return 200, ""
