@@ -1,12 +1,26 @@
+import abc
+from fastapi import UploadFile
 import re
 import structlog
 from typing import Tuple
 
-from src.validation.file_validator import FileValidator
-
 logger = structlog.get_logger()
+    
 
-class NoDirectoryPathInFilename(FileValidator):
+class MandatoryFileValidator(abc.ABC):
+    """Base class for validators that always run and are not client-configurable."""
+    def validate(self, file_object: UploadFile) -> Tuple[int, str]:
+        """
+        Runs the validator on the file object and returns a status code and a message.
+
+        :param file_object:
+        :return: status_code: int, detail: str
+        """
+        # This method should be overridden by subclasses, so raise an error if this is called
+        raise NotImplementedError()
+
+
+class NoDirectoryPathInFilename(MandatoryFileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:
         """
         Validates that the filename does not contain directory path separators.
@@ -20,7 +34,7 @@ class NoDirectoryPathInFilename(FileValidator):
         return 200, ""
 
 
-class NoWindowsVolumeInFilename(FileValidator):
+class NoWindowsVolumeInFilename(MandatoryFileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:
         """
         Validates that the filename does not contain Windows volume information (e.g., C:\\ or D:/).
@@ -35,7 +49,7 @@ class NoWindowsVolumeInFilename(FileValidator):
         return 200, ""
 
 
-class NoUrlInFilename(FileValidator):
+class NoUrlInFilename(MandatoryFileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:
         """
         Validates that the filename does not contain any URLs.
@@ -56,7 +70,7 @@ class NoUrlInFilename(FileValidator):
         return 200, ""
 
 
-class NoUnacceptableCharactersInFilename(FileValidator):
+class NoUnacceptableCharactersInFilename(MandatoryFileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:
         """
         Validates that the filename does not contain unacceptable characters (based on AWS S3 docs).
