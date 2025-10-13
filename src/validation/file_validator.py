@@ -196,12 +196,19 @@ class NoUrlInFilename(FileValidator):
         """
         Validates that the filename does not contain any URLs.
 
-        Rejects filenames that include the string `http`.
+        Rejects filenames that include common URL patterns such as http://, https://, or www.
         """
-        filename = file_object.filename
+        filename = file_object.filename.lower()
 
-        if "http" in filename:
-            return 400, "Filename must not contain any URLs/web addresses (e.g. http://www.examples.com)"
+        # Match common URL patterns
+        url_patterns = [
+            r"http://",
+            r"https://",
+            r"www."
+        ]
+
+        if any(re.search(pattern, filename) for pattern in url_patterns):
+            return 400, "Filename must not contain URLs or web addresses"
         return 200, ""
 
 
