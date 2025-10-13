@@ -172,6 +172,7 @@ class NoDirectoryPathInFilename(FileValidator):
 
         if "\\" in filename or "/" in filename:
             return 400, "Filename must not contain directory path separators"
+        return 200, ""
 
 
 class NoWindowsVolumeInFilename(FileValidator):
@@ -186,8 +187,23 @@ class NoWindowsVolumeInFilename(FileValidator):
         # Check for patterns like "C:\" or "D:/"
         if len(filename) >= 2 and filename[1] == ":" and filename[0].isalpha(): # Extend for volume info anywhere in filename?
             return 400, "Filename must not contain Windows volume information (e.g., C:\\)"
+        return 200, ""
 
-    # class NoUrlInFilename(FileValidator):
+
+class NoUrlInFilename(FileValidator):
+    def validate(self, file_object, **kwargs) -> Tuple[int, str]:
+        """
+        Validates that the filename does not contain any URLs.
+
+        Rejects filenames that include the string `http`.
+        """
+        filename = file_object.filename
+
+        if "http" in filename:
+            return 400, "Filename must not contain any URLs/web addresses (e.g. http://www.examples.com)"
+        return 200, ""
+    
+
     # class NoDirectoryPathInFilename(FileValidator):
     # class NoUnacceptableCharactersInFilename(FileValidator):
     # class NonZeroFileSize(FileValidator):
