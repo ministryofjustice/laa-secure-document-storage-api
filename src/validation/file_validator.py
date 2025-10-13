@@ -179,7 +179,7 @@ class NoDirectoryPathInFilename(FileValidator):
 class NoWindowsVolumeInFilename(FileValidator):
     def validate(self, file_object, **kwargs) -> Tuple[int, str]:
         """
-        Validates that the filename does not contain Windows volume information (e.g., C:\ or D:/).
+        Validates that the filename does not contain Windows volume information (e.g., C:\\ or D:/).
 
         Rejects any substring matching a drive letter followed by a colon and slash or backslash.
         """
@@ -229,3 +229,4 @@ class NoUnacceptableCharactersInFilename(FileValidator):
             return 400, "Filename contains characters that are not allowed"
 
         return 200, ""
+    
