@@ -170,8 +170,8 @@ class NoDirectoryPathInFilename(FileValidator):
         """
         filename = file_object.filename
 
-        if "\\" in filename or "/" in filename:
-            return 400, "Filename must not contain directory path separators"
+        if "\\" in filename:
+            return 400, "Filename must not contain Windows-style directory path separators"
         return 200, ""
 
 
@@ -202,8 +202,33 @@ class NoUrlInFilename(FileValidator):
         if "http" in filename:
             return 400, "Filename must not contain any URLs/web addresses (e.g. http://www.examples.com)"
         return 200, ""
-    
 
-    # class NoDirectoryPathInFilename(FileValidator):
-    # class NoUnacceptableCharactersInFilename(FileValidator):
+
+class NoUnacceptableCharactersInFilename(FileValidator):
+    def validate(self, file_object, **kwargs) -> Tuple[int, str]:
+        """
+        Validates that the filename does not contain unacceptable characters (based on AWS S3 docs).
+
+        Rejects control characters, non-printable characters, and symbols known to cause issues in S3 or file systems.
+        """
+        filename = file_object.filename
+
+        # Reject ASCII control characters (0–31) and DEL (127)
+        if any(ord(c) < 32 or ord(c) == 127 for c in filename):
+            return 400, "Filename contains control characters"
+
+        # Reject extended ASCII (128–255)
+        if any(128 <= ord(c) <= 255 for c in filename):
+            return 400, "Filename contains non-printable characters"
+
+        # Characters AWS recommends avoiding
+        disallowed_chars = set(r'\/{}[]<>:"|^%`#&$@=;+?,*"~')
+
+        if any(c in disallowed_chars for c in filename):
+            return 400, "Filename contains characters that are not allowed"
+
+        return 200, ""
+
+
+
     # class NonZeroFileSize(FileValidator):
