@@ -30,7 +30,7 @@ def test_delete_files_missing_file(test_client):
 
         response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
-        assert response.status_code == 202
+        assert response.status_code == 200
         assert response.json()[file_key] == 404
 
 
@@ -43,7 +43,7 @@ def test_delete_files_unexpected_error(test_client):
 
         response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
-        assert response.status_code == 202
+        assert response.status_code == 200
         assert response.json()[file_key] == 500
 
 
@@ -74,7 +74,7 @@ def test_delete_files_single_key(test_client):
         response = test_client.delete(f'/delete_files?file_keys={file_key}')
 
         # Assertions
-        assert response.status_code == 202
+        assert response.status_code == 200
         assert response.json()[file_key] == 204
 
 
@@ -106,7 +106,7 @@ def test_delete_files_multiple_keys(test_client):
         response = test_client.delete(f'/delete_files?file_keys={file_a}&file_keys={file_b}')
 
         # Assertions
-        assert response.status_code == 202
+        assert response.status_code == 200
         for file_key in [file_a, file_b]:
             assert response.json()[file_key] == 204
 
@@ -146,7 +146,7 @@ def test_delete_files_multiple_status(test_client):
         outcomes = response.json()
 
         # Assertions
-        assert response.status_code == 202
+        assert response.status_code == 200
         assert outcomes[file_a] == 204
         assert outcomes[file_b] == 404
         assert outcomes[file_c] == 500
@@ -169,7 +169,7 @@ def test_delete_files_partial_version_failure(test_client):
         response = test_client.delete(f'/delete_files?file_keys={file_a}')
         outcomes = response.json()
 
-        assert response.status_code == 202
+        assert response.status_code == 200
         assert outcomes[file_a] == 500
 
 
@@ -185,5 +185,5 @@ def test_delete_files_missing_version_id(test_client):
         response = test_client.delete(f'/delete_files?file_keys={file_key}')
         outcomes = response.json()
 
-        assert response.status_code == 202
+        assert response.status_code == 200
         assert outcomes[file_key] == 500

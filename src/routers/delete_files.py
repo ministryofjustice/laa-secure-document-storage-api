@@ -20,7 +20,7 @@ async def delete_files(
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
     """
-    Always return a 202 ACCEPTED response, with the body containing each of the specified files and the status code
+    Always return a 200 OK response, with the body containing each of the specified files and the status code
     for the deletion of that file:
     * 204 if all versions of file found and deleted
     * 404 if file not found
@@ -78,4 +78,4 @@ async def delete_files(
             logger.exception(msg)
             outcomes[file_key] = 500  # SERVER ERROR
 
-    return JSONResponse(outcomes, status_code=202)  # ACCEPTED
+    return JSONResponse(outcomes, status_code=200)  # OK

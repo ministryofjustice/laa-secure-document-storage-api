@@ -75,8 +75,8 @@ def test_delete_single_file_deletes_the_requested_file_only():
     get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": wanted_filename})
     # This is really checking a preparation steps
     assert unwanted_file_response.status_code == wanted_file_response.status_code == 201
-    # Note response.status should always be 202 but can be other results for the individual files
-    assert del_response.status_code == 202
+    # Note response.status should always be 200 but can be other results for the individual files
+    assert del_response.status_code == 200
     assert del_response.json().get(unwanted_filename) == 204
     assert get_response.status_code == 200
 
@@ -115,7 +115,7 @@ def test_delete_file_without_authorisation_fails_as_expected():
 def test_delete_non_existent_file_fails_as_expected():
     params = {"file_keys": ["non_existent_file"]}
     response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
-    assert response.status_code == 202
+    assert response.status_code == 200
     assert response.json() == {"non_existent_file": 404}
 
 # Note the Postman tests have "Retrieve Deleted File" and "Retrieve Non-Deleted File" tests
@@ -137,7 +137,7 @@ def test_delete_multiple_files_has_right_result_for_each_file():
     # Request deletion of two valid files and one non-existent file
     params = {"file_keys": [new_filename1, new_filename2, "non_existent_file"]}
     response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
-    assert response.status_code == 202
+    assert response.status_code == 200
     assert response.json() == {new_filename1: 204, new_filename2: 204, "non_existent_file": 404}
 
 
