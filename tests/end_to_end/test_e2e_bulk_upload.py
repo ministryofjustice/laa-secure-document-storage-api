@@ -30,12 +30,14 @@ def setup_and_teardown_test_files():
     Code before the "yield" is executed before the tests.
     Code after the "yield" is exected after the last test.
     """
-    global test_md_file, virus_file, disallowed_file
+    global test_md_file, test_md_file2, virus_file, disallowed_file
     test_md_file = UploadFileData("Postman/test_file.md")
+    test_md_file2 = UploadFileData("Postman/test_file2.md")
     virus_file = UploadFileData("Postman/eicar.txt")
     disallowed_file = UploadFileData("Postman/test_file.exe")
     yield
     test_md_file.close_file()
+    test_md_file2.close_file()
     virus_file.close_file()
     disallowed_file.close_file()
 
@@ -130,6 +132,39 @@ def test_bulk_upload_same_filename_multiple_times(file_count):
 
     assert response.status_code == 200
     assert response.json() == expected_result
+
+
+@pytest.mark.e2e
+def test_bulk_upload_with_multiple_versions_of_same_file_gives_checksum_from_the_last():
+    """
+    This test is to check that when the same filename is loaded more than once, the checksum
+    returned is that of the last file to be saved. (The test above could not do this because
+    all the files have the same checksum)
+    """
+    # Make 3 files with same filename but third has different content, and so different checksum
+    new_filename = make_unique_name("checksumtest.txt")
+    files = [
+        test_md_file.get_data_tuple(new_filename),
+        test_md_file.get_data_tuple(new_filename),
+        test_md_file2.get_data_tuple(new_filename)
+        ]
+    expected_outcomes = [{"status_code": 201, "detail": "saved"},
+                         {"status_code": 200, "detail": "updated"},
+                         {"status_code": 200, "detail": "updated"}]
+    # Checksum for test_md_file2 (which is different from that of test_md_file)
+    expected_checksum = "448061d26023c5d17c15ba9cc73635c457a071b25ab4a773e2a276a85abf2d8f"
+
+    response = client.put(f"{HOST_URL}/bulk_upload",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
+
+    assert response.status_code == 200
+    assert response.json() == {new_filename: {"filename": new_filename,
+                                              "positions": [0, 1, 2],
+                                              "outcomes": expected_outcomes,
+                                              "checksum": expected_checksum}
+                               }
 
 
 @pytest.mark.e2e
