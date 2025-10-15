@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "fbf41a7a-ffb4-4247-8641-2e78cf5f2079",
+		"_postman_id": "0b4fc2ae-e84c-43b2-935f-c1b3460a6069",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "43175045"
+		"_exporter_id": "44343518"
 	},
 	"item": [
 		{
@@ -692,8 +692,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								},
 								{
 									"key": "body",
@@ -763,10 +762,9 @@
 							"formdata": [
 								{
 									"key": "file",
+									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}",
-									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file"
+									"src": "test_file.md"
 								},
 								{
 									"key": "body",
@@ -1128,6 +1126,130 @@
 			]
 		},
 		{
+			"name": "SDSBulkUploadFileTests",
+			"item": [
+				{
+					"name": "BulkUpload",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Inherited by copy/pasting other test.",
+									"// Has something to do with assigning unique filename",
+									"// Not sure *how* the renaming actually takes place",
+									"// This is being automatically applied to *both files* in the bulk load",
+									"const timestamp = new Date().getTime();",
+									"const uniqueFilename = `test_file_${timestamp}.md`;",
+									"pm.environment.set(\"unique_filename\", uniqueFilename);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// The mysterious auto-renaming pre-request script is magically renaming both",
+									"// files in the bulk load to have the same filename, so we're getting a response",
+									"// showing single file being updated once.",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body shows success\", function () {",
+									"    const responseBody = pm.response.json();",
+									"    const newname = pm.environment.get('unique_filename');",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody).to.have.property(newname);",
+									"    //pm.expect(responseBody[newname]['positions']).to.equal([0, 1]);",
+									"    pm.expect(String(responseBody[newname]['positions'])).to.equal('0,1');",
+									"    pm.expect(responseBody[newname]['checksum']).to.equal(\"448061d26023c5d17c15ba9cc73635c457a071b25ab4a773e2a276a85abf2d8f\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "bearer {{bearerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "files",
+									"type": "file",
+									"src": [
+										"test_file.md",
+										"test_file2.md"
+									]
+								},
+								{
+									"key": "body",
+									"value": "{\"bucketName\":\"{{SDSBucket}}\"}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{SDSBaseUrl}}/bulk_upload",
+							"host": [
+								"{{SDSBaseUrl}}"
+							],
+							"path": [
+								"bulk_upload"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "**Test of the /bulk_upload endpoint**\n\nThis is set to upload two files with different filenames but a behind-the-scenes script is updating both files to have the same unqiue filename, so the result is for a bulk load with two files that have the same name but different content. The pre-request script generates the new name are stores it in an environment variable. Something somewhere else is doing the renaming.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
 			"name": "SDSRetrieveFileTests (Deprecated)",
 			"item": [
 				{
@@ -1194,7 +1316,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}.md",
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1365,7 +1487,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}.md",
+							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1532,12 +1654,11 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								  },
-								  {
+								},
+								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -1579,11 +1700,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-""
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
-							  }
+							}
 						}
 					],
 					"request": {
@@ -1612,12 +1733,11 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								  },
-								  {
+								},
+								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2039,8 +2159,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_a}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2119,8 +2238,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_b}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2199,8 +2317,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_c}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2279,8 +2396,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_d}}"
+									"src": "test_file.md"
 								}
 							]
 						},
@@ -2305,8 +2421,8 @@
 							"script": {
 								"exec": [
 									"",
-									"pm.test(\"response code is ACCEPTED\", function() {",
-									"    pm.response.to.have.status(202);",
+									"pm.test(\"response code is OK\", function() {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"response contains filename key\", function() {",
@@ -2321,7 +2437,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						},
 						{
@@ -2331,7 +2448,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -2444,14 +2562,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={}",
+							"raw": "{{SDSBaseUrl}}/delete_files",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
 								"delete_files"
-							],
-							"query": [
 							]
 						},
 						"description": "Expect a 400 BAD REQUEST when no filename(s) are provided for deletion"
@@ -2561,7 +2677,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={unique_filename_d}",
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_d}}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -2587,8 +2703,8 @@
 							"script": {
 								"exec": [
 									"",
-									"pm.test(\"Overall status code is 202 - ACCEPTED \", function() {",
-									"    pm.response.to.have.status(202);",
+									"pm.test(\"Overall status code is 200 - OK\", function() {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"Response contains filename key\", function() {",
@@ -2603,7 +2719,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						},
 						{
@@ -2613,7 +2730,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -2837,8 +2955,8 @@
 							"script": {
 								"exec": [
 									"",
-									"pm.test(\"response code is ACCEPTED\", function() {",
-									"    pm.response.to.have.status(202);",
+									"pm.test(\"response code is OK\", function() {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"response contains filename key\", function() {",
@@ -2863,7 +2981,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						},
 						{
@@ -2873,7 +2992,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -3023,8 +3143,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "eicar.txt",
-									"fileName": "{{unique_filename}}"
+									"src": "eicar.txt"
 								}
 							]
 						},
@@ -3098,8 +3217,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
+									"src": "test_file.md"
 								}
 							]
 						},
