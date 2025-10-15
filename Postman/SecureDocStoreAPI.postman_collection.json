@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "0b4fc2ae-e84c-43b2-935f-c1b3460a6069",
+		"_postman_id": "251719d2-dc36-44ec-848f-4baa540d8832",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -1126,19 +1126,15 @@
 			]
 		},
 		{
-			"name": "SDSBulkUploadFileTests",
+			"name": "SDSBulkUploadFilesTests",
 			"item": [
 				{
-					"name": "BulkUpload",
+					"name": "Bulk upload two files (expect 200)",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"// Inherited by copy/pasting other test.",
-									"// Has something to do with assigning unique filename",
-									"// Not sure *how* the renaming actually takes place",
-									"// This is being automatically applied to *both files* in the bulk load",
 									"const timestamp = new Date().getTime();",
 									"const uniqueFilename = `test_file_${timestamp}.md`;",
 									"pm.environment.set(\"unique_filename\", uniqueFilename);"
@@ -1152,21 +1148,17 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// The mysterious auto-renaming pre-request script is magically renaming both",
-									"// files in the bulk load to have the same filename, so we're getting a response",
-									"// showing single file being updated once.",
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"Response body shows success\", function () {",
 									"    const responseBody = pm.response.json();",
-									"    const newname = pm.environment.get('unique_filename');",
+									"    const expected_filename = pm.environment.get('unique_filename');",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property(newname);",
-									"    //pm.expect(responseBody[newname]['positions']).to.equal([0, 1]);",
-									"    pm.expect(String(responseBody[newname]['positions'])).to.equal('0,1');",
-									"    pm.expect(responseBody[newname]['checksum']).to.equal(\"448061d26023c5d17c15ba9cc73635c457a071b25ab4a773e2a276a85abf2d8f\");",
+									"    //pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
+									"    pm.expect(String(responseBody[expected_filename]['positions'])).to.equal('0,1');",
+									"    pm.expect(responseBody[expected_filename]['checksum']).to.equal(\"448061d26023c5d17c15ba9cc73635c457a071b25ab4a773e2a276a85abf2d8f\");",
 									"});"
 								],
 								"type": "text/javascript",
