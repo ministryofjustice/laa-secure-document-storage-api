@@ -2305,8 +2305,8 @@
 							"script": {
 								"exec": [
 									"",
-									"pm.test(\"response code is ACCEPTED\", function() {",
-									"    pm.response.to.have.status(202);",
+									"pm.test(\"response code is OK\", function() {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"response contains filename key\", function() {",
@@ -2587,8 +2587,8 @@
 							"script": {
 								"exec": [
 									"",
-									"pm.test(\"Overall status code is 202 - ACCEPTED \", function() {",
-									"    pm.response.to.have.status(202);",
+									"pm.test(\"Overall status code is 200 - OK \", function() {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"Response contains filename key\", function() {",
@@ -2837,8 +2837,8 @@
 							"script": {
 								"exec": [
 									"",
-									"pm.test(\"response code is ACCEPTED\", function() {",
-									"    pm.response.to.have.status(202);",
+									"pm.test(\"response code is OK\", function() {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"response contains filename key\", function() {",
