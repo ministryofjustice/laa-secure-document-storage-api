@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "251719d2-dc36-44ec-848f-4baa540d8832",
+		"_postman_id": "fbf41a7a-ffb4-4247-8641-2e78cf5f2079",
 		"name": "SecureDocStoreAPI",
 		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "44343518"
+		"_exporter_id": "43175045"
 	},
 	"item": [
 		{
@@ -692,7 +692,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								},
 								{
 									"key": "body",
@@ -762,9 +763,10 @@
 							"formdata": [
 								{
 									"key": "file",
-									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}",
+									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file"
 								},
 								{
 									"key": "body",
@@ -1126,122 +1128,6 @@
 			]
 		},
 		{
-			"name": "SDSBulkUploadFilesTests",
-			"item": [
-				{
-					"name": "Bulk upload two files (expect 200)",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const timestamp = new Date().getTime();",
-									"const uniqueFilename = `test_file_${timestamp}.md`;",
-									"pm.environment.set(\"unique_filename\", uniqueFilename);"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function () {",
-									"    const responseBody = pm.response.json();",
-									"    const expected_filename = pm.environment.get('unique_filename');",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    //pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
-									"    pm.expect(String(responseBody[expected_filename]['positions'])).to.equal('0,1');",
-									"    pm.expect(responseBody[expected_filename]['checksum']).to.equal(\"448061d26023c5d17c15ba9cc73635c457a071b25ab4a773e2a276a85abf2d8f\");",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "files",
-									"type": "file",
-									"src": [
-										"test_file.md",
-										"test_file2.md"
-									]
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\"}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/bulk_upload",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"bulk_upload"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "**Test of the /bulk_upload endpoint**\n\nThis is set to upload two files with different filenames but a behind-the-scenes script is updating both files to have the same unqiue filename, so the result is for a bulk load with two files that have the same name but different content. The pre-request script generates the new name are stores it in an environment variable. Something somewhere else is doing the renaming.",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				}
-			]
-		},
-		{
 			"name": "SDSRetrieveFileTests (Deprecated)",
 			"item": [
 				{
@@ -1308,7 +1194,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}",
+							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}.md",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1479,7 +1365,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}",
+							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}.md",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -1646,11 +1532,12 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								},
-								{
+								  },
+								  {
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
@@ -1692,11 +1579,11 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									""
+""
 								],
 								"type": "text/javascript",
 								"packages": {}
-							}
+							  }
 						}
 					],
 					"request": {
@@ -1725,11 +1612,12 @@
 									"key": "body",
 									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
 									"type": "text"
-								},
-								{
+								  },
+								  {
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
@@ -2151,7 +2039,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_a}}"
 								}
 							]
 						},
@@ -2230,7 +2119,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_b}}"
 								}
 							]
 						},
@@ -2309,7 +2199,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_c}}"
 								}
 							]
 						},
@@ -2388,7 +2279,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename_d}}"
 								}
 							]
 						},
@@ -2429,8 +2321,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								"packages": {}
 							}
 						},
 						{
@@ -2440,8 +2331,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								"packages": {}
 							}
 						}
 					],
@@ -2554,12 +2444,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files",
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
 							"path": [
 								"delete_files"
+							],
+							"query": [
 							]
 						},
 						"description": "Expect a 400 BAD REQUEST when no filename(s) are provided for deletion"
@@ -2669,7 +2561,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_d}}",
+							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={unique_filename_d}",
 							"host": [
 								"{{SDSBaseUrl}}"
 							],
@@ -2695,7 +2587,7 @@
 							"script": {
 								"exec": [
 									"",
-									"pm.test(\"Overall status code is 200 - OK\", function() {",
+									"pm.test(\"Overall status code is 200 - OK \", function() {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
@@ -2711,8 +2603,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								"packages": {}
 							}
 						},
 						{
@@ -2722,8 +2613,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								"packages": {}
 							}
 						}
 					],
@@ -2973,8 +2863,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								"packages": {}
 							}
 						},
 						{
@@ -2984,8 +2873,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
+								"packages": {}
 							}
 						}
 					],
@@ -3135,7 +3023,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "eicar.txt"
+									"src": "eicar.txt",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
@@ -3209,7 +3098,8 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "test_file.md"
+									"src": "test_file.md",
+									"fileName": "{{unique_filename}}"
 								}
 							]
 						},
