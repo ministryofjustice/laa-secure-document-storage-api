@@ -60,10 +60,16 @@ class UploadFileData:
         self.file_details = {"file": new_tuple}
 
     def get_data(self, new_filename: str = ""):
+        "Returns file data in dict format that's needed for individual file upload"
         if new_filename:
             self.update_filename(new_filename)
         self.reset_seek()
         return self.file_details
+
+    def get_data_tuple(self, new_filename: str = ""):
+        "Returns file data in tuple format that's needed for bulk upload"
+        dict_details = self.get_data(new_filename)
+        return ('files', dict_details["file"])
 
     def close_file(self):
         """
