@@ -14,6 +14,7 @@ async def available_validators():
     * Includes validator name, its kwargs and their default values
     * Just lists the validators that SDS makes available to all, not client-specific status
     * Virus check is not listed as it's not a configurable validator and is automatically applied to any file upload
+    * A number of other non-configurable, mandatory validators regarding acceptable filenames are also not listed
     """
     validators = generate_all_filevalidatorspecs()
     return sorted(validators, key=lambda v: v.name)

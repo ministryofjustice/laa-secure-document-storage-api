@@ -30,7 +30,7 @@ async def handle_file_upload_logic(
             detail=validation_result.message
         )
 
-    # Mandatory validation
+    # Mandatory validation - must run before client-specific validation
     status_code, detail = mandatory_file_validator.run_mandatory_validators(file)
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=detail)
