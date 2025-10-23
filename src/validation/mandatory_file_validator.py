@@ -46,7 +46,7 @@ class NoDirectoryPathInFilename(MandatoryFileValidator):
         """
         Validates that the filename does not contain directory path separators.
 
-        Rejects filenames with backslashes (\\) or forward slashes (/), which may indicate directory paths.
+        Rejects filenames with backslashes (\\), which may indicate directory paths.
         """
         filename = file_object.filename
 
@@ -88,7 +88,7 @@ class NoUnacceptableCharactersInFilename(MandatoryFileValidator):
             return 400, "Filename contains non-printable characters"
 
         # Characters AWS recommends avoiding
-        disallowed_chars = set(r'\/{}[]<>:"|^%`#&$@=;+?,*"~')
+        disallowed_chars = set(r'\{}[]<>:"|^%`#&$@=;+?,*"~')
 
         if any(c in disallowed_chars for c in filename):
             return 400, "Filename contains characters that are not allowed"
