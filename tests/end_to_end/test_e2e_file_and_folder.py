@@ -110,7 +110,7 @@ def test_get_file_paths_works_as_expected(new_filename):
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize("new_filename", [" . ", ":::.txt", "$.$", "<>:|?*.'", "😍.txt",
+@pytest.mark.parametrize("new_filename", [" . ", "---.txt", "!!!!!.pdf", "😍.txt",
                                           "ɐnbᴉlɐ.ɐ", "和製漢語.. ", "a.لإطلاق"])
 def test_put_unusual_but_valid_filename_is_accepted(new_filename):
     upload_file = test_md_file.get_data(new_filename)

@@ -33,7 +33,9 @@ from src.utils.request_types import RequestType
 @patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
        return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
+@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_success(
+    mandatory_validators_mock,
     validate_or_error_mock,
     scan_request_mock,
     audit_put_item_mock,
@@ -70,6 +72,7 @@ async def test_handle_file_upload_success(
     audit_put_item_mock.assert_called_once()
     save_mock.assert_called_once()
     scan_request_mock.assert_called_once()
+    mandatory_validators_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     file_exists_mock.assert_called_once()
     get_file_checksum_mock.assert_called_once()
@@ -82,7 +85,9 @@ async def test_handle_file_upload_success(
        return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.s3_service.file_exists", return_value=True)
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
+@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_POST_existing_file_failure(
+    mandatory_validators_mock,
     validate_or_error_mock,
     file_exists_mock,
     scan_request_mock
@@ -109,6 +114,7 @@ async def test_handle_file_upload_POST_existing_file_failure(
     assert exc_info.value.status_code == 409
     assert f"File {file.filename} already exists and cannot be overwritten" in str(exc_info.value.detail)
     scan_request_mock.assert_called_once()
+    mandatory_validators_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     file_exists_mock.assert_called_once()
 
@@ -152,7 +158,9 @@ async def test_handle_file_upload_antivirus_failure(scan_request_mock):
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
 @patch("src.handlers.file_upload_handler.clam_av_validator.scan_request")
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
+@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_save_failure(
+    mandatory_validators_mock,
     validate_or_error_mock,
     scan_request_mock,
     audit_put_item_mock,
@@ -186,6 +194,7 @@ async def test_handle_file_upload_save_failure(
     assert "failed to save" in str(exc_info.value.detail)
 
     scan_request_mock.assert_called_once()
+    mandatory_validators_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     audit_put_item_mock.assert_called_once()
     save_mock.assert_called_once()

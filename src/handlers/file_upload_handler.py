@@ -9,7 +9,7 @@ from src.services import audit_service, s3_service
 from src.services.checksum_service import get_file_checksum
 from src.utils.operation_types import OperationType
 from src.utils.request_types import RequestType
-from src.validation import clam_av_validator, client_configured_validator
+from src.validation import clam_av_validator, client_configured_validator, mandatory_file_validator
 
 
 logger = structlog.get_logger()
@@ -29,6 +29,11 @@ async def handle_file_upload_logic(
             status_code=validation_result.status_code,
             detail=validation_result.message
         )
+
+    # Mandatory validation - must run before client-specific validation
+    status_code, detail = mandatory_file_validator.run_mandatory_validators(file)
+    if status_code != 200:
+        raise HTTPException(status_code=status_code, detail=detail)
 
     # Client-specific validation
     await client_configured_validator.validate_or_error(file, client_config.file_validators)
