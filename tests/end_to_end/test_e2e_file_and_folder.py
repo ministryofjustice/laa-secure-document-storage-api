@@ -129,6 +129,7 @@ def test_put_unusual_but_valid_filename_is_accepted(new_filename):
 @pytest.mark.e2e
 @pytest.mark.parametrize("new_filename", [".", ".  ", "...", "a.", ".txt", "/", "//////", "/.txt"])
 def test_put_invalid_filename_is_rejected(new_filename):
+    "This test pre-dates mandatory file validators and was created for client-configured validators"
     upload_file = test_md_file.get_data(new_filename)
 
     response = client.put(f"{HOST_URL}/save_or_update_file",
@@ -137,4 +138,62 @@ def test_put_invalid_filename_is_rejected(new_filename):
                           data=UPLOAD_BODY)
 
     assert response.status_code == 415
+    assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("new_filename", ["https://abc.com", "http://oldabc.com"])
+def test_put_filename_with_url_is_rejected(new_filename):
+    upload_file = test_md_file.get_data(new_filename)
+
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=upload_file,
+                          data=UPLOAD_BODY)
+
+    details = response.json()
+
+    assert response.status_code == 400
+    assert details["detail"] == "Filename must not contain URLs or web addresses"
+    assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("new_filename", [r"\12.txt", r"1\2.txt", "12\\.txt", r"12.\\txt", "12.txt\\"])
+def test_put_filename_with_backslash_is_rejected(new_filename):
+    upload_file = test_md_file.get_data(new_filename)
+
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=upload_file,
+                          data=UPLOAD_BODY)
+
+    details = response.json()
+
+    assert response.status_code == 400
+    assert details["detail"] == "Filename must not contain Windows-style directory path separators"
+    assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("new_filename,expected_message", [
+    (f"abc{chr(27)}.pdf", "Filename contains control characters"),
+    (f"abc{chr(127)}.doc", "Filename contains control characters"),
+    ("abc¾.doc", "Filename contains non-printable characters"),
+    ("«abc».doc", "Filename contains non-printable characters"),
+    ("abc*.doc", "Filename contains characters that are not allowed"),
+    ("abc?.doc", "Filename contains characters that are not allowed")
+    ])
+def test_put_filename_with_unaccetable_chars_is_rejected(new_filename, expected_message):
+    upload_file = test_md_file.get_data(new_filename)
+
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=upload_file,
+                          data=UPLOAD_BODY)
+
+    details = response.json()
+
+    assert response.status_code == 400
+    assert details["detail"] == expected_message
     assert s3_client.check_file_exists(new_filename, mock_result=False) is False
