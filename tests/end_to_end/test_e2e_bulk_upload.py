@@ -188,7 +188,8 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
         test_md_file.get_data_tuple(good_file1),  # Valid file
         virus_file.get_data_tuple("virus_file.txt"),  # Virus
         disallowed_file.get_data_tuple("bad_type.exe"),  # Bad mimetype
-        test_md_file.get_data_tuple("..."),  # Bad filename
+        test_md_file.get_data_tuple("..."),  # Bad filename - extension unclear
+        test_md_file.get_data_tuple("bad_char|.txt"),  # Bad filename - contains forbidden character
         test_md_file.get_data_tuple(good_file2),  # Another valid file
         ]
     response = client.put(f"{HOST_URL}/bulk_upload",
@@ -215,10 +216,15 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
     assert response_details["..."] == {'filename': '...',
                                        'positions': [3],
                                        'outcomes': [{'status_code': 415, 'detail': 'File extension not allowed'}],
-                                       'checksum': None}  # likely auto-convert of json null to Python None
+                                       'checksum': None}
+    assert response_details["bad_char|.txt"] == {'filename': 'bad_char|.txt',
+                                                 'positions': [4],
+                                                 'outcomes': [{'status_code': 400, 'detail':
+                                                              'Filename contains characters that are not allowed'}],
+                                                 'checksum': None}
     assert response_details[good_file2] == {'filename': good_file2,
-                                            'positions': [4],
+                                            'positions': [5],
                                             'outcomes': [{'status_code': 201, 'detail': 'saved'}],
                                             'checksum': expected_checksum}
-    # Check no sneaky extra results
-    assert len(response_details) == 5
+    # Check right number of results
+    assert len(response_details) == len(files)
