@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Make localhost URL available
-        run: echo '127.0.0.1   localhost' >> /etc/hosts
+        run: sudo echo '127.0.0.1   localhost' >> /etc/hosts
 
       - name: Obtain Octo STS Token
         uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
