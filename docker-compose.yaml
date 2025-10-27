@@ -4,13 +4,13 @@ services:
     volumes:
       - .:/app
       - ./authz:/authz
-      - ../sds-api-configs/clientconfigs:/app/clientconfigs
+      - ../laa-secure-document-storage-configs/clientconfigs:/app/clientconfigs
     ports:
       - '8000:8000'
     environment:
       - DYNAMODB_ENDPOINT_URL=http://localstack:4566
       - AWS_REGION=eu-west-1
-      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ENDPOINT_URL=http://127.0.0.1:4566
       - AUDIT_TABLE:AUDIT_SDS
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
