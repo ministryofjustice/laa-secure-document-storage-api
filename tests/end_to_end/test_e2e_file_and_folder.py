@@ -134,6 +134,8 @@ def test_retrieved_file_has_expected_content():
     download_response = client.get(file_url)
 
     # Check data recieved matches original
+    # localhost file URLs can be troublesome in Code Pipeline - check we're using 127.0.0.1
+    assert file_url.startswith("http://127.0.0.1:4566/sds-local")
     assert get_response.status_code == 200
     assert download_response.text == fake_file_content
 

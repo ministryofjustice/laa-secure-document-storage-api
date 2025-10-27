@@ -44,7 +44,7 @@ def test_get_s3_client_local(s3_service, mocker):
         aws_access_key_id=os.getenv('AWS_KEY_ID'),
         aws_secret_access_key=os.getenv('AWS_KEY'),
         region_name=os.getenv('AWS_REGION'),
-        endpoint_url='http://localhost:4566'
+        endpoint_url='http://127.0.0.1:4566'
     )
 
 
