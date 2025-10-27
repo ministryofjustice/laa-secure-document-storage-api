@@ -1,3 +1,5 @@
+from io import BytesIO
+import time
 import pytest
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
@@ -107,6 +109,33 @@ def test_get_file_paths_works_as_expected(new_filename):
     # can distinguish if we're getting the right content for each.
     assert download_response.text.startswith("# laa-secure-document-storage-api\n")
     """
+
+
+@pytest.mark.e2e
+def test_retrieved_file_has_expected_content():
+    new_filename = make_unique_name("check_file_content.txt")
+    headers = token_getter.get_headers()
+
+    # Make fake file object with specific content (created in RAM to avoid saving actual file)
+    # content data - upload needs bytes but assert at end needs str
+    fake_file_content = f"Test file content: {time.time()}"
+    fake_file = BytesIO(fake_file_content.encode("utf-8"))
+
+    # Upload file to S3 so it's available to be retrieved
+    files = {'file': (new_filename, fake_file, 'text/plain')}
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=files)
+
+    # Get the file download URL using SDS API
+    get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": new_filename})
+
+    # Download the actual file content using URL extracted from SDS response
+    json_data = get_response.json()
+    file_url = json_data.get("fileURL")
+    download_response = client.get(file_url)
+
+    # Check data recieved matches original
+    assert get_response.status_code == 200
+    assert download_response.text == fake_file_content
 
 
 @pytest.mark.e2e
