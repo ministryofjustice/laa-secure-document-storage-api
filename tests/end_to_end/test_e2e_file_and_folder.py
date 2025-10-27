@@ -118,7 +118,7 @@ def test_retrieved_file_has_expected_content():
     # Bodge for pipeline run. Returned urls im pipeline are for host 'localstack' but this can't be
     # accessed from here. Changing to 127.0.0.1 which might work instead.
     if file_url.startswith("http://localstack"):
-        file_url = "http://127.0.0.1" + file_url[17]
+        file_url = "http://127.0.0.1" + file_url[17:]
 
     # Download the actual file content using URL extracted from SDS response
     download_response = client.get(file_url)
