@@ -115,24 +115,23 @@ def test_retrieved_file_has_expected_content():
     json_data = get_response.json()
     file_url = json_data.get("fileURL")
 
-    # Bodge for pipeline run. Returned urls im pipeline are for host 'localstack' but this can't be
-    # accessed from here. Changing to 127.0.0.1 which might work instead.
+    # Bodge for pipeline run. Returned urls in pipeline are for 'localstack' but this can't be
+    # accessed from here. Changing to 127.0.0.1 which does work. Note local-run urls are already
+    # http://127.0.0.1
     if file_url.startswith("http://localstack"):
         file_url = "http://127.0.0.1" + file_url[17:]
 
     # Download the actual file content using URL extracted from SDS response
     download_response = client.get(file_url)
 
-    # Check data recieved matches original
-    # localhost file URLs can be troublesome in Code Pipeline - check we're using 127.0.0.1
-    assert file_url.startswith("http://127.0.0.1:4566/sds-local")
+    # Check downloaded file content matches original
     assert get_response.status_code == 200
     assert download_response.text == fake_file_content
 
 
 @pytest.mark.e2e
 @pytest.mark.parametrize("new_filename", [" . ", "---.txt", "!!!!!.pdf", "😍.txt",
-                                          "ɐnbᴉlɐ.ɐ", "和製漢語.. ", "a.لإطلاق"])
+                                          "ɐnbᴉlɐ.ɐ", "和製漢語.. ", "a.لإطلاق", "🐵🙈🙉.😍"])
 def test_put_unusual_but_valid_filename_is_accepted(new_filename):
     upload_file = test_md_file.get_data(new_filename)
 
@@ -203,7 +202,8 @@ def test_put_filename_with_backslash_is_rejected(new_filename):
     ("abc¾.doc", "Filename contains non-printable characters"),
     ("«abc».doc", "Filename contains non-printable characters"),
     ("abc*.doc", "Filename contains characters that are not allowed"),
-    ("abc?.doc", "Filename contains characters that are not allowed")
+    ("abc?.doc", "Filename contains characters that are not allowed"),
+    ("abc:.doc", "Filename contains characters that are not allowed")
     ])
 def test_put_filename_with_unaccetable_chars_is_rejected(new_filename, expected_message):
     upload_file = test_md_file.get_data(new_filename)
@@ -218,3 +218,22 @@ def test_put_filename_with_unaccetable_chars_is_rejected(new_filename, expected_
     assert response.status_code == 400
     assert details["detail"] == expected_message
     assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+
+
+@pytest.mark.e2e
+def test_zero_byte_file_can_be_uploaded():
+    """
+    Minimum allowed file size depends on optional client-configured validator
+    MinFileSize. This test relies on this validator either being absent from
+    laa-sds-client-local config or set to allow 0-byte files.
+    """
+    # Make fake file object that's empty (created in RAM to avoid saving actual file)
+    new_filename = make_unique_name("empty_file.txt")
+    fake_file = BytesIO(b"")
+    files = {'file': (new_filename, fake_file, 'text/plain')}
+    # Upload the file
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
+    assert response.status_code == 201
