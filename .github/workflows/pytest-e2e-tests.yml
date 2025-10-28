@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Obtain Octo STS Token
         uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
         id: octo_sts
