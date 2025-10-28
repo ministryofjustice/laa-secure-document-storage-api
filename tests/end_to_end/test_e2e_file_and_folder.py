@@ -205,7 +205,7 @@ def test_put_filename_with_backslash_is_rejected(new_filename):
     ("abc?.doc", "Filename contains characters that are not allowed"),
     ("abc:.doc", "Filename contains characters that are not allowed")
     ])
-def test_put_filename_with_unaccetable_chars_is_rejected(new_filename, expected_message):
+def test_put_filename_with_unacceptable_chars_is_rejected(new_filename, expected_message):
     upload_file = test_md_file.get_data(new_filename)
 
     response = client.put(f"{HOST_URL}/save_or_update_file",
