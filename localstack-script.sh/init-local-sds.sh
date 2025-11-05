@@ -9,10 +9,10 @@ awslocal s3api put-bucket-versioning --bucket sds-local --versioning-configurati
 awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/$FILE_TO_UPLOAD
 awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/CRM14/$FILE_TO_UPLOAD
 
-# Initialise audit table
+# Initialise audit table - with per-event format
 awslocal --region eu-west-1 dynamodb create-table --table-name $AUDIT_TABLE_NAME \
-    --attribute-definitions AttributeName=service_id,AttributeType=S AttributeName=file_id,AttributeType=S \
-    --key-schema AttributeName=service_id,KeyType=HASH AttributeName=file_id,KeyType=RANGE \
+    --attribute-definitions AttributeName=request_id,AttributeType=S AttributeName=filename_position,AttributeType=N \
+    --key-schema AttributeName=request_id,KeyType=HASH AttributeName=filename_position,KeyType=RANGE \
     --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
 
 awslocal --region eu-west-1 dynamodb wait table-exists --table-name $AUDIT_TABLE_NAME
