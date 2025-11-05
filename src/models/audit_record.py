@@ -12,6 +12,7 @@ def is_known_operation_type(value: str) -> str:
     return value
 
 
+# Could add version_id ? Original put_item method had this as param
 class AuditRecord(BaseModel):
     """
     Contents audit-table row
