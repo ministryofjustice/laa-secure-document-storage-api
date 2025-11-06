@@ -11,6 +11,7 @@ from src.middleware.auth import BearerTokenAuthBackend, BearerTokenMiddleware
 from src.models.client_config import ClientConfig
 from src.services.authz_service import AuthzService
 from src.services import client_config_service
+from asgi_correlation_id import CorrelationIdMiddleware
 
 
 @pytest.fixture
@@ -50,6 +51,7 @@ def app_with_test_auth(request, test_user_credentials) -> FastAPI:
         app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
     else:
         app.add_middleware(BearerTokenMiddleware, backend=TestAuthBackend(test_user_credentials))
+    app.add_middleware(CorrelationIdMiddleware)
     app.middleware_stack = app.build_middleware_stack()
     return app
 

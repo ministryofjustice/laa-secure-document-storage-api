@@ -46,7 +46,9 @@ async def test_handle_file_upload_success(
     file_existed,
     expected_success_message,
 ):
-    request = MagicMock(headers={})
+    # x-request-id is needed in headers as it's the source of request_id that's passed to audit table.
+    # Would be more authentic to have unique value per request but fixed value is fine for this test.
+    request = MagicMock(headers={"x-request-id": "1"})
     file = MagicMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
@@ -169,7 +171,7 @@ async def test_handle_file_upload_save_failure(
 ):
     scan_request_mock.return_value = ValidationResponse(status_code=200, message="")
 
-    request = MagicMock(headers={})
+    request = MagicMock(headers={"x-request-id": "1"})
     file = MagicMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
