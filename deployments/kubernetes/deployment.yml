@@ -24,12 +24,12 @@ spec:
             - name: AUDIT_TABLE
               valueFrom:
                 secretKeyRef:
-                  name: laa-sds-audit-dynamodb-output
+                  name: laa-sds-event-audit-dynamodb-output
                   key: table_name
             - name: TABLE_ARN
               valueFrom:
                 secretKeyRef:
-                  name: laa-sds-audit-dynamodb-output
+                  name: laa-sds-event-audit-dynamodb-output
                   key: table_arn
             - name: ENV
               value: "cloud"
