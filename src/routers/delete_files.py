@@ -1,12 +1,13 @@
 from typing import List
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.params import Query
 from starlette.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
+from src.models.audit_record import AuditRecord
 from src.services import audit_service, authz_service, s3_service
 from src.utils.operation_types import OperationType
 
@@ -16,9 +17,10 @@ logger = structlog.get_logger()
 
 @router.delete('/delete_files')
 async def delete_files(
-            file_keys: List[str] = Query(default_factory=list),
-            client_config: ClientConfig = Depends(client_config_middleware),
-        ):
+    request: Request,
+    file_keys: List[str] = Query(default_factory=list),
+    client_config: ClientConfig = Depends(client_config_middleware)
+):
     """
     Always return a 200 OK response, with the body containing each of the specified files and the status code
     for the deletion of that file:
@@ -36,7 +38,7 @@ async def delete_files(
     logger.info(f'Deleting {len(file_keys)} file(s)')
 
     outcomes = {}
-    for file_key in file_keys:
+    for fi, file_key in enumerate(file_keys):
         # Set default outcome
         outcomes[file_key] = 500  # SERVER ERROR, should always process all files
         try:
@@ -59,14 +61,20 @@ async def delete_files(
                 try:
                     logger.info(f"Attempting to delete version with versionId {version_id}")
                     s3_service.delete_file_version(client_config, file_key, version_id)
-                    audit_service.put_item(
-                        client_config.azure_display_name, file_key, OperationType.DELETE
-                    )
                     logger.info(f"Deleted version {version_id} of file {file_key}")
 
                 except Exception as e:
                     logger.error(f"Failed to delete version {version_id} of {file_key}: {e}")
                     raise e  # Bubble up to outer exception handler
+
+            # Could later extend auditing to record delete of each version
+            audit_record = AuditRecord(request_id=request.headers["x-request-id"],
+                                       filename_position=fi,
+                                       service_id=client_config.azure_display_name,
+                                       file_id=file_key,
+                                       operation_type=OperationType.DELETE
+                                       )
+            audit_service.put_item(audit_record)
 
             outcomes[file_key] = 204  # NO CONTENT, all versions deleted successfully
 

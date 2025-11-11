@@ -83,7 +83,8 @@ async def bulk_upload(
                 file=file,
                 body=body,
                 client_config=client_config,
-                request_type=RequestType.PUT)
+                request_type=RequestType.PUT,
+                filename_position=fi)
 
             outcome = {"status_code": 200, "detail": "updated"} if file_existed \
                 else {"status_code": 201, "detail": "saved"}

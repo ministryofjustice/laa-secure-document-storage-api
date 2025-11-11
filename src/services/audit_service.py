@@ -4,11 +4,8 @@ import os
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 import structlog
-from datetime import datetime
-from typing import Optional
-
 from src.models.status_report import ServiceObservations, Category
-from src.utils.operation_types import OperationType
+from src.models.audit_record import AuditRecord
 from src.utils.status_reporter import StatusReporter
 
 logger = structlog.get_logger()
@@ -52,49 +49,11 @@ class AuditService:
         return dynamodb_client
 
 
-def put_item(service_id: str, file_id: str, operation: OperationType, version_id: Optional[str] = None):
+def put_item(audit_record: AuditRecord):
     auditDb = AuditService.get_instance()
     dynamodb_resource = auditDb.dynamodb_client
     table = dynamodb_resource.Table(os.getenv('AUDIT_TABLE'))
-
-    identifier = {
-        'service_id': service_id,
-        'file_id': file_id
-    }
-
-    response = table.get_item(Key=identifier)
-
-    if 'Item' not in response:
-        logger.debug(f'Item with service_id={service_id}, file_id={file_id} not found. Creating new item.')
-
-        operation_history = [
-            {
-                'OPERATION_TYPE': operation.name,
-                'OPERATION_TIME': datetime.now().isoformat()
-            }
-        ]
-
-        item = {
-            **identifier,
-            'operation_history': operation_history,
-            'created_on': datetime.now().isoformat(),
-            'last_updated_on': datetime.now().isoformat(),
-        }
-
-        table.put_item(Item=item)
-
-    else:
-        logger.debug(f'Item with service_id={service_id}, file_id={file_id} found. Updating operation_history.')
-        entry = {'OPERATION_TYPE': operation.name, 'OPERATION_TIME': datetime.now().isoformat()}
-        if version_id:
-            entry['VERSION_ID'] = version_id
-        item = response.get("Item")
-        operation_history = item['operation_history']
-        operation_history.append(entry)
-        item['operation_history'] = operation_history
-        item["last_updated_on"] = datetime.now().isoformat()
-
-        table.put_item(Item=item)
+    table.put_item(Item=audit_record.dict())
 
 
 class AuditServiceStatusReporter(StatusReporter):

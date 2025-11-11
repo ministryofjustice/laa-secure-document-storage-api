@@ -5,6 +5,7 @@ from fastapi import HTTPException, UploadFile, Request
 
 from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload
+from src.models.audit_record import AuditRecord
 from src.services import audit_service, s3_service
 from src.services.checksum_service import get_file_checksum
 from src.utils.operation_types import OperationType
@@ -21,6 +22,7 @@ async def handle_file_upload_logic(
     body: FileUpload,
     client_config: ClientConfig,
     request_type: RequestType,
+    filename_position: int = 0
 ) -> Tuple[Dict, bool]:
     # Antivirus scan
     validation_result = await clam_av_validator.scan_request(request.headers, file)
@@ -70,11 +72,14 @@ async def handle_file_upload_logic(
                     )
                 )
 
-        audit_service.put_item(
-            client_config.azure_display_name,
-            full_filename,
-            OperationType.CREATE
-        )
+        audit_record = AuditRecord(request_id=request.headers["x-request-id"],
+                                   filename_position=filename_position,
+                                   service_id=client_config.azure_display_name,
+                                   file_id=full_filename,
+                                   operation_type=OperationType.UPDATE if file_existed
+                                   else OperationType.CREATE
+                                   )
+        audit_service.put_item(audit_record)
 
         success = s3_service.save(client_config, file.file, full_filename, checksum, metadata)
         if not success:

@@ -1,10 +1,11 @@
 import structlog
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.params import Query
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
 from src.models.execeptions.file_not_found import FileNotFoundException
+from src.models.audit_record import AuditRecord
 from src.services import audit_service, s3_service
 from src.utils.operation_types import OperationType
 
@@ -15,6 +16,7 @@ logger = structlog.get_logger()
 @router.get('/get_file')
 @router.get('/retrieve_file', deprecated=True)
 async def retrieve_file(
+            request: Request,
             file_key: str = Query(None, min_length=1),
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
@@ -27,8 +29,12 @@ async def retrieve_file(
         raise HTTPException(status_code=400, detail="File key is missing")
 
     try:
-        audit_service.put_item(client_config.azure_display_name, file_key, OperationType.READ)
-
+        audit_record = AuditRecord(request_id=request.headers["x-request-id"],
+                                   filename_position=0,
+                                   service_id=client_config.azure_display_name,
+                                   file_id=file_key,
+                                   operation_type=OperationType.READ)
+        audit_service.put_item(audit_record)
         logger.info("calling retrieve file operation")
         response = s3_service.retrieve_file_url(client_config, file_key)
         if response is None:
