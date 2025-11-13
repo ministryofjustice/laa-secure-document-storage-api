@@ -54,6 +54,13 @@ def put_item(audit_record: AuditRecord):
     dynamodb_resource = auditDb.dynamodb_client
     table = dynamodb_resource.Table(os.getenv('AUDIT_TABLE'))
     table.put_item(Item=audit_record.dict())
+    # Temporary addition that reads from the audit table to test access permissions change
+    item_identifier = {
+        'request_id': audit_record.request_id,
+        'filename_position': audit_record.filename_position
+    }
+    response = table.get_item(Key=item_identifier)
+    logger.info(f"### AUDIT TABLE ROW ###: {response}")
 
 
 class AuditServiceStatusReporter(StatusReporter):
