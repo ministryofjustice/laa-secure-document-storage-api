@@ -31,7 +31,7 @@ Original plan was to create mock Table and mock DynamoDB client within each test
 However, this causes problems because AuditService is a singleton class, so mock
 values established in one test can persist to the next. So instead the tests deliberately
 share the same mock Table object and mock DynamoDB client but use a method to reset
-the captured data that the mock Table object holds.
+the captured data within the mock Table object.
 
 This also means that the patching of
 src.services.audit_service.AuditService.get_dynamodb_client
@@ -117,6 +117,10 @@ def test_audit_put_item_with_valid_item_with_empty_created_on():
 
 
 def test_audit_put_item_with_valid_item_and_generated_created_on():
+    """
+    No created_on value supplied, which is normal and results in
+    automatically set date/time value.
+    """
     audit_record = AuditRecord(
         request_id="xyz456",
         filename_position=0,
