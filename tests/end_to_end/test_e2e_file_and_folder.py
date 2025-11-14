@@ -9,7 +9,7 @@ from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
 from tests.end_to_end.e2e_helpers import post_a_file
-from tests.end_to_end.e2e_helpers import LocalS3
+from tests.end_to_end.e2e_helpers import LocalS3, AuditDynamoDBClient
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -38,8 +38,10 @@ token_getter = get_token_manager()
 # having to set S3 credentials for every environment.
 if HOST_URL == "http://127.0.0.1:8000":
     s3_client = LocalS3(mocking_enabled=False)
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=False)
 else:
     s3_client = LocalS3(mocking_enabled=True)
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=True)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -71,10 +73,15 @@ def test_post_file_paths_works_as_expected(new_filename):
                            data=UPLOAD_BODY)
 
     details = response.json()
+    request_id = response.headers.get("x-request-id")
+    audit_item = audit_table_client.get_audit_row(request_id, 0)
     assert response.status_code == 201
     assert details["success"].startswith("File saved successfully")
     assert details["success"].endswith(f"with key {new_filename}")
     assert s3_client.check_file_exists(new_filename, mock_result=True) is True
+    if HOST_URL == "http://127.0.0.1:8000":
+        assert audit_item.get("file_id") == {'S': new_filename}
+        assert audit_item.get("operation_type") == {'S': 'CREATE'}
 
 
 new_base_filename_get = make_unique_name("get_path_file.txt")
