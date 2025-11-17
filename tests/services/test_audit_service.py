@@ -73,12 +73,14 @@ mock_table = MockTable()
 mock_client = MockDynamoDBClient(mock_table=mock_table)
 
 
-def test_audit_put_item_with_valid_item_with_empty_created_on():
+@pytest.mark.parametrize("operation_type", ["CREATE", "READ", "UPDATE", "DELETE"])
+def test_audit_put_item_with_valid_item_with_empty_created_on(operation_type):
     """
     This test has a manually specified created_on value which is unrealistic
     as this would normally be excluded to receieve default date/time value.
     The direct setting to "" here is just for convenience of the assert
-    at the end not needing anything time/date specific.
+    at the end not needing anything time/date specific. Separate test below
+    covers more realistic created_on value.
     """
     audit_record = AuditRecord(
         request_id="abc123",
@@ -86,7 +88,7 @@ def test_audit_put_item_with_valid_item_with_empty_created_on():
         service_id="pytest-test",
         file_id="test.txt",
         created_on="",
-        operation_type="CREATE",
+        operation_type=operation_type,
         error_details="",
     )
 
@@ -110,7 +112,58 @@ def test_audit_put_item_with_valid_item_with_empty_created_on():
             "service_id": "pytest-test",
             "file_id": "test.txt",
             "created_on": "",
-            "operation_type": "CREATE",
+            "operation_type": operation_type,
+            "error_details": "",
+        }
+    ]
+
+
+@pytest.mark.parametrize("file_info", [{"request_id": "multi1",
+                                        "filename_position": 0,
+                                        "file_id": "file_a.txt"},
+                                       {"request_id": "multi2",
+                                        "filename_position": 1,
+                                        "file_id": "file_b.txt"},
+                                       {"request_id": "multi3",
+                                        "filename_position": 2,
+                                        "file_id": "file_b.txt"},  # repeat filename
+                                       {"request_id": "multi4",
+                                        "filename_position": 3,
+                                        "file_id": "file_c.txt"}
+                                       ])
+def test_audit_put_items_with_different_filename_positions(file_info):
+    "Also has empty created_on for convenience"
+    audit_record = AuditRecord(
+        request_id=file_info["request_id"],
+        filename_position=file_info["filename_position"],
+        service_id="pytest-position-test",
+        file_id=file_info["file_id"],
+        created_on="",
+        operation_type="DELETE",
+        error_details="",
+    )
+
+    mock_table.reset()
+    assert mock_table.put_item_calls == mock_table.names_received == []
+
+    with (
+        patch(
+            "src.services.audit_service.AuditService.get_dynamodb_client",
+            return_value=mock_client,
+        ),
+        patch.dict(os.environ, {"AUDIT_TABLE": "TEST_AUDIT_2"}),
+    ):
+        put_item(audit_record)
+
+    assert mock_table.names_received == ["TEST_AUDIT_2"]
+    assert mock_table.put_item_calls == [
+        {
+            "request_id": file_info["request_id"],
+            "filename_position": file_info["filename_position"],
+            "service_id": "pytest-position-test",
+            "file_id": file_info["file_id"],
+            "created_on": "",
+            "operation_type": "DELETE",
             "error_details": "",
         }
     ]
@@ -125,7 +178,7 @@ def test_audit_put_item_with_valid_item_and_generated_created_on():
         request_id="xyz456",
         filename_position=0,
         service_id="pytest-test",
-        file_id="test.txt",
+        file_id="datetest.txt",
         operation_type="CREATE",
         error_details="",
     )
@@ -138,14 +191,15 @@ def test_audit_put_item_with_valid_item_and_generated_created_on():
             "src.services.audit_service.AuditService.get_dynamodb_client",
             return_value=mock_client,
         ),
-        patch.dict(os.environ, {"AUDIT_TABLE": "TEST_AUDIT_2"}),
+        patch.dict(os.environ, {"AUDIT_TABLE": "TEST_AUDIT_3"}),
     ):
         put_item(audit_record)
 
-    assert mock_table.names_received == ["TEST_AUDIT_2"]
+    assert mock_table.names_received == ["TEST_AUDIT_3"]
     assert len(mock_table.put_item_calls) == 1
     details = mock_table.put_item_calls[0]
     assert details["request_id"] == "xyz456"
+    assert details["file_id"] == "datetest.txt"
     assert details["created_on"] == expected_created_on
     # Regex pattern for ISO8601 date string - copied from online
     pat = ("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
