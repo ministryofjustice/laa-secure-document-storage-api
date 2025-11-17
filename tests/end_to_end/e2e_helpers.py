@@ -214,7 +214,7 @@ class AuditDynamoDBClient:
             aws_secret_access_key=os.getenv('AWS_KEY', 'test'),
             endpoint_url=os.getenv('AWS_ENDPOINT_URL', 'http://127.0.0.1:4566')
             )
-        self.table_names = self.get_table_names()
+        self.available_table_names = []
 
     def get_table_names(self) -> list[str]:
         if self.mocking_enabled:
@@ -225,7 +225,7 @@ class AuditDynamoDBClient:
 
     def get_audit_row(self,
                       request_id: str,
-                      filename_position: int | str = 0,
+                      filename_position: int | str = "0",
                       table_name: str = "") -> dict:
         if self.mocking_enabled:
             return {'filename_position': {'N': '0'},
@@ -236,9 +236,15 @@ class AuditDynamoDBClient:
                     'file_id': {'S': 'dummy.txt'},
                     'request_id': {'S': 'dummy_id_value'}}
 
+        # self.available_table_names *not* populated in __init__ because we need to be
+        # able to create an instance in circumstances in which AWS is not available
+        # even when mocking_enabled flag is False.
+        if not self.available_table_names:
+            self.available_table_names = self.get_table_names()
+
         # Locally should be only one table, so safe to default to 1st one
         if not table_name:
-            table_name = self.table_names[0]
+            table_name = self.available_table_names[0]
 
         # Confusingly the value of filename_postion must be a str even though it's
         # held in database as a number (N), otherwise get "Invalid type for parameter"
