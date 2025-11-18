@@ -202,9 +202,33 @@ def test_audit_put_item_with_valid_item_and_generated_created_on():
     assert details["file_id"] == "datetest.txt"
     assert details["created_on"] == expected_created_on
     # Regex pattern for ISO8601 date string - copied from online
-    pat = ("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
-           r"(\.[0-9]+)?([Zz]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?")
-    assert bool(re.match(pat, details["created_on"])) is True
+    ISO8601_date_pattern = ("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+                            r"(\.[0-9]+)?([Zz]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?")
+    assert bool(re.match(ISO8601_date_pattern, details["created_on"])) is True
+
+
+def test_get_expected_error_when_no_audit_table_environment_variable(monkeypatch):
+    """
+    Test for circumstance in which AUDIT_TABLE environment variable does not exist.
+    """
+    audit_record = AuditRecord(
+        request_id="no_env_var_abc",
+        filename_position=0,
+        service_id="pytest-env-test",
+        file_id="doomed.txt",
+        created_on="",
+        operation_type="CREATE",
+        error_details=""
+        )
+    mock_table.reset()
+    # Note patch.dict(os.environ, {}) does not remove environment variables
+    # but monkeypatch.delenv does work.
+    monkeypatch.delenv("AUDIT_TABLE")
+    with (patch("src.services.audit_service.AuditService.get_dynamodb_client",
+                return_value=mock_client),
+          pytest.raises(ValueError) as exc_info):
+        put_item(audit_record)
+    assert str(exc_info.value) == "Failed to get value from AUDIT_TABLE environment variable"
 
 
 def test_get_expected_error_with_invalid_operation_type():
