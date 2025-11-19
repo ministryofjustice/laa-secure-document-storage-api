@@ -193,3 +193,63 @@ def get_host_url() -> str:
 
 def get_upload_body() -> dict[str, dict[str, str]]:
     return {"body": '{"bucketName": "sds-local"}'}
+
+
+class AuditDynamoDBClient:
+    """
+    Enables checks of the DynamoDb audit table contents.
+    Created to work with LocalStack database. Unlikely to work in real
+    environments as their audit tables are set to write-only.
+
+    Has a mocking_enabled flag that turns off actual database access and
+    returns dummy values. Intended for circumstances in which the audit
+    table access is not wanted or possible.
+    """
+    def __init__(self, mocking_enabled=False):
+        self.mocking_enabled = mocking_enabled
+        self.client = boto3.client(
+            service_name='dynamodb',
+            region_name=os.getenv('AWS_REGION', 'eu-west-2'),
+            aws_access_key_id=os.getenv('AWS_KEY_ID', 'test'),
+            aws_secret_access_key=os.getenv('AWS_KEY', 'test'),
+            endpoint_url=os.getenv('AWS_ENDPOINT_URL', 'http://127.0.0.1:4566')
+            )
+        self.available_table_names = []
+
+    def get_table_names(self) -> list[str]:
+        if self.mocking_enabled:
+            return ["dummy_table"]
+        table_list_response = self.client.list_tables()
+        table_names = table_list_response.get("TableNames")
+        return table_names
+
+    def get_audit_row(self,
+                      request_id: str,
+                      filename_position: int | str = "0",
+                      table_name: str = "") -> dict:
+        if self.mocking_enabled:
+            return {'filename_position': {'N': '0'},
+                    'operation_type': {'S': 'READ'},
+                    'created_on': {'S': '2025-01-01T11:59:59.000000'},
+                    'error_details': {'S': ''},
+                    'service_id': {'S': 'laa-sds-client-local'},
+                    'file_id': {'S': 'dummy.txt'},
+                    'request_id': {'S': 'dummy_id_value'}}
+
+        # self.available_table_names *not* populated in __init__ because we need to be
+        # able to create an instance in circumstances in which AWS is not available
+        # even when mocking_enabled flag is False.
+        if not self.available_table_names:
+            self.available_table_names = self.get_table_names()
+
+        # Locally should be only one table, so safe to default to 1st one
+        if not table_name:
+            table_name = self.available_table_names[0]
+
+        # Confusingly the value of filename_postion must be a str even though it's
+        # held in database as a number (N), otherwise get "Invalid type for parameter"
+        key = {'request_id': {'S': request_id},
+               'filename_position': {'N': str(filename_position)}}
+        item_response = self.client.get_item(TableName=table_name, Key=key)
+        item = item_response.get("Item")
+        return item

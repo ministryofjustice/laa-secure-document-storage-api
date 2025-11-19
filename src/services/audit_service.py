@@ -52,8 +52,11 @@ class AuditService:
 def put_item(audit_record: AuditRecord):
     auditDb = AuditService.get_instance()
     dynamodb_resource = auditDb.dynamodb_client
-    table = dynamodb_resource.Table(os.getenv('AUDIT_TABLE'))
-    table.put_item(Item=audit_record.dict())
+    table_name = os.getenv('AUDIT_TABLE')
+    if not table_name:
+        raise ValueError("Failed to get value from AUDIT_TABLE environment variable")
+    table = dynamodb_resource.Table(table_name)
+    table.put_item(Item=audit_record.model_dump())
 
 
 class AuditServiceStatusReporter(StatusReporter):
