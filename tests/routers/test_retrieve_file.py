@@ -3,7 +3,7 @@ from unittest.mock import patch
 from src.models.execeptions.file_not_found import FileNotFoundException
 
 
-def test_retrieve_file_missing_key(test_client):
+def test_retrieve_file_missing_key(test_client, audit_service_mock):
     response = test_client.get('/retrieve_file/')
 
     assert response.status_code == 400

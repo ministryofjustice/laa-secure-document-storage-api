@@ -25,29 +25,44 @@ async def retrieve_file(
 
     Returns 200 OK with JSON {'fileURL': '--link to resource--'}
     """
+    error_status = ()
     if not file_key:
-        raise HTTPException(status_code=400, detail="File key is missing")
+        error_status = (400, "File key is missing")
+
+    if not error_status:
+        try:
+            logger.info("calling retrieve file operation")
+            response = s3_service.retrieve_file_url(client_config, file_key)
+            if response is None:
+                logger.error("Error whilst retrieving file from S3, got None response")
+                raise FileNotFoundException(
+                    f"File not found for client {client_config.azure_client_id}", file_key
+                )
+            logger.info(f"file retrieved successfully: {response}")
+        except FileNotFoundException as e:
+            logger.error(f"File {file_key} not found for client {client_config.azure_client_id}")
+            error_status = (404, str(e))
+        except Exception as e:
+            logger.error(f"Error retrieving file: {e.__class__.__name__} {str(e)}")
+            # Generic message to avoid exposing technical details externally
+            error_status = (500, "An error occurred while retrieving the file")
+
+    audit_record = AuditRecord(request_id=request.headers["x-request-id"],
+                               filename_position=0,
+                               service_id=client_config.azure_display_name,
+                               file_id=str(file_key),  # str() as file_key can be None if missing
+                               operation_type=OperationType.READ,
+                               error_details=error_status[1] if error_status else "")
 
     try:
-        audit_record = AuditRecord(request_id=request.headers["x-request-id"],
-                                   filename_position=0,
-                                   service_id=client_config.azure_display_name,
-                                   file_id=file_key,
-                                   operation_type=OperationType.READ)
         audit_service.put_item(audit_record)
-        logger.info("calling retrieve file operation")
-        response = s3_service.retrieve_file_url(client_config, file_key)
-        if response is None:
-            logger.error("Error whilst retrieving file from S3, got None response")
-            raise FileNotFoundException(
-                f"File not found for client {client_config.azure_client_id}", file_key
-            )
-
-        logger.info(f"file retrieved successfully: {response}")
-        return {'fileURL': response}
-    except FileNotFoundException as e:
-        logger.error(f"File {file_key} not found for client {client_config.azure_client_id}")
-        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Error retrieving file: {e.__class__.__name__} {str(e)}")
-        raise HTTPException(status_code=500, detail='An error occurred while retrieving the file')
+        logger.error(f"Error writing to audit table {str(e)}")
+        # Potential issue - if there was a FileNotFoundException followed by an exception
+        # here, then the "file not found" response is lost. Concatenate error messages?
+        error_status = (500, "An error occurred while retrieving the file")
+
+    if error_status:
+        raise HTTPException(status_code=error_status[0], detail=error_status[1])
+
+    return {'fileURL': response}
