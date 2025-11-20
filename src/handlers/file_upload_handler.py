@@ -24,26 +24,11 @@ async def handle_file_upload_logic(
     request_type: RequestType,
     filename_position: int = 0
 ) -> Tuple[Dict, bool]:
-    # Antivirus scan
-    validation_result = await clam_av_validator.scan_request(request.headers, file)
-    if validation_result.status_code != 200:
-        raise HTTPException(
-            status_code=validation_result.status_code,
-            detail=validation_result.message
-        )
 
-    # Mandatory validation - must run before client-specific validation
-    status_code, detail = mandatory_file_validator.run_mandatory_validators(file)
-    if status_code != 200:
-        raise HTTPException(status_code=status_code, detail=detail)
-
-    # Client-specific validation
-    await client_configured_validator.validate_or_error(file, client_config.file_validators)
-
-    # Get checksum from file (before saving)
-    checksum, error_message = get_file_checksum(file)
-    if error_message:
-        raise HTTPException(status_code=500, detail=error_message)
+    # Initial file checks
+    checksum, error_status = await initial_file_checks(request, file, client_config)
+    if error_status:
+        raise HTTPException(status_code=error_status[0], detail=error_status[1])
 
     metadata = body.model_dump() or {}
     bucket_name = metadata.pop("bucketName", None)
@@ -98,3 +83,32 @@ async def handle_file_upload_logic(
     except Exception as e:
         logger.error(f"An {e.__class__.__name__} occurred while saving the file: {e}")
         raise HTTPException(status_code=500, detail=f"The file {full_filename} could not be saved")
+
+
+async def initial_file_checks(request: Request, file: UploadFile, client_config: ClientConfig) -> tuple[str, tuple]:
+    error_status = ()
+    # Antivirus scan
+    validation_result = await clam_av_validator.scan_request(request.headers, file)
+    if validation_result.status_code != 200:
+        error_status = (validation_result.status_code, validation_result.message)
+
+    # Mandatory validation - must run before client-specific validation
+    if not error_status:
+        status_code, detail = mandatory_file_validator.run_mandatory_validators(file)
+        if status_code != 200:
+            error_status = (status_code, detail)
+
+    # Client-specific validation
+    if not error_status:
+        try:
+            await client_configured_validator.validate_or_error(file, client_config.file_validators)
+        except HTTPException as e:
+            error_status = (e.status_code, e.detail)
+
+    # Get checksum from file
+    checksum = ""
+    if not error_status:
+        checksum, error_message = get_file_checksum(file)
+        if error_message:
+            error_status = (500, error_message)
+    return checksum, error_status
