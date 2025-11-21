@@ -25,11 +25,7 @@ async def handle_file_upload_logic(
     filename_position: int = 0
 ) -> Tuple[Dict, bool]:
 
-    # Initial file checks
-    checksum, error_status = await initial_file_checks(request, file, client_config)
-    if error_status:
-        raise HTTPException(status_code=error_status[0], detail=error_status[1])
-
+    # Bucket check
     metadata = body.model_dump() or {}
     bucket_name = metadata.pop("bucketName", None)
     if bucket_name != client_config.bucket_name:
@@ -40,54 +36,64 @@ async def handle_file_upload_logic(
             f"not configured name {client_config.bucket_name}"
         )
 
+    # Initial file checks - virus scan, mandatory validators, client config validators ...
+    checksum, error_status = await run_initial_file_checks(request, file, client_config)
+
     folder_prefix = metadata.pop("folder", "")
     full_filename = os.path.join(folder_prefix, file.filename) if folder_prefix else file.filename
-
     file_existed = False
 
-    try:
+    # Check file not already in S3 when POST request
+    if not error_status:
         file_existed = s3_service.file_exists(client_config, full_filename)
-        if request_type == RequestType.POST:
-            if file_existed:
-                raise HTTPException(
-                    status_code=409,
-                    detail=(
-                        f"File {full_filename} already exists and cannot be overwritten "
-                        "via the /save_file endpoint. Use PUT endpoint /save_or_update_file to overwrite."
-                    )
-                )
+        if file_existed and request_type == RequestType.POST:
+            error_status = (409, f"File {full_filename} already exists and cannot be overwritten "
+                            "via the /save_file endpoint. Use PUT endpoint /save_or_update_file to overwrite.")
 
-        audit_record = AuditRecord(request_id=request.headers["x-request-id"],
-                                   filename_position=filename_position,
-                                   service_id=client_config.azure_display_name,
-                                   file_id=full_filename,
-                                   operation_type=OperationType.UPDATE if file_existed
-                                   else OperationType.CREATE
-                                   )
+    # Save file to bucket
+    if not error_status:
+        try:
+            success = s3_service.save(client_config, file.file, full_filename, checksum, metadata)
+            if not success:
+                # This is retained for consistency but might never happen, with Exception handling
+                # below actually reporting the error when save fails
+                error_status = (500, f"File {full_filename} failed to save for an unknown reason.")
+        except Exception as e:
+            logger.error(f"An {e.__class__.__name__} occurred while saving the file: {e}")
+            error_status = (500, f"The file {full_filename} could not be saved")
+
+    # Update audit table
+    audit_record = AuditRecord(request_id=request.headers["x-request-id"],
+                               filename_position=filename_position,
+                               service_id=client_config.azure_display_name,
+                               file_id=str(full_filename),  # str() because can be None when error
+                               operation_type=OperationType.UPDATE if file_existed
+                               else OperationType.CREATE,
+                               # str(error_status[1]) because clam_av errors are list, not str
+                               error_details=str(error_status[1]) if error_status else "")
+    try:
         audit_service.put_item(audit_record)
-
-        success = s3_service.save(client_config, file.file, full_filename, checksum, metadata)
-        if not success:
-            raise HTTPException(
-                status_code=500,
-                detail=f"File {full_filename} failed to save for an unknown reason."
-            )
-        actioned = "updated" if file_existed else "saved"
-        return {
-            "success": f"File {actioned} successfully in {client_config.bucket_name} with key {full_filename}",
-            "checksum": checksum
-        }, file_existed
-
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"An {e.__class__.__name__} occurred while saving the file: {e}")
-        raise HTTPException(status_code=500, detail=f"The file {full_filename} could not be saved")
+        logger.error(f"Error writing to audit table {str(e)}")
+        # Potential issue - if there was an Exception on writing to S3, followed by an exception
+        # here, then the original error_status is lost. Concatenate error messages?
+        error_status = (500, "An error occurred while retrieving the file")
+
+    if error_status:
+        raise HTTPException(status_code=error_status[0], detail=error_status[1])
+
+    actioned = "updated" if file_existed else "saved"
+    return {
+        "success": f"File {actioned} successfully in {client_config.bucket_name} with key {full_filename}",
+        "checksum": checksum
+    }, file_existed
 
 
-async def initial_file_checks(request: Request, file: UploadFile, client_config: ClientConfig) -> tuple[str, tuple]:
+async def run_initial_file_checks(request: Request,
+                                  file: UploadFile,
+                                  client_config: ClientConfig) -> tuple[str, tuple]:
     error_status = ()
-    # Antivirus scan
+    # Antivirus scan - note unlike the other checks, validation_result.message is a list, not str
     validation_result = await clam_av_validator.scan_request(request.headers, file)
     if validation_result.status_code != 200:
         error_status = (validation_result.status_code, validation_result.message)
