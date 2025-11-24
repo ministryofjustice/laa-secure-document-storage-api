@@ -34,11 +34,11 @@ async def delete_files(
     # Could move this nearer to the raise HTTPException line
     if len(file_keys) == 0:
         error_status = (400, "File key is missing")
+    else:
+        # Check we have permission to delete items from the bucket
+        authz_service.enforce_or_error(client_config.azure_client_id, client_config.bucket_name, 'DELETE')
 
-    # Check we have permission to delete items from the bucket
-    authz_service.enforce_or_error(client_config.azure_client_id, client_config.bucket_name, 'DELETE')
-
-    # Log total number of deletes requested to help trace large requests
+    # Log total number of deletes requested to help trace large requests (can report 0 files)
     logger.info(f'Deleting {len(file_keys)} file(s)')
 
     outcomes = {}
@@ -51,11 +51,10 @@ async def delete_files(
                                    filename_position=fi,
                                    service_id=client_config.azure_display_name,
                                    file_id=file_key,
-                                   operation_type=OperationType.DELETE
+                                   operation_type=OperationType.DELETE,
+                                   error_details=error_status[1] if error_status else ""
                                    )
-        # Temporary filter for only non-error situations as need to update "error" tests to cope
-        if not error_status:
-            audit_service.put_item(audit_record)
+        audit_service.put_item(audit_record)
 
     # Consistent with previous behaviour
     if error_status == (400, "File key is missing"):
@@ -81,7 +80,7 @@ def delete_all_file_versions(client_config:  ClientConfig, file_key: str) -> tup
         error_status = (500, "")  # SERVER ERROR
         versions = []
 
-    # Want to avoid overwriting previous error status
+    # Want to avoid overwriting previous error status - redundancy with 404 above?
     if len(versions) < 1 and not error_status:
         logger.warning(f"No versions found for {file_key}")
         error_status = (404, f"No versions found for {file_key}")
