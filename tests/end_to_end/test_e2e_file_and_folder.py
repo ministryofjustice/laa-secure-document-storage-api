@@ -73,15 +73,15 @@ def test_post_file_paths_works_as_expected(new_filename):
                            data=UPLOAD_BODY)
 
     details = response.json()
-    request_id = response.headers.get("x-request-id")
-    audit_item = audit_table_client.get_audit_row(request_id, 0)
     assert response.status_code == 201
     assert details["success"].startswith("File saved successfully")
     assert details["success"].endswith(f"with key {new_filename}")
     assert s3_client.check_file_exists(new_filename, mock_result=True) is True
-    if HOST_URL == "http://127.0.0.1:8000":
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': new_filename}
         assert audit_item.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item.get("error_details") == {'S': ''}
 
 
 new_base_filename_get = make_unique_name("get_path_file.txt")
@@ -151,6 +151,11 @@ def test_put_unusual_but_valid_filename_is_accepted(new_filename):
     assert response.status_code in (200, 201)
     assert details["success"].endswith(f"with key {new_filename}")
     assert s3_client.check_file_exists(new_filename, mock_result=True) is True
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item.get("file_id") == {'S': new_filename}
+        assert audit_item.get("operation_type") in [{'S': 'CREATE'}, {'S': 'UPDATE'}]
+        assert audit_item.get("error_details") == {'S': ''}
 
 
 @pytest.mark.e2e
@@ -166,6 +171,11 @@ def test_put_invalid_filename_is_rejected(new_filename):
 
     assert response.status_code == 415
     assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item.get("file_id") == {'S': new_filename}
+        assert audit_item.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item.get("error_details") == {'S': 'File extension not allowed'}
 
 
 @pytest.mark.e2e
@@ -183,6 +193,11 @@ def test_put_filename_with_url_is_rejected(new_filename):
     assert response.status_code == 400
     assert details["detail"] == "Filename must not contain URLs or web addresses"
     assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item.get("file_id") == {'S': new_filename}
+        assert audit_item.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item.get("error_details") == {'S': 'Filename must not contain URLs or web addresses'}
 
 
 @pytest.mark.e2e
@@ -196,10 +211,15 @@ def test_put_filename_with_backslash_is_rejected(new_filename):
                           data=UPLOAD_BODY)
 
     details = response.json()
-
+    expected_error = "Filename must not contain Windows-style directory path separators"
     assert response.status_code == 400
-    assert details["detail"] == "Filename must not contain Windows-style directory path separators"
+    assert details["detail"] == expected_error
     assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item.get("file_id") == {'S': new_filename}
+        assert audit_item.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item.get("error_details") == {'S': expected_error}
 
 
 @pytest.mark.e2e
@@ -225,6 +245,11 @@ def test_put_filename_with_unacceptable_chars_is_rejected(new_filename, expected
     assert response.status_code == 400
     assert details["detail"] == expected_message
     assert s3_client.check_file_exists(new_filename, mock_result=False) is False
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item.get("file_id") == {'S': new_filename}
+        assert audit_item.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item.get("error_details") == {'S': expected_message}
 
 
 @pytest.mark.e2e

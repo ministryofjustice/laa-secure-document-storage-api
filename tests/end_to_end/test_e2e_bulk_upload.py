@@ -7,7 +7,7 @@ from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
 # from tests.end_to_end.e2e_helpers import post_a_file
-from tests.end_to_end.e2e_helpers import LocalS3
+from tests.end_to_end.e2e_helpers import LocalS3, AuditDynamoDBClient
 
 
 HOST_URL = get_host_url()
@@ -18,8 +18,10 @@ token_getter = get_token_manager()
 # having to set S3 credentials for every environment.
 if HOST_URL == "http://127.0.0.1:8000":
     s3_client = LocalS3(mocking_enabled=False)
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=False)
 else:
     s3_client = LocalS3(mocking_enabled=True)
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=True)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -81,6 +83,23 @@ def test_bulk_upload_works_with_files_payload_example():
         ]
     assert response.status_code == 200
     assert response.json() in successful_outcomes
+    # Audit table update check - CREATE or UPDATE accepted to allow for re-runs
+    if audit_table_client.mocking_enabled is False:
+        # File 1
+        audit_item_0 = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item_0.get("file_id") == {'S': "file1.txt"}
+        assert audit_item_0.get("operation_type") in [{'S': 'CREATE'}, {'S': 'UPDATE'}]
+        assert audit_item_0.get("error_details") == {'S': ''}
+        # File 2
+        audit_item_1 = audit_table_client.get_audit_row_e2e(response, 1)
+        assert audit_item_1.get("file_id") == {'S': "file2.txt"}
+        assert audit_item_1.get("operation_type") in [{'S': 'CREATE'}, {'S': 'UPDATE'}]
+        assert audit_item_1.get("error_details") == {'S': ''}
+        audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
+        # File 3
+        assert audit_item_2.get("file_id") == {'S': "file3.txt"}
+        assert audit_item_2.get("operation_type") in [{'S': 'CREATE'}, {'S': 'UPDATE'}]
+        assert audit_item_2.get("error_details") == {'S': ''}
 
 
 @pytest.mark.e2e
@@ -228,3 +247,36 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
                                             'checksum': expected_checksum}
     # Check right number of results
     assert len(response_details) == len(files)
+
+    # Audit table check
+    if audit_table_client.mocking_enabled is False:
+        # Good file
+        audit_item_0 = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item_0.get("file_id") == {'S': good_file1}
+        assert audit_item_0.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item_0.get("error_details") == {'S': ''}
+        # Virus file
+        audit_item_1 = audit_table_client.get_audit_row_e2e(response, 1)
+        assert audit_item_1.get("file_id") == {'S': "virus_file.txt"}
+        assert audit_item_1.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item_1.get("error_details") == {'S': "['Virus Found']"}
+        # Bad mimetype
+        audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
+        assert audit_item_2.get("file_id") == {'S': "bad_type.exe"}
+        assert audit_item_2.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item_2.get("error_details") == {'S': 'File mimetype not allowed'}
+        # Bad file extension
+        audit_item_3 = audit_table_client.get_audit_row_e2e(response, 3)
+        assert audit_item_3.get("file_id") == {'S': "..."}
+        assert audit_item_3.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item_3.get("error_details") == {'S': 'File extension not allowed'}
+        # Bad character in filename
+        audit_item_4 = audit_table_client.get_audit_row_e2e(response, 4)
+        assert audit_item_4.get("file_id") == {'S': "bad_char|.txt"}
+        assert audit_item_4.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item_4.get("error_details") == {'S': 'Filename contains characters that are not allowed'}
+        # Another good file
+        audit_item_5 = audit_table_client.get_audit_row_e2e(response, 5)
+        assert audit_item_5.get("file_id") == {'S': good_file2}
+        assert audit_item_5.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item_5.get("error_details") == {'S': ''}

@@ -66,7 +66,6 @@ async def delete_files(
 def delete_all_file_versions(client_config:  ClientConfig, file_key: str) -> tuple[int, str]:
     error_status = ()
     # List all versions of the object
-
     try:
         # List all versions of the object
         versions = s3_service.list_file_versions(client_config, file_key)
@@ -89,7 +88,6 @@ def delete_all_file_versions(client_config:  ClientConfig, file_key: str) -> tup
     # Delete each version
     for version in versions:
         version_id = version.get("VersionId")
-
         if not version_id:
             logger.error(f"Missing VersionId for file {file_key}")
             error_status = (500, f"Missing VersionId for file {file_key}")

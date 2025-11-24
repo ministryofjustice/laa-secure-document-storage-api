@@ -7,7 +7,7 @@ from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
 from tests.end_to_end.e2e_helpers import post_a_file
-from tests.end_to_end.e2e_helpers import LocalS3
+from tests.end_to_end.e2e_helpers import LocalS3, AuditDynamoDBClient
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -36,8 +36,10 @@ token_getter = get_token_manager()
 # This is to save on having to set S3 credentials for every environment.
 if HOST_URL == "http://127.0.0.1:8000":
     s3_client = LocalS3(mocking_enabled=False)
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=False)
 else:
     s3_client = LocalS3(mocking_enabled=True)
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=True)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -79,6 +81,12 @@ def test_delete_single_file_deletes_the_requested_file_only():
     assert del_response.status_code == 200
     assert del_response.json().get(unwanted_filename) == 204
     assert get_response.status_code == 200
+    # Check audit record created for the delete operation
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(del_response, 0)
+        assert audit_item.get("file_id") == {'S': unwanted_filename}
+        assert audit_item.get("operation_type") == {'S': 'DELETE'}
+        assert audit_item.get("error_details") == {'S': ''}
 
 
 @pytest.mark.e2e
@@ -94,6 +102,7 @@ def test_file_cannot_be_retrieved_after_it_has_been_deleted():
     get_response = client.get(f"{HOST_URL}/get_file", headers=headers, params={"file_key": new_filename})
     assert get_response.status_code == 404
     assert f"The file {new_filename} could not be found." in get_response.text
+    # No audit table check as successful delete already covered in previous test.
 
 
 @pytest.mark.e2e
@@ -117,6 +126,12 @@ def test_delete_non_existent_file_fails_as_expected():
     response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
     assert response.status_code == 200
     assert response.json() == {"non_existent_file": 404}
+    # Check audit record created for the failed delete operation
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item.get("file_id") == {'S': "non_existent_file"}
+        assert audit_item.get("operation_type") == {'S': 'DELETE'}
+        assert audit_item.get("error_details") == {'S': 'No versions found for non_existent_file'}
 
 # Note the Postman tests have "Retrieve Deleted File" and "Retrieve Non-Deleted File" tests
 # at this point. They have not been replicated here as they seem to just duplicate Retrieve File
@@ -139,6 +154,20 @@ def test_delete_multiple_files_has_right_result_for_each_file():
     response = client.delete(f"{HOST_URL}/delete_files", headers=token_getter.get_headers(), params=params)
     assert response.status_code == 200
     assert response.json() == {new_filename1: 204, new_filename2: 204, "non_existent_file": 404}
+    # Check audit records created for the failed delete operation
+    if audit_table_client.mocking_enabled is False:
+        audit_item_0 = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item_0.get("file_id") == {'S': new_filename1}
+        assert audit_item_0.get("operation_type") == {'S': 'DELETE'}
+        assert audit_item_0.get("error_details") == {'S': ''}
+        audit_item_1 = audit_table_client.get_audit_row_e2e(response, 1)
+        assert audit_item_1.get("file_id") == {'S': new_filename2}
+        assert audit_item_1.get("operation_type") == {'S': 'DELETE'}
+        assert audit_item_1.get("error_details") == {'S': ''}
+        audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
+        assert audit_item_2.get("file_id") == {'S': "non_existent_file"}
+        assert audit_item_2.get("operation_type") == {'S': 'DELETE'}
+        assert audit_item_2.get("error_details") == {'S': 'No versions found for non_existent_file'}
 
 
 @pytest.mark.e2e
