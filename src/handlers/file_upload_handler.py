@@ -91,7 +91,7 @@ async def handle_file_upload_logic(
 
 async def run_initial_file_checks(request: Request,
                                   file: UploadFile,
-                                  client_config: ClientConfig) -> tuple[str, tuple]:
+                                  client_config: ClientConfig) -> tuple[str, tuple[str | list]]:
     error_status = ()
     # Antivirus scan - note unlike the other checks, validation_result.message is a list, not str
     validation_result = await clam_av_validator.scan_request(request.headers, file)

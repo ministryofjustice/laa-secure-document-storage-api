@@ -101,6 +101,11 @@ def test_get_file_paths_works_as_expected(new_filename):
     assert "fileURL" in get_response.text
     assert "Expires" in get_response.text
     assert new_filename in get_response.text
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(get_response, 0)
+        assert audit_item.get("file_id") == {'S': new_filename}
+        assert audit_item.get("operation_type") == {'S': 'READ'}
+        assert audit_item.get("error_details") == {'S': ''}
 
 
 @pytest.mark.e2e

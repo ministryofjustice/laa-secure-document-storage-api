@@ -56,7 +56,7 @@ async def delete_files(
                                    )
         audit_service.put_item(audit_record)
 
-    # Consistent with previous behaviour
+    # Consistent with previous behaviour and concerns receiving no filenames
     if error_status == (400, "File key is missing"):
         raise HTTPException(status_code=error_status[0], detail=error_status[1])
 
@@ -69,7 +69,6 @@ def delete_all_file_versions(client_config:  ClientConfig, file_key: str) -> tup
     try:
         # List all versions of the object
         versions = s3_service.list_file_versions(client_config, file_key)
-    # For consistency kept "as before"
     except FileNotFoundError:
         logger.error(f"File to be deleted {file_key} not found for client {client_config.azure_client_id}")
         error_status = (404, "")  # NOT FOUND
