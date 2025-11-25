@@ -7,6 +7,9 @@ import structlog
 from src.models.status_report import ServiceObservations, Category
 from src.models.audit_record import AuditRecord
 from src.utils.status_reporter import StatusReporter
+from fastapi import Request
+from src.utils.operation_types import OperationType
+
 
 logger = structlog.get_logger()
 
@@ -57,6 +60,28 @@ def put_item(audit_record: AuditRecord):
         raise ValueError("Failed to get value from AUDIT_TABLE environment variable")
     table = dynamodb_resource.Table(table_name)
     table.put_item(Item=audit_record.model_dump())
+
+
+def add_record(request: Request,
+               filename_position: int,
+               service_id: str,
+               file_id: str | None,
+               operation_type: OperationType | None,
+               error_status: tuple = ()):
+    "Add record to audit table, with automatic FAILED status setting"
+    error_text = ""
+    if error_status:
+        error_text = f"{request.url}: {error_status[1]}"
+        operation_type = OperationType.FAILED
+    audit_record = AuditRecord(request_id=request.headers["x-request-id"],
+                               filename_position=filename_position,
+                               service_id=service_id,
+                               file_id=str(file_id),  # str() as file_key can be None if missing
+                               operation_type=operation_type,
+                               error_details=error_text)
+    put_item(audit_record)
+    # return value added so audit_record can be examined in tests
+    return audit_record
 
 
 class AuditServiceStatusReporter(StatusReporter):

@@ -6,3 +6,4 @@ class OperationType(Enum):
     UPDATE = 'UPDATE'
     DELETE = 'DELETE'
     READ = 'READ'
+    FAILED = 'FAILED'

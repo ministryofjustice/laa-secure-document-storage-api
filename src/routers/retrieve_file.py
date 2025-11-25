@@ -5,7 +5,6 @@ from fastapi.params import Query
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
 from src.models.execeptions.file_not_found import FileNotFoundException
-from src.models.audit_record import AuditRecord
 from src.services import audit_service, s3_service
 from src.utils.operation_types import OperationType
 
@@ -46,16 +45,13 @@ async def retrieve_file(
             logger.error(f"Error retrieving file: {e.__class__.__name__} {str(e)}")
             # Generic message to avoid exposing technical details externally
             error_status = (500, "An error occurred while retrieving the file")
-
-    audit_record = AuditRecord(request_id=request.headers["x-request-id"],
-                               filename_position=0,
-                               service_id=client_config.azure_display_name,
-                               file_id=str(file_key),  # str() as file_key can be None if missing
-                               operation_type=OperationType.READ,
-                               error_details=error_status[1] if error_status else "")
-
     try:
-        audit_service.put_item(audit_record)
+        audit_service.add_record(request=request,
+                                 filename_position=0,
+                                 service_id=client_config.azure_display_name,
+                                 file_id=file_key,
+                                 operation_type=OperationType.READ,
+                                 error_status=error_status)
     except Exception as e:
         logger.error(f"Error writing to audit table {str(e)}")
         # Potential issue - if there was a FileNotFoundException followed by an exception

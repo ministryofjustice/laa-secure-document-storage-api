@@ -303,8 +303,8 @@ def test_get_file_returns_expected_error_when_file_not_found():
     if audit_table_client.mocking_enabled is False:
         audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': "does-not-exist.txt"}
-        assert audit_item.get("operation_type") == {'S': 'READ'}
-        assert audit_item.get("error_details") == {'S': expected_error}
+        assert audit_item.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item.get("error_details") == {'S': f"{response.url}: {expected_error}"}
 
 # Save File Tests
 
