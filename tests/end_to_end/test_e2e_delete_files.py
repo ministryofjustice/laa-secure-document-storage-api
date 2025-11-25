@@ -130,8 +130,8 @@ def test_delete_non_existent_file_fails_as_expected():
     if audit_table_client.mocking_enabled is False:
         audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': "non_existent_file"}
-        assert audit_item.get("operation_type") == {'S': 'DELETE'}
-        assert audit_item.get("error_details") == {'S': 'No versions found for non_existent_file'}
+        assert audit_item.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item.get("error_details") == {'S': f'{response.url}: No versions found for non_existent_file'}
 
 # Note the Postman tests have "Retrieve Deleted File" and "Retrieve Non-Deleted File" tests
 # at this point. They have not been replicated here as they seem to just duplicate Retrieve File
@@ -166,8 +166,8 @@ def test_delete_multiple_files_has_right_result_for_each_file():
         assert audit_item_1.get("error_details") == {'S': ''}
         audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
         assert audit_item_2.get("file_id") == {'S': "non_existent_file"}
-        assert audit_item_2.get("operation_type") == {'S': 'DELETE'}
-        assert audit_item_2.get("error_details") == {'S': 'No versions found for non_existent_file'}
+        assert audit_item_2.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item_2.get("error_details") == {'S': f'{response.url}: No versions found for non_existent_file'}
 
 
 @pytest.mark.e2e

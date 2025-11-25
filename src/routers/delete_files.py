@@ -7,7 +7,6 @@ from starlette.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
-from src.models.audit_record import AuditRecord
 from src.services import audit_service, authz_service, s3_service
 from src.utils.operation_types import OperationType
 
@@ -45,16 +44,17 @@ async def delete_files(
     for fi, file_key in enumerate(file_keys):
         error_status = delete_all_file_versions(client_config, file_key)
         outcomes[file_key] = error_status[0] if error_status else 204
-
-        # Could later extend auditing to record delete of each version
-        audit_record = AuditRecord(request_id=request.headers["x-request-id"],
-                                   filename_position=fi,
-                                   service_id=client_config.azure_display_name,
-                                   file_id=file_key,
-                                   operation_type=OperationType.DELETE,
-                                   error_details=error_status[1] if error_status else ""
-                                   )
-        audit_service.put_item(audit_record)
+        # Update audit table (could later extend to record delete of each version)
+        try:
+            audit_service.add_record(request=request,
+                                     filename_position=fi,
+                                     service_id=client_config.azure_display_name,
+                                     file_id=str(file_key),
+                                     operation_type=OperationType.DELETE,
+                                     error_status=error_status)
+        except Exception as e:
+            logger.error(f"Error writing to audit table {str(e)}")
+            error_status = (500, "An error occurred while deleting the file")
 
     # Consistent with previous behaviour and concerns receiving no filenames
     if error_status == (400, "File key is missing"):
