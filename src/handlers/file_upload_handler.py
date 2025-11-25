@@ -5,7 +5,6 @@ from fastapi import HTTPException, UploadFile, Request
 
 from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload
-from src.models.audit_record import AuditRecord
 from src.services import audit_service, s3_service
 from src.services.checksum_service import get_file_checksum
 from src.utils.operation_types import OperationType
@@ -63,16 +62,14 @@ async def handle_file_upload_logic(
             error_status = (500, f"The file {full_filename} could not be saved")
 
     # Update audit table
-    audit_record = AuditRecord(request_id=request.headers["x-request-id"],
-                               filename_position=filename_position,
-                               service_id=client_config.azure_display_name,
-                               file_id=str(full_filename),  # str() because can be None when error
-                               operation_type=OperationType.UPDATE if file_existed
-                               else OperationType.CREATE,
-                               # str(error_status[1]) because clam_av errors are list, not str
-                               error_details=str(error_status[1]) if error_status else "")
     try:
-        audit_service.put_item(audit_record)
+        audit_service.add_record(request=request,
+                                 filename_position=filename_position,
+                                 service_id=client_config.azure_display_name,
+                                 file_id=str(full_filename),
+                                 operation_type=OperationType.UPDATE if file_existed
+                                 else OperationType.CREATE,
+                                 error_status=error_status)
     except Exception as e:
         logger.error(f"Error writing to audit table {str(e)}")
         # Potential issue - if there was an Exception on writing to S3, followed by an exception

@@ -258,23 +258,24 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
         # Virus file
         audit_item_1 = audit_table_client.get_audit_row_e2e(response, 1)
         assert audit_item_1.get("file_id") == {'S': "virus_file.txt"}
-        assert audit_item_1.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item_1.get("error_details") == {'S': "['Virus Found']"}
+        assert audit_item_1.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item_1.get("error_details") == {'S': f"{response.url}: ['Virus Found']"}
         # Bad mimetype
         audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
         assert audit_item_2.get("file_id") == {'S': "bad_type.exe"}
-        assert audit_item_2.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item_2.get("error_details") == {'S': 'File mimetype not allowed'}
+        assert audit_item_2.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item_2.get("error_details") == {'S': f'{response.url}: File mimetype not allowed'}
         # Bad file extension
         audit_item_3 = audit_table_client.get_audit_row_e2e(response, 3)
         assert audit_item_3.get("file_id") == {'S': "..."}
-        assert audit_item_3.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item_3.get("error_details") == {'S': 'File extension not allowed'}
+        assert audit_item_3.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item_3.get("error_details") == {'S': f'{response.url}: File extension not allowed'}
         # Bad character in filename
         audit_item_4 = audit_table_client.get_audit_row_e2e(response, 4)
         assert audit_item_4.get("file_id") == {'S': "bad_char|.txt"}
-        assert audit_item_4.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item_4.get("error_details") == {'S': 'Filename contains characters that are not allowed'}
+        assert audit_item_4.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item_4.get("error_details") == {'S': f'{response.url}'
+                                                     ': Filename contains characters that are not allowed'}
         # Another good file
         audit_item_5 = audit_table_client.get_audit_row_e2e(response, 5)
         assert audit_item_5.get("file_id") == {'S': good_file2}

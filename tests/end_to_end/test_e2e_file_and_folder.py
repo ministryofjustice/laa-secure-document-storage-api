@@ -179,8 +179,8 @@ def test_put_invalid_filename_is_rejected(new_filename):
     if audit_table_client.mocking_enabled is False:
         audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': new_filename}
-        assert audit_item.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item.get("error_details") == {'S': 'File extension not allowed'}
+        assert audit_item.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item.get("error_details") == {'S': f'{response.url}: File extension not allowed'}
 
 
 @pytest.mark.e2e
@@ -193,16 +193,17 @@ def test_put_filename_with_url_is_rejected(new_filename):
                           files=upload_file,
                           data=UPLOAD_BODY)
 
+    expected_error = "Filename must not contain URLs or web addresses"
     details = response.json()
 
     assert response.status_code == 400
-    assert details["detail"] == "Filename must not contain URLs or web addresses"
+    assert details["detail"] == expected_error
     assert s3_client.check_file_exists(new_filename, mock_result=False) is False
     if audit_table_client.mocking_enabled is False:
         audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': new_filename}
-        assert audit_item.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item.get("error_details") == {'S': 'Filename must not contain URLs or web addresses'}
+        assert audit_item.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item.get("error_details") == {'S': f'{response.url}: {expected_error}'}
 
 
 @pytest.mark.e2e
@@ -223,8 +224,8 @@ def test_put_filename_with_backslash_is_rejected(new_filename):
     if audit_table_client.mocking_enabled is False:
         audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': new_filename}
-        assert audit_item.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item.get("error_details") == {'S': expected_error}
+        assert audit_item.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item.get("error_details") == {'S': f'{response.url}: {expected_error}'}
 
 
 @pytest.mark.e2e
@@ -253,8 +254,8 @@ def test_put_filename_with_unacceptable_chars_is_rejected(new_filename, expected
     if audit_table_client.mocking_enabled is False:
         audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': new_filename}
-        assert audit_item.get("operation_type") == {'S': 'CREATE'}
-        assert audit_item.get("error_details") == {'S': expected_message}
+        assert audit_item.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item.get("error_details") == {'S': f'{response.url}: {expected_message}'}
 
 
 @pytest.mark.e2e
