@@ -1,10 +1,11 @@
 import os
 import re
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import pytest
 from pydantic import ValidationError
 from src.models.audit_record import AuditRecord
-from src.services.audit_service import put_item
+from src.services.audit_service import put_item, add_record
+from src.utils.operation_types import OperationType
 
 """
 Mocking for put_item function
@@ -71,6 +72,11 @@ class MockDynamoDBClient:
 
 mock_table = MockTable()
 mock_client = MockDynamoDBClient(mock_table=mock_table)
+
+
+# Regex pattern for ISO8601 date string - copied from online
+ISO8601_date_pattern = ("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+                        r"(\.[0-9]+)?([Zz]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?")
 
 
 @pytest.mark.parametrize("operation_type", ["CREATE", "READ", "UPDATE", "DELETE"])
@@ -201,10 +207,69 @@ def test_audit_put_item_with_valid_item_and_generated_created_on():
     assert details["request_id"] == "xyz456"
     assert details["file_id"] == "datetest.txt"
     assert details["created_on"] == expected_created_on
-    # Regex pattern for ISO8601 date string - copied from online
-    ISO8601_date_pattern = ("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
-                            r"(\.[0-9]+)?([Zz]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?")
     assert bool(re.match(ISO8601_date_pattern, details["created_on"])) is True
+
+
+def test_add_successful_record():
+    fake_request = Mock()
+    fake_request.url.path = "/smashing"
+    fake_request.headers = {"x-request-id": "zz-9-plural-z-alpha"}
+
+    expected_result = AuditRecord(
+        request_id="zz-9-plural-z-alpha",
+        filename_position=0,
+        service_id="pytest-test-service",
+        file_id="happy.txt",
+        operation_type="READ",
+        error_details=""
+        )
+
+    with patch("src.services.audit_service.put_item"):
+        returned_record = add_record(request=fake_request,
+                                     filename_position=0,
+                                     service_id="pytest-test-service",
+                                     file_id="happy.txt",
+                                     operation_type=OperationType.READ,
+                                     error_status=()
+                                     )
+
+        # created_on attribute excluded from full comparison because it has auto-set
+        # date/time but still check it has the expected format
+        expected_result.created_on = returned_record.created_on
+        assert bool(re.match(ISO8601_date_pattern, returned_record.created_on)) is True
+        assert returned_record == expected_result
+
+
+def test_add_failed_record():
+    # Error situation, so operation_type auto-set to "FAILED"
+    # Error details constructed from request URL path and the error message
+    fake_request = Mock()
+    fake_request.url.path = "/woebegone"
+    fake_request.headers = {"x-request-id": "Delmak-O"}
+
+    expected_result = AuditRecord(
+        request_id="Delmak-O",
+        filename_position=1,
+        service_id="pytest-test-service",
+        file_id="doomed.txt",
+        operation_type="FAILED",
+        error_details="/woebegone: Bad thing happen!"
+        )
+
+    with patch("src.services.audit_service.put_item"):
+        returned_record = add_record(request=fake_request,
+                                     filename_position=1,
+                                     service_id="pytest-test-service",
+                                     file_id="doomed.txt",
+                                     operation_type=OperationType.READ,
+                                     error_status=(500, "Bad thing happen!")
+                                     )
+
+        # created_on attribute excluded from full comparison because it has auto-set
+        # date/time but still check it has the expected format
+        expected_result.created_on = returned_record.created_on
+        assert bool(re.match(ISO8601_date_pattern, returned_record.created_on)) is True
+        assert returned_record == expected_result
 
 
 def test_get_expected_error_when_no_audit_table_environment_variable(monkeypatch):

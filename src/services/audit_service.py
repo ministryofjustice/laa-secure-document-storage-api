@@ -67,11 +67,15 @@ def add_record(request: Request,
                service_id: str,
                file_id: str | None,
                operation_type: OperationType | None,
-               error_status: tuple = ()):
+               error_status: tuple = ()) -> AuditRecord:
     "Add record to audit table, with automatic FAILED status setting"
     error_text = ""
     if error_status:
-        error_text = f"{request.url}: {error_status[1]}"
+        # Original idea was to include request.url but in the case of delete_files
+        # endpoint this includes the whole list of files, which could be very long.
+        # Using request.url.path gives us just the endpoint (e.g. `/delete_files`)
+        # which is the main thing we want to record.
+        error_text = f"{request.url.path}: {error_status[1]}"
         operation_type = OperationType.FAILED
     audit_record = AuditRecord(request_id=request.headers["x-request-id"],
                                filename_position=filename_position,
@@ -80,7 +84,7 @@ def add_record(request: Request,
                                operation_type=operation_type,
                                error_details=error_text)
     put_item(audit_record)
-    # return value added so audit_record can be examined in tests
+    # Return value added so audit_record can be conveniently examined in unit tests
     return audit_record
 
 
