@@ -24,7 +24,8 @@ def test_delete_files_permission_denied(test_client):
 def test_delete_files_missing_file(test_client):
     file_key = 'test_file.md'
 
-    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock:
+    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
+         patch("src.routers.delete_files.audit_service.AuditService.get_instance"):
 
         list_versions_mock.return_value = []
 
@@ -37,7 +38,8 @@ def test_delete_files_missing_file(test_client):
 def test_delete_files_unexpected_error(test_client):
     file_key = 'test_file.md'
 
-    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock:
+    with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
+         patch("src.routers.delete_files.audit_service.AuditService.get_instance"):
 
         list_versions_mock.side_effect = RuntimeError("Unexpected failure")
 
@@ -177,7 +179,8 @@ def test_delete_files_missing_version_id(test_client):
     file_key = 'file_with_bad_version.md'
 
     with patch("src.routers.delete_files.s3_service.list_file_versions") as list_versions_mock, \
-         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock:
+         patch("src.routers.delete_files.s3_service.delete_file_version") as delete_version_mock, \
+         patch("src.routers.delete_files.audit_service.AuditService.get_instance"):
 
         # Simulate a version dictionary missing the "VersionId" key
         list_versions_mock.return_value = [{"NoVersionId": "oops"}]

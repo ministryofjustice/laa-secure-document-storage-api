@@ -7,6 +7,7 @@ from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
 from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
+from tests.end_to_end.e2e_helpers import AuditDynamoDBClient
 
 """
 This file is for e2e tests that require an actual SDS application to run against.
@@ -29,6 +30,12 @@ Environment Variables
 HOST_URL = get_host_url()
 UPLOAD_BODY = get_upload_body()
 token_getter = get_token_manager()
+
+
+if HOST_URL == "http://127.0.0.1:8000":
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=False)
+else:
+    audit_table_client = AuditDynamoDBClient(mocking_enabled=True)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -190,6 +197,16 @@ def test_put_new_file_twice_gives_expected_code_and_message():
 
     assert response1.status_code == 201 and str(response1.text).startswith('{"success":"File saved successfully')
     assert response2.status_code == 200 and str(response2.text).startswith('{"success":"File updated successfully')
+    # Note other CREATE/UPDATE audit table checks are in test_e2e_file_and_folder.py
+    if audit_table_client.mocking_enabled is False:
+        audit_item1 = audit_table_client.get_audit_row_e2e(response1, 0)
+        audit_item2 = audit_table_client.get_audit_row_e2e(response2, 0)
+        assert audit_item1.get("file_id") == {'S': new_filename}
+        assert audit_item1.get("operation_type") == {'S': 'CREATE'}
+        assert audit_item1.get("error_details") == {'S': ''}
+        assert audit_item2.get("file_id") == {'S': new_filename}
+        assert audit_item2.get("operation_type") == {'S': 'UPDATE'}
+        assert audit_item2.get("error_details") == {'S': ''}
 
 
 @pytest.mark.e2e
@@ -276,11 +293,18 @@ def test_get_file_is_successful():
 
 @pytest.mark.e2e
 def test_get_file_returns_expected_error_when_file_not_found():
+    expected_error = "The file does-not-exist.txt could not be found."
     params = {"file_key": "does-not-exist.txt"}
     headers = token_getter.get_headers()
     response = client.get(f"{HOST_URL}/get_file", headers=headers, params=params)
     assert response.status_code == 404
-    assert "The file does-not-exist.txt could not be found." in response.text
+    assert expected_error in response.text
+    # Note other READ audit table checks are in test_e2e_file_and_folder.py
+    if audit_table_client.mocking_enabled is False:
+        audit_item = audit_table_client.get_audit_row_e2e(response, 0)
+        assert audit_item.get("file_id") == {'S': "does-not-exist.txt"}
+        assert audit_item.get("operation_type") == {'S': 'FAILED'}
+        assert audit_item.get("error_details") == {'S': f"{response.url.path}: {expected_error}"}
 
 # Save File Tests
 

@@ -253,3 +253,13 @@ class AuditDynamoDBClient:
         item_response = self.client.get_item(TableName=table_name, Key=key)
         item = item_response.get("Item")
         return item
+
+    def get_audit_row_e2e(self, response, filename_position: int | str) -> dict:
+        """
+        Convenience method for retrieving audit table details in e2e tests
+        In our e2e tests the request_id can be retrieved from response headers "x-request-id".
+        Done here to save repetition in tests.
+        response - response object returned by HTTP client
+        """
+        request_id = response.headers.get("x-request-id")
+        return self.get_audit_row(request_id, filename_position)

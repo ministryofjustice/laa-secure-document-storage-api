@@ -72,7 +72,9 @@ def test_save_or_update_file_with_virus(handler_mock, test_client):
     handler_mock.assert_called_once()
 
 
-def test_save_or_update_file_with_no_file(test_client):
+@patch("src.routers.save_or_update_file.handle_file_upload_logic")
+def test_save_or_update_file_with_no_file(handler_mock, test_client):
+    handler_mock.side_effect = HTTPException(status_code=400, detail=['File is required'])
     data = {
         "body": '{"bucketName": "test_bucket"}'
     }
@@ -84,6 +86,7 @@ def test_save_or_update_file_with_no_file(test_client):
     assert response.json() == {'detail': ['File is required']}
 
 
+# No patch because body validation takes place early in router before handler called
 def test_save_or_update_file_with_invalid_data(test_client):
     data = {
         "body": 'bad body'
@@ -100,6 +103,7 @@ def test_save_or_update_file_with_invalid_data(test_client):
     print(content)
 
 
+# No patch because body validation takes place early in router before handler called
 def test_save_or_update_file_with_missing_bucket_name(test_client):
     data = {
         "body": '{}'  # Missing required field 'bucketName'

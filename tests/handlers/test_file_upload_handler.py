@@ -86,15 +86,17 @@ async def test_handle_file_upload_success(
 @patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
        return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.s3_service.file_exists", return_value=True)
+@patch("src.handlers.file_upload_handler.audit_service.put_item")
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
 @patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_POST_existing_file_failure(
     mandatory_validators_mock,
     validate_or_error_mock,
+    audit_put_item_mock,
     file_exists_mock,
     scan_request_mock
 ):
-    request = MagicMock(headers={})
+    request = MagicMock(headers={"x-request-id": "post-existing-file-1"})
     file = MagicMock()
     file.filename = "preexisting_test_file.txt"
     file.file = BytesIO(b"Test content")
@@ -123,11 +125,12 @@ async def test_handle_file_upload_POST_existing_file_failure(
 
 @pytest.mark.asyncio
 @patch("src.handlers.file_upload_handler.clam_av_validator.scan_request")
-async def test_handle_file_upload_antivirus_failure(scan_request_mock):
+@patch("src.handlers.file_upload_handler.audit_service.put_item")
+async def test_handle_file_upload_antivirus_failure(audit_put_item_mock, scan_request_mock):
 
     scan_request_mock.return_value = ValidationResponse(status_code=400, message="Virus detected")
 
-    request = MagicMock(headers={})
+    request = MagicMock(headers={"x-request-id": "virus-scan-fail-1"})
     file = MagicMock()
     file.filename = "infected_file.txt"
     file.file = BytesIO(b"Bad content")
@@ -208,11 +211,13 @@ async def test_handle_file_upload_save_failure(
 @patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
        return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
-async def test_handle_file_upload_checksum_failure(validate_or_error_mock,
+@patch("src.handlers.file_upload_handler.audit_service.put_item")
+async def test_handle_file_upload_checksum_failure(audit_put_item_mock,
+                                                   validate_or_error_mock,
                                                    scan_request_mock,
                                                    get_file_checksum_mock):
 
-    request = MagicMock(headers={})
+    request = MagicMock(headers={"x-request-id": "checksum-failure-1"})
     file = MagicMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
