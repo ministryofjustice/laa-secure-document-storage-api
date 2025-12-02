@@ -11,7 +11,7 @@ def test_generate_all_filevalidatorspecs_returns_expected_validators():
     validators = generate_all_filevalidatorspecs()
     names = sorted([v.name for v in validators])
     assert names == ['AllowedFileExtensions', 'AllowedMimetypes', 'DisallowedFileExtensions',
-                     'DisallowedMimetypes', 'MaxFileSize', 'MinFileSize']
+                     'DisallowedMimetypes', 'MaxFileSize', 'MinFileSize', 'ScanCSV']
 
 
 def test_generate_all_filevalidatorspecs_returns_kwargs():
@@ -20,7 +20,7 @@ def test_generate_all_filevalidatorspecs_returns_kwargs():
     separately below"""
     validators = generate_all_filevalidatorspecs()
     dict_kwargs = [v.validator_kwargs for v in validators if isinstance(v.validator_kwargs, dict)]
-    assert len(dict_kwargs) == 6
+    assert len(dict_kwargs) == 7
 
 
 @pytest.mark.parametrize("validator_name,expected_result", [("AllowedFileExtensions", {'extensions': []}),
