@@ -6,7 +6,7 @@ from fastapi import UploadFile
 
 def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain") -> UploadFile:
     """
-    file_content potentially different formats but for CSV content, use a list of strings
+    file_content potentially different formats, but for CSV content use a list of strings
     with one element per CSV row, e.g. ["1,2,3", "4,5,6", "7,8,9"] for 3-row file.
     """
     headers = {
@@ -15,13 +15,18 @@ def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/pla
     return UploadFile(file=file_content, filename=filename, headers=headers)
 
 
-@pytest.mark.parametrize("item", ["", "123", "1>2", ".@"])
+@pytest.mark.parametrize("item", ["", "123", "1>2", ".@", "<>", "havascript  :"])
 def test_check_item_passes_allowed_items(item):
     result = check_item(item)
     assert result == (200, "")
 
 
 @pytest.mark.parametrize("item,expected", [
+    ("<Boo>", (400, "possible HTML tag(s) found in <Boo>")),
+    (" <Boo> ", (400, "possible HTML tag(s) found in <Boo>")),
+    ("<One><Two>", (400, "possible HTML tag(s) found in <One><Two>")),
+    (" javascript  :", (400, "suspected javascript URL found in: javascript  :")),
+    (" JaVascriPT    :", (400, "suspected javascript URL found in: JaVascriPT    :")),
     ("=", (400, "forbidden initial character found: =.")),
     (" =", (400, "forbidden initial character found: =.")),
     ("@", (400, "forbidden initial character found: @.")),
@@ -30,8 +35,7 @@ def test_check_item_passes_allowed_items(item):
     (" +", (400, "forbidden initial character found: +.")),
     ("-", (400, "forbidden initial character found: -.")),
     (" -", (400, "forbidden initial character found: -."))
-    ]
-                         )
+    ])
 def test_check_item_finds_expected_issues(item, expected):
     result = check_item(item)
     assert result == expected
@@ -49,10 +53,21 @@ def test_check_row_values_with_good_rows(good_row):
 
 
 @pytest.mark.parametrize("row,expected", [
+    [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in <ha>")],
+    [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
     [(1, 2, 3, "="), (400, "forbidden initial character found: =.")],
     [("=", 2, 3, 4), (400, "forbidden initial character found: =.")]
     ])
 def test_check_row_values_with_bad_rows(row, expected):
+    result = check_row_values(row)
+    assert result == expected
+
+
+@pytest.mark.parametrize("row,expected", [
+    [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in <a>")],
+    [("=", 2, "<b>", 4), (400, "forbidden initial character found: =.")]
+    ])
+def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
     result = check_row_values(row)
     assert result == expected
 
@@ -62,7 +77,8 @@ def test_check_row_values_with_bad_rows(row, expected):
     [","],
     [" , "],
     ["1,2,3,4,5,6"],
-    ["1,2,3\n", "4,5,6\n", "7,8,9\n"]
+    ["1,2,3\n", "4,5,6\n", "7,8,9\n"],
+    ["1 , 2, 3\n", "4, five, 6\n", "7, *, <\n"]
     ])
 def test_csv_scan_passes_good_files(file_content):
     file_object = make_uploadfile(file_content)
@@ -71,18 +87,19 @@ def test_csv_scan_passes_good_files(file_content):
     assert result == (200, "")
 
 
-def test_csv_scan_finds_bad_row():
-    file_object = make_uploadfile(["1, 2, 3\n", "4, =5, 6\n", "7, 8, 9"], "bad.csv")
+@pytest.mark.parametrize("file_content,expected", [
+    (["1, 2, <zzz>\n", "4, 5, 6\n", "7, 8, 9"],
+     (400,  "Problem in bad.csv row 0 - possible HTML tag(s) found in <zzz>")),
+    (["1, 2, 3\n", "4, 5, javascript  :\n", "7, 8, 9"],
+     (400,  "Problem in bad.csv row 1 - suspected javascript URL found in: javascript  :")),
+    (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
+     (400, "Problem in bad.csv row 2 - forbidden initial character found: +."))
+    ])
+def test_csv_scan_finds_bad_rows(file_content, expected):
+    file_object = make_uploadfile(file_content, "bad.csv")
     validator = ScanCSV()
     result = validator.validate(file_object)
-    assert result == (400, "Problem in bad.csv row 1 - forbidden initial character found: =.")
-
-
-def test_csv_scan_finds_another_bad_row():
-    file_object = make_uploadfile(["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"], "also_bad.csv")
-    validator = ScanCSV()
-    result = validator.validate(file_object)
-    assert result == (400, "Problem in also_bad.csv row 2 - forbidden initial character found: +.")
+    assert result == expected
 
 
 def test_csv_scan_with_invalid_file_data_gives_expecte_error():

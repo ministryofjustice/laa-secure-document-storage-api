@@ -1,5 +1,6 @@
 from typing import Tuple, Iterable, Any
 import csv
+import re
 import structlog
 from fastapi import UploadFile
 from src.validation.file_validator import FileValidator
@@ -26,13 +27,17 @@ class ScanCSV(FileValidator):
         except Exception as exc_err:
             logger.error(f"Error checking file {file_object.filename}: {exc_err}")
             status_code = 500
-            message = f"Unexpected error when processing {file_object.filename}: {exc_err}"
+            message = f"Unexpected error when processing {file_object.filename}"
 
         return status_code, message
 
 
 def check_row_values(row_values: Iterable[Any]) -> Tuple[int, str]:
-    # need default values because row_values could be empty (which is automatically safe)
+    """
+    Intended to be used with data in lists from csv.reader, but
+    is capable of working with any iterable.
+    """
+    # Need default return values because row_values could be empty (which is automatically safe)
     status_code = 200
     message = ""
     for item in row_values:
@@ -43,12 +48,13 @@ def check_row_values(row_values: Iterable[Any]) -> Tuple[int, str]:
 
 
 def check_item(item: str) -> Tuple[int, str]:
-    status_code = 200
-    message = ""
-    if item.strip() == "":
-        # Empty is safe!
-        return status_code, message
+    item_core = item.strip()
     # Checks based on CLA team's CSVUploadSerializerBase.create method
-    if item.strip().startswith(("=", "@", "+", "-")):
-        return 400, f"forbidden initial character found: {item.strip()[0]}."
-    return status_code, message
+    if re.match(r'<[^>]+>', item_core):
+        return 400, f"possible HTML tag(s) found in {item_core}"
+    # Matches 'javascript' + any number of whitespace + colon, with case ignored
+    if re.match(r'javascript\s*:', item_core, flags=re.IGNORECASE):
+        return 400, f"suspected javascript URL found in: {item_core}"
+    if item_core.startswith(("=", "@", "+", "-")):
+        return 400, f"forbidden initial character found: {item_core[0]}."
+    return 200, ""
