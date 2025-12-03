@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch, MagicMock
 from src.validation.csv_validator import check_item, check_row_values, ScanCSV
 
 from fastapi import UploadFile
@@ -9,9 +10,7 @@ def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/pla
     file_content potentially different formats, but for CSV content use a list of strings
     with one element per CSV row, e.g. ["1,2,3", "4,5,6", "7,8,9"] for 3-row file.
     """
-    headers = {
-        'content-type': mime_type
-        }
+    headers = {'content-type': mime_type}
     return UploadFile(file=file_content, filename=filename, headers=headers)
 
 
@@ -100,6 +99,24 @@ def test_csv_scan_finds_bad_rows(file_content, expected):
     validator = ScanCSV()
     result = validator.validate(file_object)
     assert result == expected
+
+
+@pytest.mark.parametrize("delimiter,file_content",
+                         [(",", ["1,2,3", "4,5,6", "7,8,9"]),
+                          (";", ["1;2;3", "4;5;6", "7;8;9"]),
+                          ("#", ["1#2#3", "4#5#6", "7#8#9"])
+                          ])
+def test_csv_scan_works_with_different_delimiters(delimiter, file_content):
+    mock_scan = MagicMock(return_value=(200, ""))
+    file_object = make_uploadfile(file_content, "variety.csv")
+    validator = ScanCSV()
+    with patch("src.validation.csv_validator.check_row_values", mock_scan):
+        result = validator.validate(file_object, delimiter=delimiter)
+    # try to make mock's args_list into something more convenient
+    args_list = [e[0] for e in mock_scan.call_args_list]
+    assert result == (200, "")
+    # Checking that the values have been correctly separated
+    assert args_list == [(['1', '2', '3'],), (['4', '5', '6'],), (['7', '8', '9'],)]
 
 
 def test_csv_scan_with_invalid_file_data_gives_expecte_error():
