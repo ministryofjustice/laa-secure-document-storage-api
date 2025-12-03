@@ -11,6 +11,13 @@ logger = structlog.get_logger()
 
 class ScanCSV(FileValidator):
     def validate(self, file_object: UploadFile, delimiter: str = ",") -> Tuple[int, str]:
+        """
+        Scans CSV file for potentially malicious content
+
+        :param file_object: Should be a CSV file
+        :param delimiter: delimiter used in CSV file - optional defaults to comma
+        :return: status_code: int, detail: str
+        """
         status_code = 200
         message = ""
         try:
@@ -28,7 +35,6 @@ class ScanCSV(FileValidator):
             logger.error(f"Error checking file {file_object.filename}: {exc_err}")
             status_code = 500
             message = f"Unexpected error when processing {file_object.filename}"
-
         return status_code, message
 
 
