@@ -11,6 +11,7 @@ from src.models.client_config import ClientConfig
 router = APIRouter()
 logger = structlog.get_logger()
 
+
 @router.put("/scan_csv_file")
 async def scan_csv_file(
             request: Request,
