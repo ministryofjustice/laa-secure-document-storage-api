@@ -10,11 +10,11 @@ logger = structlog.get_logger()
 
 
 class ScanCSV(FileValidator):
-    def validate(self, file_object: UploadFile, delimiter: str = ",") -> Tuple[int, str]:
+    def validate(self, file_object: UploadFile, delimiter: str = ",", **kwargs) -> Tuple[int, str]:
         """
         Scans CSV file for potentially malicious content
 
-        :param file_object: Should be a CSV file
+        :param file_object: should be a CSV file
         :param delimiter: delimiter used in CSV file - optional defaults to comma
         :return: status_code: int, detail: str
         """
@@ -62,5 +62,5 @@ def check_item(item: str) -> Tuple[int, str]:
     if re.match(r'javascript\s*:', item_core, flags=re.IGNORECASE):
         return 400, f"suspected javascript URL found in: {item_core}"
     if item_core.startswith(("=", "@", "+", "-")):
-        return 400, f"forbidden initial character found: {item_core[0]}."
+        return 400, f"forbidden initial character found: {item_core[0]}"
     return 200, ""

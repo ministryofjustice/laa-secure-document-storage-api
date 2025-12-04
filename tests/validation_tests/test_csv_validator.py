@@ -26,14 +26,14 @@ def test_check_item_passes_allowed_items(item):
     ("<One><Two>", (400, "possible HTML tag(s) found in <One><Two>")),
     (" javascript  :", (400, "suspected javascript URL found in: javascript  :")),
     (" JaVascriPT    :", (400, "suspected javascript URL found in: JaVascriPT    :")),
-    ("=", (400, "forbidden initial character found: =.")),
-    (" =", (400, "forbidden initial character found: =.")),
-    ("@", (400, "forbidden initial character found: @.")),
-    (" @", (400, "forbidden initial character found: @.")),
-    ("+", (400, "forbidden initial character found: +.")),
-    (" +", (400, "forbidden initial character found: +.")),
-    ("-", (400, "forbidden initial character found: -.")),
-    (" -", (400, "forbidden initial character found: -."))
+    ("=", (400, "forbidden initial character found: =")),
+    (" =", (400, "forbidden initial character found: =")),
+    ("@", (400, "forbidden initial character found: @")),
+    (" @", (400, "forbidden initial character found: @")),
+    ("+", (400, "forbidden initial character found: +")),
+    (" +", (400, "forbidden initial character found: +")),
+    ("-", (400, "forbidden initial character found: -")),
+    (" -", (400, "forbidden initial character found: -"))
     ])
 def test_check_item_finds_expected_issues(item, expected):
     result = check_item(item)
@@ -54,8 +54,8 @@ def test_check_row_values_with_good_rows(good_row):
 @pytest.mark.parametrize("row,expected", [
     [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in <ha>")],
     [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
-    [(1, 2, 3, "="), (400, "forbidden initial character found: =.")],
-    [("=", 2, 3, 4), (400, "forbidden initial character found: =.")]
+    [(1, 2, 3, "="), (400, "forbidden initial character found: =")],
+    [("=", 2, 3, 4), (400, "forbidden initial character found: =")]
     ])
 def test_check_row_values_with_bad_rows(row, expected):
     result = check_row_values(row)
@@ -64,7 +64,7 @@ def test_check_row_values_with_bad_rows(row, expected):
 
 @pytest.mark.parametrize("row,expected", [
     [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in <a>")],
-    [("=", 2, "<b>", 4), (400, "forbidden initial character found: =.")]
+    [("=", 2, "<b>", 4), (400, "forbidden initial character found: =")]
     ])
 def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
     result = check_row_values(row)
@@ -92,7 +92,7 @@ def test_csv_scan_passes_good_files(file_content):
     (["1, 2, 3\n", "4, 5, javascript  :\n", "7, 8, 9"],
      (400,  "Problem in bad.csv row 1 - suspected javascript URL found in: javascript  :")),
     (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
-     (400, "Problem in bad.csv row 2 - forbidden initial character found: +."))
+     (400, "Problem in bad.csv row 2 - forbidden initial character found: +"))
     ])
 def test_csv_scan_finds_bad_rows(file_content, expected):
     file_object = make_uploadfile(file_content, "bad.csv")
