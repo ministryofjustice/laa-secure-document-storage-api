@@ -15,5 +15,8 @@ p, test_user, /delete_files, DELETE
 p, test_user, /delete_files/, DELETE
 p, test_user, /virus_check_file, PUT
 p, test_user, /virus_check_file/, PUT
+p, test_user, /scan_for_suspicious_content, PUT
+p, test_user, /scan_for_suspicious_content/, PUT
+
 
 p, test_user, test_bucket, ((CREATE)|(READ)|(DELETE))
