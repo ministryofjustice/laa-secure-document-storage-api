@@ -35,7 +35,8 @@ async def scan_for_suspicious_content(
     if file.content_type != "text/csv":
         raise HTTPException(status_code=400, detail="Invalid content type. Expected text/csv")
 
-    delimiter = client_config.options.get("csv_delimiter", ",")
+    # The delimiter is currently hardcoded as ',' but may become configurable in future work.
+    delimiter = ","
 
     validator = csv_validator.ScanCSV()
     status_code, message = validator.validate(file, delimiter=delimiter)
