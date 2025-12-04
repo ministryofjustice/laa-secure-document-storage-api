@@ -12,8 +12,8 @@ router = APIRouter()
 logger = structlog.get_logger()
 
 
-@router.put("/scan_csv_file")
-async def scan_csv_file(
+@router.put("/scan_for_suspicious_content")
+async def scan_for_suspicious_content(
             request: Request,
             file: Optional[UploadFile] = UploadFile(None),
             client_config: ClientConfig = Depends(client_config_middleware),
@@ -48,6 +48,6 @@ async def scan_csv_file(
     logger.info(f"Scan completed for {file.filename}: no malicious content detected")
     return JSONResponse(
         status_code=200, content={
-            "success": "No malicious content found"
+            "success": "No malicious content detected"
         }
     )
