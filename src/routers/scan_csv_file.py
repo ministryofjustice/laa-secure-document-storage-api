@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
-# from src.validation import placeholder_scan_csv_validator
+from src.validation import csv_validator
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -19,18 +19,33 @@ async def scan_csv_file(
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
     """
-    Scans the provided CSV file content for possible malicious SQL injection and returns
+    Scans the provided CSV file for potentially malicious content (HTML tags, JavaScript, formula injection).
     * 200 If no known malicious content was detected
     * 400 If malicious content was detected
     """
-    # validation_result = await placeholder_scan_csv_validator.scan_request(request.headers, file)
-    # if validation_result.status_code != 200:
-    #     raise HTTPException(
-    #         status_code=validation_result.status_code,
-    #         detail=validation_result.message
-    #     )
 
-    logger.info(f"File {file.filename} has negative malicious content scan result")
+    if not file or not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    
+    # This check to be expanded in future work to accept XML files also.
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+
+    # Extra content-type check
+    if file.content_type != "text/csv":
+        raise HTTPException(status_code=400, detail="Invalid content type. Expected text/csv")
+
+    delimiter = client_config.options.get("csv_delimiter", ",")
+
+    validator = csv_validator.ScanCSV()
+    status_code, message = validator.validate(file, delimiter=delimiter)
+    if status_code != 200:
+        raise HTTPException(
+            status_code=status_code,
+            detail=message
+        )
+
+    logger.info(f"Scan completed for {file.filename}: no malicious content detected")
     return JSONResponse(
         status_code=200, content={
             "success": "No malicious content found"
