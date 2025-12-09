@@ -29,7 +29,9 @@ mock_token = {"token_type": 'Bearer',
 @pytest.mark.e2e
 @pytest.mark.parametrize("expected_file", ["Postman/test_file.md",
                                            "Postman/eicar.txt",
-                                           "Postman/test_file.exe"])
+                                           "Postman/test_file.exe",
+                                           "Postman/html_tags.csv",
+                                           "Postman/test_file.csv"])
 def test_expected_test_data_files_are_present(expected_file):
     assert os.path.isfile(expected_file) is True
 
