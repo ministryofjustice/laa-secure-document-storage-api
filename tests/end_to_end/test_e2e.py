@@ -60,7 +60,6 @@ def setup_and_teardown_test_files():
     bad_csv.close_file()
 
 
-
 @pytest.mark.e2e
 def test_token_can_be_retrieved():
     "Establish that token retrieval is working"
@@ -417,7 +416,9 @@ def test_virus_check_passes_clean_file():
 # @pytest.mark.e2e
 # def test_scan_for_malicious_content_detects_html_tags():
 #     upload_file = bad_csv.get_data()
-#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content", headers=token_getter.get_headers(), files=upload_file)
+#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+#                           headers=token_getter.get_headers(),
+#                           files=upload_file)
 #     assert response.status_code == 400
 #     assert response.json()["detail"] == ["Malicious content detected"]
 
@@ -425,6 +426,8 @@ def test_virus_check_passes_clean_file():
 # @pytest.mark.e2e
 # def test_scan_for_malicious_content_passes_clean_file():
 #     upload_file = allowed_csv.get_data()
-#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content", headers=token_getter.get_headers(), files=upload_file)
+#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+#                           headers=token_getter.get_headers(),
+#                           files=upload_file)
 #     assert response.status_code == 400
 #     assert response.json()["detail"] == ["No malicious content detected"]

@@ -26,7 +26,7 @@ async def scan_for_suspicious_content(
 
     if not file or not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
-    
+
     # This check to be expanded in future work to accept XML files also.
     if not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="File must be a CSV")
