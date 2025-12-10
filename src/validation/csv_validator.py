@@ -2,6 +2,7 @@ from typing import Tuple, Iterable, Any
 import csv
 import re
 import structlog
+import codecs
 from fastapi import UploadFile
 from src.validation.file_validator import FileValidator
 
@@ -21,13 +22,17 @@ class ScanCSV(FileValidator):
         status_code = 200
         message = ""
         try:
-            csv_reader = csv.reader(file_object.file, delimiter=delimiter)
+            # csv.reader needs iterable that returns strings but FastAPI file_object.file
+            # returns bytes. codecs.iterdecode conveniently converts the byte values to str
+            # whilst retaining line-by-line iteration.
+            csv_reader = csv.reader(codecs.iterdecode(file_object.file, 'utf-8'),
+                                    delimiter=delimiter)
             for ri, csv_row in enumerate(csv_reader):
                 status_code, message = check_row_values(csv_row)
                 if status_code != 200:
                     message = f"Problem in {file_object.filename} row {ri} - {message}"
                     break
-        except csv.Error as csv_err:
+        except (csv.Error, UnicodeDecodeError) as csv_err:
             logger.error(f"ScanCSV unable to process {file_object.filename}: {str(csv_err)}")
             status_code = 400
             message = f"Unable to process {file_object.filename}. Is it a CSV file?"

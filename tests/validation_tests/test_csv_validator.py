@@ -5,11 +5,15 @@ from src.validation.csv_validator import check_item, check_row_values, ScanCSV
 from fastapi import UploadFile
 
 
-def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain") -> UploadFile:
+def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain", to_bytes=True) -> UploadFile:
     """
     file_content potentially different formats, but for CSV content use a list of strings
     with one element per CSV row, e.g. ["1,2,3", "4,5,6", "7,8,9"] for 3-row file.
+    Note although UploadFile capable of holding data as str or bytes, files uploaded are
+    always delivered as bytes.
     """
+    if to_bytes:
+        file_content = [s.encode() for s in file_content]
     headers = {'content-type': mime_type}
     return UploadFile(file=file_content, filename=filename, headers=headers)
 
@@ -121,7 +125,8 @@ def test_csv_scan_works_with_different_delimiters(delimiter, file_content):
 
 def test_csv_scan_with_invalid_file_data_gives_expecte_error():
     "Not actual CSV data that can be checked"
-    file_object = make_uploadfile(b"%PDF-1.4\r\n%\xe2\xe3\xcf\xd3\r\n19", "document.pdf", "application/pdf")
+    file_object = make_uploadfile([b"%PDF-1.4\r\n%\xe2\xe3\xcf\xd3\r\n"], "document.pdf", "application/pdf",
+                                  to_bytes=False)
     validator = ScanCSV()
     result = validator.validate(file_object)
     assert result == (400, 'Unable to process document.pdf. Is it a CSV file?')
