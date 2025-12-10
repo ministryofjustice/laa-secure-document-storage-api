@@ -46,14 +46,18 @@ def setup_and_teardown_test_files():
     Code before the "yield" is executed before the tests.
     Code after the "yield" is exected after the last test.
     """
-    global test_md_file, virus_file, disallowed_file
+    global test_md_file, virus_file, disallowed_file, allowed_csv, bad_csv
     test_md_file = UploadFileData("Postman/test_file.md")
     virus_file = UploadFileData("Postman/eicar.txt")
     disallowed_file = UploadFileData("Postman/test_file.exe")
+    allowed_csv = UploadFileData("Postman/test_file.csv")
+    bad_csv = UploadFileData("Postman/html_tags.csv")
     yield
     test_md_file.close_file()
     virus_file.close_file()
     disallowed_file.close_file()
+    allowed_csv.close_file()
+    bad_csv.close_file()
 
 
 @pytest.mark.e2e
@@ -405,3 +409,25 @@ def test_virus_check_passes_clean_file():
     response = client.put(f"{HOST_URL}/virus_check_file", headers=token_getter.get_headers(), files=upload_file)
     assert response.status_code == 200
     assert response.json()["success"] == "No virus found"
+
+
+# Scan for Malicious Content Tests - to be updated and expanded
+
+# @pytest.mark.e2e
+# def test_scan_for_malicious_content_detects_html_tags():
+#     upload_file = bad_csv.get_data()
+#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+#                           headers=token_getter.get_headers(),
+#                           files=upload_file)
+#     assert response.status_code == 400
+#     assert response.json()["detail"] == ["Malicious content detected"]
+
+
+# @pytest.mark.e2e
+# def test_scan_for_malicious_content_passes_clean_file():
+#     upload_file = allowed_csv.get_data()
+#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+#                           headers=token_getter.get_headers(),
+#                           files=upload_file)
+#     assert response.status_code == 400
+#     assert response.json()["detail"] == ["No malicious content detected"]
