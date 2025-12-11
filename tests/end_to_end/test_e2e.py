@@ -463,6 +463,7 @@ def test_scan_for_malicious_content_passes_clean_file():
 # Scan for Malicious Content Tests - with quasi files created in RAM (convenient!)
 
 
+@pytest.mark.e2e
 @pytest.mark.parametrize("content,filename", [
     (b"Robert'); DROP TABLE students;--", "bobby.csv"),
     (b"DROP TABLE students;--", "drop_students.csv"),
