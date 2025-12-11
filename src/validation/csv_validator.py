@@ -58,8 +58,10 @@ def check_row_values(row_values: Iterable[Any]) -> Tuple[int, str]:
     return status_code, message
 
 
-def check_item(item: str) -> Tuple[int, str]:
+def xcheck_item(item: str) -> Tuple[int, str]:
     item_core = item.strip()
+    # SQL Injection check
+
     # Checks based on CLA team's CSVUploadSerializerBase.create method
     if re.match(r'<[^>]+>', item_core):
         return 400, f"possible HTML tag(s) found in {item_core}"
@@ -68,4 +70,39 @@ def check_item(item: str) -> Tuple[int, str]:
         return 400, f"suspected javascript URL found in: {item_core}"
     if item_core.startswith(("=", "@", "+", "-")):
         return 400, f"forbidden initial character found: {item_core[0]}"
+    return 200, ""
+
+
+def check_item(item: str) -> Tuple[int, str]:
+    item_core = item.strip()
+
+    validators = [
+        # SQL Injection - uses two patterns separated by | character
+        # Background info:
+        # https://dsdmoj.atlassian.net/wiki/spaces/SDS/pages/5991596033/SQL+Injection+Detection+Experiment
+        {"function": re.search,
+         "pattern": r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION)\b|\bOR\s+1=1\b|\bOR\s+'1'='1'",
+         "message": "possible SQL injection found in "
+         },
+        #  HTML Tags
+        {"function": re.search,
+         "pattern": r"<[^>]+>",
+         "message": "possible HTML tag(s) found in "
+         },
+        # Javascript URL
+        {"function": re.search,
+         "pattern": r'javascript\s*:',
+         "message": "suspected javascript URL found in: "
+         },
+        # Starts with Excel special character (not using re here)
+        {"function": lambda substring, string, **kwargs: string.startswith(substring),
+         "pattern": ("=", "@", "+", "-"),
+         "message": "forbidden initial character found: "
+         }
+        ]
+
+    for validator in validators:
+        if validator["function"](validator["pattern"], item_core, flags=re.IGNORECASE):
+            return 400, validator["message"] + str(item_core)
+
     return 200, ""

@@ -96,7 +96,7 @@ def test_csv_scan_passes_good_files(file_content):
     (["1, 2, 3\n", "4, 5, javascript  :\n", "7, 8, 9"],
      (400,  "Problem in bad.csv row 1 - suspected javascript URL found in: javascript  :")),
     (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
-     (400, "Problem in bad.csv row 2 - forbidden initial character found: +"))
+     (400, "Problem in bad.csv row 2 - forbidden initial character found: +9"))
     ])
 def test_csv_scan_finds_bad_rows(file_content, expected):
     file_object = make_uploadfile(file_content, "bad.csv")
