@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 import pytest
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
@@ -60,6 +61,16 @@ def setup_and_teardown_test_files():
     allowed_csv.close_file()
     bad_csv_tags.close_file()
     bad_csv_sql.close_file()
+
+
+def make_file_details(content: str, filename: str = "test_file.txt", mimetype: str = "text/plain") -> dict:
+    """
+    Alternative way of providing file data - does not require files.
+    Creates file content in RAM that works with HTTP clients: requests and httpx.
+    Curiously, when posting using requests we can submit StringIO data but with httpx
+    we must use BytesIO
+    """
+    return {"file": (filename, BytesIO(content), mimetype)}
 
 
 @pytest.mark.e2e
@@ -413,7 +424,7 @@ def test_virus_check_passes_clean_file():
     assert response.json()["success"] == "No virus found"
 
 
-# Scan for Malicious Content Tests - to be updated and expanded
+# Scan for Malicious Content Tests - with real files loaded from filing system (authentic!)
 
 @pytest.mark.e2e
 def test_scan_for_malicious_content_detects_html_tags():
@@ -447,3 +458,27 @@ def test_scan_for_malicious_content_passes_clean_file():
                           files=upload_file)
     assert response.status_code == 200
     assert response.json()["success"] == "No malicious content detected"
+
+
+# Scan for Malicious Content Tests - with quasi files created in RAM (convenient!)
+
+
+@pytest.mark.parametrize("content,filename", [
+    (b"Robert'); DROP TABLE students;--", "bobby.csv"),
+    (b"DROP TABLE students;--", "drop_students.csv"),
+    (b"1;DROP TABLE users", "drop_users1.csv"),
+    (b"1'; DROP TABLE users-- 1", "drop_users2.csv"),
+    (b"' OR 1=1 -- 1", "equals1a.csv"),
+    (b"' OR '1'='1'", "equals1b.csv"),
+    (b"'; EXEC sp_MSForEachTable 'DROP TABLE ?'; --", "exec_thing.csv")
+    ])
+def test_scan_for_malicious_contentfile_content(content, filename):
+    file_data = make_file_details(content, filename, "text/plain")
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          data={"delimiter": ","},
+                          files=file_data)
+    # Note need to convert content back to str for comparison to work.
+    expected = f"Problem in {filename} row 0 - possible SQL injection found in: " + content.decode("utf-8")
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
