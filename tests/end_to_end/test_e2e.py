@@ -420,7 +420,7 @@ def test_scan_for_malicious_content_detects_html_tags():
                           headers=token_getter.get_headers(),
                           files=upload_file)
     assert response.status_code == 400
-    assert response.json()["detail"] == "Problem in Postman/html_tags.csv row 3 - possible HTML tag(s) found in <boo>"
+    assert response.json()["detail"] == "Problem in Postman/html_tags.csv row 3 - possible HTML tag(s) found in: <boo>"
 
 
 @pytest.mark.e2e

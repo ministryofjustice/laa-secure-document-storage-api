@@ -25,9 +25,11 @@ def test_check_item_passes_allowed_items(item):
 
 
 @pytest.mark.parametrize("item,expected", [
-    ("<Boo>", (400, "possible HTML tag(s) found in <Boo>")),
-    (" <Boo> ", (400, "possible HTML tag(s) found in <Boo>")),
-    ("<One><Two>", (400, "possible HTML tag(s) found in <One><Two>")),
+    ("<Boo>", (400, "possible HTML tag(s) found in: <Boo>")),
+    (" <Boo> ", (400, "possible HTML tag(s) found in: <Boo>")),
+    ("Carmela <script>alert(Malicious Business)</script>",
+     (400, "possible HTML tag(s) found in: Carmela <script>alert(Malicious Business)</script>")),
+    ("<One><Two>", (400, "possible HTML tag(s) found in: <One><Two>")),
     (" javascript  :", (400, "suspected javascript URL found in: javascript  :")),
     (" JaVascriPT    :", (400, "suspected javascript URL found in: JaVascriPT    :")),
     ("=", (400, "forbidden initial character found: =")),
@@ -44,6 +46,33 @@ def test_check_item_finds_expected_issues(item, expected):
     assert result == expected
 
 
+@pytest.mark.parametrize("item", [
+    "Robert'); DROP TABLE students;--",
+    "DROP TABLE students;--",
+    "1;DROP TABLE users",
+    "1'; DROP TABLE users-- 1",
+    "' OR 1=1 -- 1",
+    "' OR '1'='1'",
+    "'; EXEC sp_MSForEachTable 'DROP TABLE ?'; --"
+    ])
+def test_check_item_finds_possible_sql_injection(item):
+    expected = (400, f"possible SQL injection found in: {item.strip()}")
+    result = check_item(item)
+    assert result == expected
+
+
+@pytest.mark.parametrize("item", [
+    "or 1 = 1",  # similar to suspicious one but no ' chars here
+    "bunion sand snowdrop",  # contains 'union`, 'and', 'drop'
+    ";",
+    "O'Malley"  # Unmatched '
+    ]
+    )
+def test_check_item_sql_injection_check_for_false_positives(item):
+    result = check_item(item)
+    assert result == (200, "")
+
+
 @pytest.mark.parametrize("good_row", [
     (1, 2, 3, 4, 5),
     ("1=", "2@", "3+", "4-"),
@@ -56,10 +85,11 @@ def test_check_row_values_with_good_rows(good_row):
 
 
 @pytest.mark.parametrize("row,expected", [
-    [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in <ha>")],
+    [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in: <ha>")],
     [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
     [(1, 2, 3, "="), (400, "forbidden initial character found: =")],
-    [("=", 2, 3, 4), (400, "forbidden initial character found: =")]
+    [("=", 2, 3, 4), (400, "forbidden initial character found: =")],
+    [("' OR '1'='1'", 2, 3, 4), (400, "possible SQL injection found in: ' OR '1'='1'")]
     ])
 def test_check_row_values_with_bad_rows(row, expected):
     result = check_row_values(row)
@@ -67,7 +97,7 @@ def test_check_row_values_with_bad_rows(row, expected):
 
 
 @pytest.mark.parametrize("row,expected", [
-    [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in <a>")],
+    [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in: <a>")],
     [("=", 2, "<b>", 4), (400, "forbidden initial character found: =")]
     ])
 def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
@@ -92,7 +122,7 @@ def test_csv_scan_passes_good_files(file_content):
 
 @pytest.mark.parametrize("file_content,expected", [
     (["1, 2, <zzz>\n", "4, 5, 6\n", "7, 8, 9"],
-     (400,  "Problem in bad.csv row 0 - possible HTML tag(s) found in <zzz>")),
+     (400,  "Problem in bad.csv row 0 - possible HTML tag(s) found in: <zzz>")),
     (["1, 2, 3\n", "4, 5, javascript  :\n", "7, 8, 9"],
      (400,  "Problem in bad.csv row 1 - suspected javascript URL found in: javascript  :")),
     (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
