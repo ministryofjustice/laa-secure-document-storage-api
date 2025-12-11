@@ -46,18 +46,20 @@ def setup_and_teardown_test_files():
     Code before the "yield" is executed before the tests.
     Code after the "yield" is exected after the last test.
     """
-    global test_md_file, virus_file, disallowed_file, allowed_csv, bad_csv
+    global test_md_file, virus_file, disallowed_file, allowed_csv, bad_csv_tags, bad_csv_sql
     test_md_file = UploadFileData("Postman/test_file.md")
     virus_file = UploadFileData("Postman/eicar.txt")
     disallowed_file = UploadFileData("Postman/test_file.exe")
     allowed_csv = UploadFileData("Postman/test_file.csv")
-    bad_csv = UploadFileData("Postman/html_tags.csv")
+    bad_csv_tags = UploadFileData("Postman/html_tags.csv")
+    bad_csv_sql = UploadFileData("Postman/sql_inject.csv")
     yield
     test_md_file.close_file()
     virus_file.close_file()
     disallowed_file.close_file()
     allowed_csv.close_file()
-    bad_csv.close_file()
+    bad_csv_tags.close_file()
+    bad_csv_sql.close_file()
 
 
 @pytest.mark.e2e
@@ -415,12 +417,26 @@ def test_virus_check_passes_clean_file():
 
 @pytest.mark.e2e
 def test_scan_for_malicious_content_detects_html_tags():
-    upload_file = bad_csv.get_data()
+    upload_file = bad_csv_tags.get_data()
     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
                           headers=token_getter.get_headers(),
                           files=upload_file)
+    expected = ("Problem in Postman/html_tags.csv row 3 - possible HTML tag(s) found in: "
+                "Carmela <script>alert(Malicious Business)</script>")
     assert response.status_code == 400
-    assert response.json()["detail"] == "Problem in Postman/html_tags.csv row 3 - possible HTML tag(s) found in: <boo>"
+    assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_detects_sql_injection():
+    upload_file = bad_csv_sql.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=upload_file)
+    expected = ("Problem in Postman/sql_inject.csv row 4 - possible SQL injection found in: "
+                "Durga'); DROP TABLE students;--")
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
 
 
 @pytest.mark.e2e
