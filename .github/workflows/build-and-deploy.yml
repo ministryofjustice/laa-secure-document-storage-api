@@ -43,7 +43,7 @@ jobs:
         docker build -t laa-sds-api .
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@v5
+      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
       with:
         role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.DEV_ECR_REGION }}
