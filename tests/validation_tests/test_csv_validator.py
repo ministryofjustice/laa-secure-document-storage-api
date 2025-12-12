@@ -5,11 +5,15 @@ from src.validation.csv_validator import check_item, check_row_values, ScanCSV
 from fastapi import UploadFile
 
 
-def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain") -> UploadFile:
+def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain", to_bytes=True) -> UploadFile:
     """
     file_content potentially different formats, but for CSV content use a list of strings
     with one element per CSV row, e.g. ["1,2,3", "4,5,6", "7,8,9"] for 3-row file.
+    Note although UploadFile capable of holding data as str or bytes, files uploaded are
+    always delivered as bytes.
     """
+    if to_bytes:
+        file_content = [s.encode() for s in file_content]
     headers = {'content-type': mime_type}
     return UploadFile(file=file_content, filename=filename, headers=headers)
 
@@ -21,9 +25,11 @@ def test_check_item_passes_allowed_items(item):
 
 
 @pytest.mark.parametrize("item,expected", [
-    ("<Boo>", (400, "possible HTML tag(s) found in <Boo>")),
-    (" <Boo> ", (400, "possible HTML tag(s) found in <Boo>")),
-    ("<One><Two>", (400, "possible HTML tag(s) found in <One><Two>")),
+    ("<Boo>", (400, "possible HTML tag(s) found in: <Boo>")),
+    (" <Boo> ", (400, "possible HTML tag(s) found in: <Boo>")),
+    ("Carmela <script>alert(Malicious Business)</script>",
+     (400, "possible HTML tag(s) found in: Carmela <script>alert(Malicious Business)</script>")),
+    ("<One><Two>", (400, "possible HTML tag(s) found in: <One><Two>")),
     (" javascript  :", (400, "suspected javascript URL found in: javascript  :")),
     (" JaVascriPT    :", (400, "suspected javascript URL found in: JaVascriPT    :")),
     ("=", (400, "forbidden initial character found: =")),
@@ -40,6 +46,33 @@ def test_check_item_finds_expected_issues(item, expected):
     assert result == expected
 
 
+@pytest.mark.parametrize("item", [
+    "Robert'); DROP TABLE students;--",
+    "DROP TABLE students;--",
+    "1;DROP TABLE users",
+    "1'; DROP TABLE users-- 1",
+    "' OR 1=1 -- 1",
+    "' OR '1'='1'",
+    "'; EXEC sp_MSForEachTable 'DROP TABLE ?'; --"
+    ])
+def test_check_item_finds_possible_sql_injection(item):
+    expected = (400, f"possible SQL injection found in: {item.strip()}")
+    result = check_item(item)
+    assert result == expected
+
+
+@pytest.mark.parametrize("item", [
+    "or 1 = 1",  # similar to suspicious one but no ' chars here
+    "bunion sand snowdrop",  # contains 'union`, 'and', 'drop'
+    ";",
+    "O'Malley"  # Unmatched '
+    ]
+    )
+def test_check_item_sql_injection_check_for_false_positives(item):
+    result = check_item(item)
+    assert result == (200, "")
+
+
 @pytest.mark.parametrize("good_row", [
     (1, 2, 3, 4, 5),
     ("1=", "2@", "3+", "4-"),
@@ -52,10 +85,11 @@ def test_check_row_values_with_good_rows(good_row):
 
 
 @pytest.mark.parametrize("row,expected", [
-    [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in <ha>")],
+    [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in: <ha>")],
     [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
     [(1, 2, 3, "="), (400, "forbidden initial character found: =")],
-    [("=", 2, 3, 4), (400, "forbidden initial character found: =")]
+    [("=", 2, 3, 4), (400, "forbidden initial character found: =")],
+    [("' OR '1'='1'", 2, 3, 4), (400, "possible SQL injection found in: ' OR '1'='1'")]
     ])
 def test_check_row_values_with_bad_rows(row, expected):
     result = check_row_values(row)
@@ -63,7 +97,7 @@ def test_check_row_values_with_bad_rows(row, expected):
 
 
 @pytest.mark.parametrize("row,expected", [
-    [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in <a>")],
+    [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in: <a>")],
     [("=", 2, "<b>", 4), (400, "forbidden initial character found: =")]
     ])
 def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
@@ -88,11 +122,11 @@ def test_csv_scan_passes_good_files(file_content):
 
 @pytest.mark.parametrize("file_content,expected", [
     (["1, 2, <zzz>\n", "4, 5, 6\n", "7, 8, 9"],
-     (400,  "Problem in bad.csv row 0 - possible HTML tag(s) found in <zzz>")),
+     (400,  "Problem in bad.csv row 0 - possible HTML tag(s) found in: <zzz>")),
     (["1, 2, 3\n", "4, 5, javascript  :\n", "7, 8, 9"],
      (400,  "Problem in bad.csv row 1 - suspected javascript URL found in: javascript  :")),
     (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
-     (400, "Problem in bad.csv row 2 - forbidden initial character found: +"))
+     (400, "Problem in bad.csv row 2 - forbidden initial character found: +9"))
     ])
 def test_csv_scan_finds_bad_rows(file_content, expected):
     file_object = make_uploadfile(file_content, "bad.csv")
@@ -121,7 +155,8 @@ def test_csv_scan_works_with_different_delimiters(delimiter, file_content):
 
 def test_csv_scan_with_invalid_file_data_gives_expecte_error():
     "Not actual CSV data that can be checked"
-    file_object = make_uploadfile(b"%PDF-1.4\r\n%\xe2\xe3\xcf\xd3\r\n19", "document.pdf", "application/pdf")
+    file_object = make_uploadfile([b"%PDF-1.4\r\n%\xe2\xe3\xcf\xd3\r\n"], "document.pdf", "application/pdf",
+                                  to_bytes=False)
     validator = ScanCSV()
     result = validator.validate(file_object)
     assert result == (400, 'Unable to process document.pdf. Is it a CSV file?')

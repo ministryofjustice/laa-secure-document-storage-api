@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 import pytest
 # Using `as client`, so can easily switch between httpx and requests
 import httpx as client
@@ -46,18 +47,30 @@ def setup_and_teardown_test_files():
     Code before the "yield" is executed before the tests.
     Code after the "yield" is exected after the last test.
     """
-    global test_md_file, virus_file, disallowed_file, allowed_csv, bad_csv
+    global test_md_file, virus_file, disallowed_file, allowed_csv, bad_csv_tags, bad_csv_sql
     test_md_file = UploadFileData("Postman/test_file.md")
     virus_file = UploadFileData("Postman/eicar.txt")
     disallowed_file = UploadFileData("Postman/test_file.exe")
     allowed_csv = UploadFileData("Postman/test_file.csv")
-    bad_csv = UploadFileData("Postman/html_tags.csv")
+    bad_csv_tags = UploadFileData("Postman/html_tags.csv")
+    bad_csv_sql = UploadFileData("Postman/sql_inject.csv")
     yield
     test_md_file.close_file()
     virus_file.close_file()
     disallowed_file.close_file()
     allowed_csv.close_file()
-    bad_csv.close_file()
+    bad_csv_tags.close_file()
+    bad_csv_sql.close_file()
+
+
+def make_file_details(content: str, filename: str = "test_file.txt", mimetype: str = "text/plain") -> dict:
+    """
+    Alternative way of providing file data - does not require files.
+    Creates file content in RAM that works with HTTP clients: requests and httpx.
+    Curiously, when posting using requests we can submit StringIO data but with httpx
+    we must use BytesIO
+    """
+    return {"file": (filename, BytesIO(content), mimetype)}
 
 
 @pytest.mark.e2e
@@ -411,23 +424,82 @@ def test_virus_check_passes_clean_file():
     assert response.json()["success"] == "No virus found"
 
 
-# Scan for Malicious Content Tests - to be updated and expanded
+# Scan for Malicious Content Tests - with real files loaded from filing system (authentic!)
 
-# @pytest.mark.e2e
-# def test_scan_for_malicious_content_detects_html_tags():
-#     upload_file = bad_csv.get_data()
-#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
-#                           headers=token_getter.get_headers(),
-#                           files=upload_file)
-#     assert response.status_code == 400
-#     assert response.json()["detail"] == ["Malicious content detected"]
+@pytest.mark.e2e
+def test_scan_for_malicious_content_detects_html_tags():
+    upload_file = bad_csv_tags.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=upload_file)
+    expected = ("Problem in Postman/html_tags.csv row 3 - possible HTML tag(s) found in: "
+                "Carmela <script>alert(Malicious Business)</script>")
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
 
 
-# @pytest.mark.e2e
-# def test_scan_for_malicious_content_passes_clean_file():
-#     upload_file = allowed_csv.get_data()
-#     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
-#                           headers=token_getter.get_headers(),
-#                           files=upload_file)
-#     assert response.status_code == 400
-#     assert response.json()["detail"] == ["No malicious content detected"]
+@pytest.mark.e2e
+def test_scan_for_malicious_content_detects_sql_injection():
+    upload_file = bad_csv_sql.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=upload_file)
+    expected = ("Problem in Postman/sql_inject.csv row 4 - possible SQL injection found in: "
+                "Durga'); DROP TABLE students;--")
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_passes_clean_file():
+    upload_file = allowed_csv.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=upload_file)
+    assert response.status_code == 200
+    assert response.json()["success"] == "No malicious content detected"
+
+
+# Scan for Malicious Content Tests - with quasi files created in RAM (convenient!)
+
+
+# Note the csv_scanner stips leading/trailing spaces, so these are not preseent in the final message, although
+# a space is always added after "in:". This is why we have bad_part "Robert'); DROP TABLE students;--" with
+# no space at the start.
+@pytest.mark.e2e
+@pytest.mark.parametrize("content,filename,bad_part", [
+    (b"Amble, Robert'); DROP TABLE students;--, Corncrake", "bobby.csv", "Robert'); DROP TABLE students;--"),
+    (b"1,2,3,DROP TABLE students;--,4,5,6,7", "drop_students.csv", "DROP TABLE students;--"),
+    (b"1;DROP TABLE users,aaa,bbb,ccc", "drop_users1.csv", "1;DROP TABLE users"),
+    (b"a, 1'; DROP TABLE users-- 1,b", "drop_users2.csv", "1'; DROP TABLE users-- 1"),
+    (b"a,' OR 1=1 -- 1", "equals1a.csv", "' OR 1=1 -- 1"),
+    (b"' OR '1'='1', b", "equals1b.csv", "' OR '1'='1'"),
+    (b"'; EXEC sp_MSForEachTable 'DROP TABLE ?'; --", "exec_thing.csv", "'; EXEC sp_MSForEachTable 'DROP TABLE ?'; --")
+    ])
+def test_scan_for_malicious_content_detects_sql_injection_in_quasi_files(content, filename, bad_part):
+    file_data = make_file_details(content, filename, "text/plain")
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          data={"delimiter": ","},
+                          files=file_data)
+    expected = f"Problem in {filename} row 0 - possible SQL injection found in: {bad_part}"
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("content,filename", [
+    (b"1,2,3,4,5", "numbers.csv"),
+    (b"1,2,or 1 = 1,4,5", "one_equals_one.csv"),
+    (b"1,2,3,4,5, bunion sand snowdrop", "bunion.csv"),
+    (b"1,2,3,4,5, O'Shea", "oshea.csv"),
+    (b";,1,2,3,4,5", "semicolon.csv")
+    ])
+def test_scan_for_malicious_content_passes_safe_quasi_files(content, filename):
+    file_data = make_file_details(content, filename, "text/plain")
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          data={"delimiter": ","},
+                          files=file_data)
+    assert response.status_code == 200
+    assert response.json()["success"] == "No malicious content detected"
