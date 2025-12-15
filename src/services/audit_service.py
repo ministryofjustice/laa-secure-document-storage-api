@@ -34,6 +34,9 @@ class AuditService:
         else:
             AuditService._instance = self
             self.dynamodb_client = self.get_dynamodb_client()
+            self.table_name = os.getenv('AUDIT_TABLE')
+            if not self.table_name:
+                raise ValueError("Failed to get value from AUDIT_TABLE environment variable")
 
     def get_dynamodb_client(self):
         if os.getenv('ENV') != 'local':
@@ -55,10 +58,7 @@ class AuditService:
 def put_item(audit_record: AuditRecord):
     auditDb = AuditService.get_instance()
     dynamodb_resource = auditDb.dynamodb_client
-    table_name = os.getenv('AUDIT_TABLE')
-    if not table_name:
-        raise ValueError("Failed to get value from AUDIT_TABLE environment variable")
-    table = dynamodb_resource.Table(table_name)
+    table = dynamodb_resource.Table(auditDb.table_name)
     table.put_item(Item=audit_record.model_dump())
 
 
