@@ -23,7 +23,7 @@ jobs:
       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Obtain Octo STS Token
-      uses: octo-sts/action@6177b4481c00308b3839969c3eca88c96a91775f # v1.0.0
+      uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
       id: octo_sts
       with:
         scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
@@ -94,7 +94,7 @@ jobs:
       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Obtain Octo STS Token
-      uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+      uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
       id: octo_sts
       with:
         scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
@@ -165,7 +165,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Obtain Octo STS Token
-        uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
         id: octo_sts
         with:
           scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
