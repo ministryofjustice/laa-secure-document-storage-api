@@ -4,7 +4,7 @@ from unittest.mock import patch, Mock
 import pytest
 from pydantic import ValidationError
 from src.models.audit_record import AuditRecord
-from src.services.audit_service import put_item, add_record
+from src.services.audit_service import put_item, add_record, AuditService
 from src.utils.operation_types import OperationType
 
 """
@@ -38,6 +38,12 @@ This also means that the patching of
 src.services.audit_service.AuditService.get_dynamodb_client
 likely only needs to exist in the first test that's executed but does no harm to
 include it in others (and also makes it easier to re-order the tests).
+
+Similarly, the reading of the AUDIT_TABLE environment variable is the responsibility
+of the AuditService singleton class, so although the AUDIT_TABLE env variable is patched
+in each test, it's only the first test to run that actually sets the value that's used in
+most test. Note test test_get_expected_error_when_no_audit_table_environment_variable is an
+exception as it deliberately resets the singleton AuditService class so it can work reliably.
 """
 
 
@@ -157,11 +163,11 @@ def test_audit_put_items_with_different_filename_positions(file_info):
             "src.services.audit_service.AuditService.get_dynamodb_client",
             return_value=mock_client,
         ),
-        patch.dict(os.environ, {"AUDIT_TABLE": "TEST_AUDIT_2"}),
+        patch.dict(os.environ, {"AUDIT_TABLE": "TEST_AUDIT_1"}),
     ):
         put_item(audit_record)
 
-    assert mock_table.names_received == ["TEST_AUDIT_2"]
+    assert mock_table.names_received == ["TEST_AUDIT_1"]
     assert mock_table.put_item_calls == [
         {
             "request_id": file_info["request_id"],
@@ -197,11 +203,11 @@ def test_audit_put_item_with_valid_item_and_generated_created_on():
             "src.services.audit_service.AuditService.get_dynamodb_client",
             return_value=mock_client,
         ),
-        patch.dict(os.environ, {"AUDIT_TABLE": "TEST_AUDIT_3"}),
+        patch.dict(os.environ, {"AUDIT_TABLE": "TEST_AUDIT_1"}),
     ):
         put_item(audit_record)
 
-    assert mock_table.names_received == ["TEST_AUDIT_3"]
+    assert mock_table.names_received == ["TEST_AUDIT_1"]
     assert len(mock_table.put_item_calls) == 1
     details = mock_table.put_item_calls[0]
     assert details["request_id"] == "xyz456"
@@ -275,6 +281,7 @@ def test_add_failed_record():
 def test_get_expected_error_when_no_audit_table_environment_variable(monkeypatch):
     """
     Test for circumstance in which AUDIT_TABLE environment variable does not exist.
+    Note need to reset the singleton AuditService class for this to work reliably.
     """
     audit_record = AuditRecord(
         request_id="no_env_var_abc",
@@ -286,9 +293,15 @@ def test_get_expected_error_when_no_audit_table_environment_variable(monkeypatch
         error_details=""
         )
     mock_table.reset()
+
+    # AUDIT_TABLE environment variable might already have been successfully read within the
+    # AuditService singleton class, so need to reset it so environment variable is read afresh.
+    AuditService._instance = None
+
     # Note patch.dict(os.environ, {}) does not remove environment variables
     # but monkeypatch.delenv does work.
     monkeypatch.delenv("AUDIT_TABLE")
+
     with (patch("src.services.audit_service.AuditService.get_dynamodb_client",
                 return_value=mock_client),
           pytest.raises(ValueError) as exc_info):
