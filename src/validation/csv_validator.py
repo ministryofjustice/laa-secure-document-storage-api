@@ -3,6 +3,7 @@ import csv
 import re
 import structlog
 import codecs
+from typing import Iterator, TextIO
 from fastapi import UploadFile
 from src.validation.file_validator import FileValidator
 
@@ -15,20 +16,24 @@ class ScanCSV(FileValidator):
         """
         Scans CSV file for potentially malicious content
 
-        :param file_object: should be a CSV file
+        :param file_object: should be a text file
         :param delimiter: delimiter used in CSV file - optional defaults to comma
         :return: status_code: int, detail: str
         """
         status_code = 200
         message = ""
         try:
-            # csv.reader needs iterable that returns strings but FastAPI file_object.file
+            if file_object.filename.lower().endswith(".xml"):
+                reader = line_reader
+            else:
+                reader = csv.reader
+
+            # reader needs iterable that returns strings but FastAPI file_object.file
             # returns bytes. codecs.iterdecode conveniently converts the byte values to str
             # whilst retaining line-by-line iteration.
-            csv_reader = csv.reader(codecs.iterdecode(file_object.file, 'utf-8'),
-                                    delimiter=delimiter)
-            for ri, csv_row in enumerate(csv_reader):
-                status_code, message = check_row_values(csv_row)
+            row_reader = reader(codecs.iterdecode(file_object.file, 'utf-8'), delimiter=delimiter)
+            for ri, row in enumerate(row_reader):
+                status_code, message = check_row_values(row)
                 if status_code != 200:
                     message = f"Problem in {file_object.filename} row {ri} - {message}"
                     break
@@ -41,6 +46,12 @@ class ScanCSV(FileValidator):
             status_code = 500
             message = f"Unexpected error when processing {file_object.filename}"
         return status_code, message
+
+
+def line_reader(file: TextIO, **kwargs) -> Iterator[list[str]]:
+    "Does similar thing to csv.reader but for non-CSV files"
+    for row in file:
+        yield [row.strip()]
 
 
 def check_row_values(row_values: Iterable[Any]) -> Tuple[int, str]:
