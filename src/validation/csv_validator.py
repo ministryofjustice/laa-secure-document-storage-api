@@ -72,7 +72,7 @@ class ScanCSV(FileValidator):
         except (csv.Error, UnicodeDecodeError) as csv_err:
             logger.error(f"ScanCSV unable to process {file_object.filename}: {csv_err.__class__.__name__} {csv_err}")
             status_code = 400
-            message = f"Unable to process {file_object.filename}. Is it a CSV file?"
+            message = f"Unable to process {file_object.filename}. Is it a valid file?"
         except Exception as exc_err:
             logger.error(f"Error checking file {file_object.filename}: {exc_err.__class__.__name__} {exc_err}")
             status_code = 500

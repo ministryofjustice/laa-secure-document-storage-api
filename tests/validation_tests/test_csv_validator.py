@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.validation.csv_validator import check_item, check_row_values, ScanCSV
+from src.validation.csv_validator import check_item, check_row_values, ScanCSV, content_checkers
 
 from fastapi import UploadFile
 
@@ -105,6 +105,26 @@ def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
     assert result == expected
 
 
+@pytest.mark.parametrize("row", [(1, "<ha>", 3, 4),
+                                 (1, 2, " javascript :", 4),
+                                 (1, 2, 3, "="),
+                                 ("' OR '1'='1'", 2, 3, 4)])
+def test_check_row_values_always_passes_when_checkers_empty(row):
+    result = check_row_values(row, checkers=[])
+    assert result == (200, "")
+
+
+@pytest.mark.parametrize("row, expected", [
+    [(1, "<ha>", 3, 4), (200, "")],
+    [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
+    [(1, 2, 3, "="), (200, "")],
+    [("' OR '1'='1'", 2, 3, 4), (200, "")]
+    ])
+def test_check_row_values_only_detects_issue_associated_with_supplied_checker(row, expected):
+    result = check_row_values(row, checkers=[content_checkers[2]])  # Only "javascript" checker selected
+    assert result == expected
+
+
 @pytest.mark.parametrize("file_content", [
     [""],
     [","],
@@ -135,6 +155,16 @@ def test_csv_scan_finds_bad_rows(file_content, expected):
     assert result == expected
 
 
+def test_csv_scan_finds_sql_injection_in_xml_file():
+    file_content = ["<?xml version = '1.0' encoding = 'UTF-8'?>\n",
+                    "<matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>"]
+    file_object = make_uploadfile(file_content, "bad.xml")
+    validator = ScanCSV()
+    result = validator.validate(file_object)
+    expected_message = "Problem in bad.xml row 1 - possible SQL injection found in: <matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>"
+    assert result == (400, expected_message)
+
+
 @pytest.mark.parametrize("delimiter,file_content",
                          [(",", ["1,2,3", "4,5,6", "7,8,9"]),
                           (";", ["1;2;3", "4;5;6", "7;8;9"]),
@@ -160,4 +190,4 @@ def test_csv_scan_with_invalid_file_data_gives_expecte_error():
                                   to_bytes=False)
     validator = ScanCSV()
     result = validator.validate(file_object)
-    assert result == (400, 'Unable to process document.pdf. Is it a CSV file?')
+    assert result == (400, 'Unable to process document.pdf. Is it a valid file?')
