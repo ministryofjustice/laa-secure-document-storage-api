@@ -146,11 +146,12 @@ def test_csv_scan_works_with_different_delimiters(delimiter, file_content):
     validator = ScanCSV()
     with patch("src.validation.csv_validator.check_row_values", mock_scan):
         result = validator.validate(file_object, delimiter=delimiter)
-    # try to make mock's args_list into something more convenient
-    args_list = [e[0] for e in mock_scan.call_args_list]
+    # Extract relevant part of mock's args_list into something more convenient
+    # Interested in the values supplied, not the checkers
+    wanted_args_list = [e[0][0] for e in mock_scan.call_args_list]
     assert result == (200, "")
     # Checking that the values have been correctly separated
-    assert args_list == [(['1', '2', '3'],), (['4', '5', '6'],), (['7', '8', '9'],)]
+    assert wanted_args_list == [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ]
 
 
 def test_csv_scan_with_invalid_file_data_gives_expecte_error():
