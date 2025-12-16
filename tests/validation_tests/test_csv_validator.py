@@ -161,7 +161,8 @@ def test_csv_scan_finds_sql_injection_in_xml_file():
     file_object = make_uploadfile(file_content, "bad.xml")
     validator = ScanCSV()
     result = validator.validate(file_object)
-    expected_message = "Problem in bad.xml row 1 - possible SQL injection found in: <matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>"
+    expected_message = ("Problem in bad.xml row 1 - possible SQL injection found in: "
+                        "<matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>")
     assert result == (400, expected_message)
 
 
