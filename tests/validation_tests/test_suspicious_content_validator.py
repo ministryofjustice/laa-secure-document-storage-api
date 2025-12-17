@@ -137,7 +137,7 @@ def test_check_row_values_only_detects_issue_associated_with_supplied_checker(ro
     ["1,2,3\n", "4,5,6\n", "7,8,9\n"],
     ["1 , 2, 3\n", "4, five, 6\n", "7, *, <\n"]
     ])
-def test_csv_scan_passes_good_files(file_content):
+def test_scan_for_suspicious_content_passes_good_files(file_content):
     file_object = make_uploadfile(file_content)
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
@@ -152,14 +152,14 @@ def test_csv_scan_passes_good_files(file_content):
     (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
      (400, "Problem in bad.csv row 2 - forbidden initial character found: +9"))
     ])
-def test_csv_scan_finds_bad_rows(file_content, expected):
+def test_scan_for_suspicious_content_finds_bad_rows(file_content, expected):
     file_object = make_uploadfile(file_content, "bad.csv")
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
     assert result == expected
 
 
-def test_csv_scan_finds_sql_injection_in_xml_file():
+def test_scan_for_suspicious_content_finds_sql_injection_in_xml_file():
     file_content = ["<?xml version = '1.0' encoding = 'UTF-8'?>\n",
                     "<matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>"]
     file_object = make_uploadfile(file_content, "bad.xml")
@@ -175,7 +175,7 @@ def test_csv_scan_finds_sql_injection_in_xml_file():
                           (";", ["1;2;3", "4;5;6", "7;8;9"]),
                           ("#", ["1#2#3", "4#5#6", "7#8#9"])
                           ])
-def test_csv_scan_works_with_different_delimiters(delimiter, file_content):
+def test_scan_for_suspicious_content_works_with_different_delimiters(delimiter, file_content):
     mock_scan = MagicMock(return_value=(200, ""))
     file_object = make_uploadfile(file_content, "variety.csv")
     validator = ScanForSuspiciousContent()
@@ -189,7 +189,7 @@ def test_csv_scan_works_with_different_delimiters(delimiter, file_content):
     assert wanted_args_list == [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ]
 
 
-def test_csv_scan_with_invalid_file_data_gives_expecte_error():
+def test_scan_for_suspicious_content_with_invalid_file_data_gives_expecte_error():
     "Not actual CSV data that can be checked"
     file_object = make_uploadfile([b"%PDF-1.4\r\n%\xe2\xe3\xcf\xd3\r\n"], "document.pdf", "application/pdf",
                                   to_bytes=False)

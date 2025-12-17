@@ -23,7 +23,7 @@ async def scan_for_suspicious_content(
 
     If file has mimetype "application/xml" or "text/xml" (case insensitive), scan will
     automatically be in XML mode and delimiter ignored. Also, when XML mode used, the
-    response text will start "(XML Scan")
+    response text will start "(XML Scan)"
 
     * 200 - No suspected malicious content was detected
     * 400 - Suspected malicious content was detected
