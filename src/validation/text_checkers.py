@@ -9,9 +9,10 @@ class StringCheck(BaseModel):
     message: str
 
     def check(self, line: str) -> tuple[int, str]:
+        line_core = line.strip()
         result = (200, "")
         if self.checker(self.pattern, line, flags=re.IGNORECASE):
-            result = (400, self.message + line.strip())
+            result = (400, self.message + line_core)
         return result
 
 

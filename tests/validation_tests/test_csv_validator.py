@@ -1,8 +1,12 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.validation.csv_validator import check_item, check_row_values, ScanCSV, content_checkers
+from src.validation.csv_validator import check_item, check_row_values, ScanCSV
+from src.validation.text_checkers import sql_injection_check, html_tag_check, javascript_url_check, excel_char_check
 
 from fastapi import UploadFile
+
+
+checkers = [sql_injection_check, html_tag_check, javascript_url_check, excel_char_check]
 
 
 def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain", to_bytes=True) -> UploadFile:
@@ -20,7 +24,7 @@ def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/pla
 
 @pytest.mark.parametrize("item", ["", "123", "1>2", ".@", "<>", "havascript  :"])
 def test_check_item_passes_allowed_items(item):
-    result = check_item(item)
+    result = check_item(item,  checkers=checkers)
     assert result == (200, "")
 
 
@@ -42,7 +46,7 @@ def test_check_item_passes_allowed_items(item):
     (" -", (400, "forbidden initial character found: -"))
     ])
 def test_check_item_finds_expected_issues(item, expected):
-    result = check_item(item)
+    result = check_item(item,  checkers=checkers)
     assert result == expected
 
 
@@ -57,7 +61,7 @@ def test_check_item_finds_expected_issues(item, expected):
     ])
 def test_check_item_finds_possible_sql_injection(item):
     expected = (400, f"possible SQL injection found in: {item.strip()}")
-    result = check_item(item)
+    result = check_item(item, checkers=checkers)
     assert result == expected
 
 
@@ -69,7 +73,7 @@ def test_check_item_finds_possible_sql_injection(item):
     ]
     )
 def test_check_item_sql_injection_check_for_false_positives(item):
-    result = check_item(item)
+    result = check_item(item, checkers=checkers)
     assert result == (200, "")
 
 
@@ -80,7 +84,7 @@ def test_check_item_sql_injection_check_for_false_positives(item):
     "thequickbrownfox"
     ])
 def test_check_row_values_with_good_rows(good_row):
-    result = check_row_values(good_row)
+    result = check_row_values(good_row, checkers=checkers)
     assert result == (200, "")
 
 
@@ -92,7 +96,7 @@ def test_check_row_values_with_good_rows(good_row):
     [("' OR '1'='1'", 2, 3, 4), (400, "possible SQL injection found in: ' OR '1'='1'")]
     ])
 def test_check_row_values_with_bad_rows(row, expected):
-    result = check_row_values(row)
+    result = check_row_values(row, checkers=checkers)
     assert result == expected
 
 
@@ -101,7 +105,7 @@ def test_check_row_values_with_bad_rows(row, expected):
     [("=", 2, "<b>", 4), (400, "forbidden initial character found: =")]
     ])
 def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
-    result = check_row_values(row)
+    result = check_row_values(row, checkers=checkers)
     assert result == expected
 
 
@@ -121,7 +125,7 @@ def test_check_row_values_always_passes_when_checkers_empty(row):
     [("' OR '1'='1'", 2, 3, 4), (200, "")]
     ])
 def test_check_row_values_only_detects_issue_associated_with_supplied_checker(row, expected):
-    result = check_row_values(row, checkers=[content_checkers[2]])  # Only "javascript" checker selected
+    result = check_row_values(row, checkers=[javascript_url_check])
     assert result == expected
 
 
