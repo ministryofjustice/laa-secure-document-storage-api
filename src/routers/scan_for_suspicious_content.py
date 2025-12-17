@@ -18,9 +18,12 @@ async def scan_for_suspicious_content(
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
     """
-    Scans the provided CSV or XML file for some types of potentially malicious content (HTML tags, JavaScript, SQL injection).
-    If file has mimetype "application/xml" or "text/xml"), scan will automatically be in XML mode and delimiter ignored.
-    Also, when XML mode used, the response text will start "(XML Scan")
+    Scans the provided CSV or XML file for some types of potentially malicious content:
+    (HTML tags, JavaScript, SQL injection).
+
+    If file has mimetype "application/xml" or "text/xml"), scan will automatically be in
+    XML mode and delimiter ignored. Also, when XML mode used, the response text will start "(XML Scan")
+
     * 200 - No suspected malicious content was detected
     * 400 - Suspected malicious content was detected
     """
