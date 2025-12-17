@@ -18,23 +18,30 @@ async def scan_for_suspicious_content(
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
     """
-    Scans the provided CSV file for some types of potentially malicious content (HTML tags, JavaScript, SQL formulae).
+    Scans the provided CSV or XML file for some types of potentially malicious content (HTML tags, JavaScript, SQL injection).
+    If file has mimetype "application/xml" or "text/xml"), scan will automatically be in XML mode and delimiter ignored.
+    Also, when XML mode used, the response text will start "(XML Scan")
     * 200 - No suspected malicious content was detected
     * 400 - Suspected malicious content was detected
     """
+    xml_mode = False
+    mode_text = ""
+    if file.content_type in ("application/xml", "text/xml"):
+        xml_mode = True
+        mode_text = "(XML Scan) "
 
     validator = suspicious_content_validator.ScanForSuspiciousContent()
-    status_code, message = validator.validate(file, delimiter)
+    status_code, message = validator.validate(file, delimiter, xml_mode=xml_mode)
     if status_code != 200:
         logger.info(f"Scan completed for {file.filename}: Possible malicious content detected")
         raise HTTPException(
             status_code=status_code,
-            detail=message
+            detail=f"{mode_text}{message}"
         )
 
     logger.info(f"Scan completed for {file.filename}: No malicious content detected")
     return JSONResponse(
         status_code=200, content={
-            "success": "No malicious content detected"
+            "success": f"{mode_text}No malicious content detected"
         }
     )

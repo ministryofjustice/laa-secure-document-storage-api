@@ -12,18 +12,20 @@ logger = structlog.get_logger()
 
 
 class ScanForSuspiciousContent(FileValidator):
-    def validate(self, file_object: UploadFile, delimiter: str = ",", **kwargs) -> Tuple[int, str]:
+    def validate(self, file_object: UploadFile, delimiter: str = ",",
+                 xml_mode: bool = False, **kwargs) -> Tuple[int, str]:
         """
         Scans file for potentially malicious content
 
         :param file_object: should be a text file
         :param delimiter: delimiter used in CSV file - optional, defaults to comma
+        :param xml_mode: xml file scan when true.
         :return: status_code: int, detail: str
         """
         status_code = 200
         message = ""
         try:
-            if file_object.filename.lower().endswith(".xml"):
+            if xml_mode:
                 reader = line_reader
                 checkers = [sql_injection_check, javascript_url_check, excel_char_check]
             else:
