@@ -503,3 +503,24 @@ def test_scan_for_malicious_content_passes_safe_quasi_files(content, filename):
                           files=file_data)
     assert response.status_code == 200
     assert response.json()["success"] == "No malicious content detected"
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_detects_sql_injection_in_xml_mode():
+    file_data = make_file_details(b"<xml> DROP TABLE students;--", "badxml.zzz", "text/xml")
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=file_data)
+    expected = "(XML Scan) Problem in badxml.zzz row 0 - possible SQL injection found in: <xml> DROP TABLE students;--"
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_passes_safe_file_in_xml_mode():
+    file_data = make_file_details(b"<xml> mostly harmless", "goodxml.zzz", "text/xml")
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=file_data)
+    assert response.status_code == 200
+    assert response.json()["success"] == "(XML Scan) No malicious content detected"

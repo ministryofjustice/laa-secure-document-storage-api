@@ -21,15 +21,16 @@ async def scan_for_suspicious_content(
     Scans the provided CSV or XML file for some types of potentially malicious content:
     (HTML tags, JavaScript, SQL injection).
 
-    If file has mimetype "application/xml" or "text/xml"), scan will automatically be in
-    XML mode and delimiter ignored. Also, when XML mode used, the response text will start "(XML Scan")
+    If file has mimetype "application/xml" or "text/xml" (case insensitive), scan will
+    automatically be in XML mode and delimiter ignored. Also, when XML mode used, the
+    response text will start "(XML Scan")
 
     * 200 - No suspected malicious content was detected
     * 400 - Suspected malicious content was detected
     """
     xml_mode = False
     mode_text = ""
-    if file.content_type in ("application/xml", "text/xml"):
+    if file.content_type.lower() in ("application/xml", "text/xml"):
         xml_mode = True
         mode_text = "(XML Scan) "
 
