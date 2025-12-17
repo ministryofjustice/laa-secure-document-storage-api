@@ -461,7 +461,8 @@ def test_scan_for_malicious_content_detects_sql_injection_in_xml_file():
                           headers=token_getter.get_headers(),
                           files=upload_file)
     expected = ("(XML Scan) Problem in Postman/outcomes_with_sql_injection_keywords.xml row 8 - "
-                "possible SQL injection found in: <outcomeItem name=\"CASE_REF_NUMBER\">'; DROP TABLE claims; --</outcomeItem>")
+                "possible SQL injection found in: "
+                "<outcomeItem name=\"CASE_REF_NUMBER\">'; DROP TABLE claims; --</outcomeItem>")
     assert response.status_code == 400
     assert response.json()["detail"] == expected
 
