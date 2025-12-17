@@ -59,6 +59,10 @@ class UploadFileData:
         new_tuple = (new_filename,) + self.file_details["file"][1:]
         self.file_details = {"file": new_tuple}
 
+    def update_mimetype(self, new_mimetype: str):
+        new_tuple = self.file_details["file"][:2] + (new_mimetype,)
+        self.file_details = {"file": new_tuple}
+
     def get_data(self, new_filename: str = ""):
         "Returns file data in dict format that's needed for individual file upload"
         if new_filename:

@@ -11,7 +11,7 @@ def test_generate_all_filevalidatorspecs_returns_expected_validators():
     validators = generate_all_filevalidatorspecs()
     names = sorted([v.name for v in validators])
     assert names == ['AllowedFileExtensions', 'AllowedMimetypes', 'DisallowedFileExtensions',
-                     'DisallowedMimetypes', 'MaxFileSize', 'MinFileSize', 'ScanCSV']
+                     'DisallowedMimetypes', 'MaxFileSize', 'MinFileSize', 'ScanForSuspiciousContent']
 
 
 def test_generate_all_filevalidatorspecs_returns_kwargs():
