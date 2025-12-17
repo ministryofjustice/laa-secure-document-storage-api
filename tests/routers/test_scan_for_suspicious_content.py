@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from io import BytesIO
 
 
-@patch("src.routers.scan_for_suspicious_content.csv_validator.ScanCSV.validate")
+@patch("src.routers.scan_for_suspicious_content.suspicious_content_validator.ScanForSuspiciousContent.validate")
 def test_scan_for_suspicious_content_with_malicious_content(validate_mock, test_client):
     validate_mock.side_effect = HTTPException(status_code=400, detail="Malicious content detected")
     files = {
@@ -30,7 +30,7 @@ def test_scan_for_suspicious_content_with_no_file(test_client):
         assert e.get("type").lower() == "missing"
 
 
-@patch("src.routers.scan_for_suspicious_content.csv_validator.ScanCSV.validate")
+@patch("src.routers.scan_for_suspicious_content.suspicious_content_validator.ScanForSuspiciousContent.validate")
 def test_scan_for_suspicious_content_with_clean_file(validate_mock, test_client):
     validate_mock.return_value = (200, "")
     files = {

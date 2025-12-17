@@ -1,8 +1,7 @@
-from typing import Tuple, Iterable, Any
+from typing import Tuple, Iterable, Any, Iterator, TextIO
 import csv
 import structlog
 import codecs
-from typing import Iterator, TextIO
 from fastapi import UploadFile
 from src.validation.file_validator import FileValidator
 from src.validation.text_checkers import sql_injection_check, html_tag_check, javascript_url_check, excel_char_check
@@ -12,13 +11,13 @@ from src.validation.text_checkers import StringCheck
 logger = structlog.get_logger()
 
 
-class ScanCSV(FileValidator):
+class ScanForSuspiciousContent(FileValidator):
     def validate(self, file_object: UploadFile, delimiter: str = ",", **kwargs) -> Tuple[int, str]:
         """
         Scans file for potentially malicious content
 
         :param file_object: should be a text file
-        :param delimiter: delimiter used in CSV file - optional defaults to comma
+        :param delimiter: delimiter used in CSV file - optional, defaults to comma
         :return: status_code: int, detail: str
         """
         status_code = 200
@@ -41,7 +40,8 @@ class ScanCSV(FileValidator):
                     message = f"Problem in {file_object.filename} row {ri} - {message}"
                     break
         except (csv.Error, UnicodeDecodeError) as csv_err:
-            logger.error(f"ScanCSV unable to process {file_object.filename}: {csv_err.__class__.__name__} {csv_err}")
+            logger.error(f"ScanForMaliciousContent unable to process {file_object.filename}: "
+                         f"{csv_err.__class__.__name__} {csv_err}")
             status_code = 400
             message = f"Unable to process {file_object.filename}. Is it a valid file?"
         except Exception as exc_err:

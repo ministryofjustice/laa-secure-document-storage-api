@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
-from src.validation import csv_validator
+from src.validation import suspicious_content_validator
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -23,7 +23,7 @@ async def scan_for_suspicious_content(
     * 400 - Suspected malicious content was detected
     """
 
-    validator = csv_validator.ScanCSV()
+    validator = suspicious_content_validator.ScanForSuspiciousContent()
     status_code, message = validator.validate(file, delimiter)
     if status_code != 200:
         logger.info(f"Scan completed for {file.filename}: Possible malicious content detected")
