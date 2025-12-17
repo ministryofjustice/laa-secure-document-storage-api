@@ -11,7 +11,7 @@ class StringCheck(BaseModel):
     def check(self, line: str) -> tuple[int, str]:
         result = (200, "")
         if self.checker(self.pattern, line, flags=re.IGNORECASE):
-            result = (400, self.message + line)
+            result = (400, self.message + line.strip())
         return result
 
 
@@ -27,6 +27,6 @@ javascript_url_check = StringCheck(checker=re.search,
                                    pattern=r"javascript\s*:",
                                    message="suspected javascript URL found in: ")
 
-excel_char_check = StringCheck(checker=lambda substring, string, **kwargs: string.startswith(substring),
+excel_char_check = StringCheck(checker=lambda substring, string, **kwargs: string.strip().startswith(substring),
                                pattern=("=", "@", "+", "-"),
                                message="forbidden initial character found: ")
