@@ -47,13 +47,14 @@ def setup_and_teardown_test_files():
     Code before the "yield" is executed before the tests.
     Code after the "yield" is exected after the last test.
     """
-    global test_md_file, virus_file, disallowed_file, allowed_csv, bad_csv_tags, bad_csv_sql
+    global test_md_file, virus_file, disallowed_file, allowed_csv, bad_csv_tags, bad_csv_sql, bad_xml_sql
     test_md_file = UploadFileData("Postman/test_file.md")
     virus_file = UploadFileData("Postman/eicar.txt")
     disallowed_file = UploadFileData("Postman/test_file.exe")
     allowed_csv = UploadFileData("Postman/test_file.csv")
     bad_csv_tags = UploadFileData("Postman/html_tags.csv")
     bad_csv_sql = UploadFileData("Postman/sql_inject.csv")
+    bad_xml_sql = UploadFileData("Postman/outcomes_with_sql_injection_keywords.xml")
     yield
     test_md_file.close_file()
     virus_file.close_file()
@@ -61,6 +62,7 @@ def setup_and_teardown_test_files():
     allowed_csv.close_file()
     bad_csv_tags.close_file()
     bad_csv_sql.close_file()
+    bad_xml_sql.close_file()
 
 
 def make_file_details(content: str, filename: str = "test_file.txt", mimetype: str = "text/plain") -> dict:
@@ -451,6 +453,21 @@ def test_scan_for_malicious_content_detects_sql_injection():
 
 
 @pytest.mark.e2e
+def test_scan_for_malicious_content_detects_sql_injection_in_xml_file():
+    # This test needs the  mimetype to be right (already auto-set in bad_xml_sql but making sure here).
+    bad_xml_sql.update_mimetype("text/xml")
+    upload_file = bad_xml_sql.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=upload_file)
+    expected = ("(XML Scan) Problem in Postman/outcomes_with_sql_injection_keywords.xml row 8 - "
+                "possible SQL injection found in: "
+                "<outcomeItem name=\"CASE_REF_NUMBER\">'; DROP TABLE claims; --</outcomeItem>")
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
 def test_scan_for_malicious_content_passes_clean_file():
     upload_file = allowed_csv.get_data()
     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
@@ -503,3 +520,24 @@ def test_scan_for_malicious_content_passes_safe_quasi_files(content, filename):
                           files=file_data)
     assert response.status_code == 200
     assert response.json()["success"] == "No malicious content detected"
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_detects_sql_injection_in_xml_mode():
+    file_data = make_file_details(b"<xml> DROP TABLE students;--", "badxml.zzz", "text/xml")
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=file_data)
+    expected = "(XML Scan) Problem in badxml.zzz row 0 - possible SQL injection found in: <xml> DROP TABLE students;--"
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_passes_safe_file_in_xml_mode():
+    file_data = make_file_details(b"<xml> mostly harmless", "goodxml.zzz", "text/xml")
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          files=file_data)
+    assert response.status_code == 200
+    assert response.json()["success"] == "(XML Scan) No malicious content detected"

@@ -1,8 +1,12 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.validation.csv_validator import check_item, check_row_values, ScanCSV
+from src.validation.suspicious_content_validator import check_item, check_row_values, ScanForSuspiciousContent
+from src.validation.text_checkers import sql_injection_check, html_tag_check, javascript_url_check, excel_char_check
 
 from fastapi import UploadFile
+
+
+checkers = [sql_injection_check, html_tag_check, javascript_url_check, excel_char_check]
 
 
 def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain", to_bytes=True) -> UploadFile:
@@ -20,7 +24,7 @@ def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/pla
 
 @pytest.mark.parametrize("item", ["", "123", "1>2", ".@", "<>", "havascript  :"])
 def test_check_item_passes_allowed_items(item):
-    result = check_item(item)
+    result = check_item(item,  checkers=checkers)
     assert result == (200, "")
 
 
@@ -42,7 +46,7 @@ def test_check_item_passes_allowed_items(item):
     (" -", (400, "forbidden initial character found: -"))
     ])
 def test_check_item_finds_expected_issues(item, expected):
-    result = check_item(item)
+    result = check_item(item,  checkers=checkers)
     assert result == expected
 
 
@@ -57,7 +61,7 @@ def test_check_item_finds_expected_issues(item, expected):
     ])
 def test_check_item_finds_possible_sql_injection(item):
     expected = (400, f"possible SQL injection found in: {item.strip()}")
-    result = check_item(item)
+    result = check_item(item, checkers=checkers)
     assert result == expected
 
 
@@ -69,7 +73,7 @@ def test_check_item_finds_possible_sql_injection(item):
     ]
     )
 def test_check_item_sql_injection_check_for_false_positives(item):
-    result = check_item(item)
+    result = check_item(item, checkers=checkers)
     assert result == (200, "")
 
 
@@ -80,7 +84,7 @@ def test_check_item_sql_injection_check_for_false_positives(item):
     "thequickbrownfox"
     ])
 def test_check_row_values_with_good_rows(good_row):
-    result = check_row_values(good_row)
+    result = check_row_values(good_row, checkers=checkers)
     assert result == (200, "")
 
 
@@ -92,7 +96,7 @@ def test_check_row_values_with_good_rows(good_row):
     [("' OR '1'='1'", 2, 3, 4), (400, "possible SQL injection found in: ' OR '1'='1'")]
     ])
 def test_check_row_values_with_bad_rows(row, expected):
-    result = check_row_values(row)
+    result = check_row_values(row, checkers=checkers)
     assert result == expected
 
 
@@ -101,7 +105,27 @@ def test_check_row_values_with_bad_rows(row, expected):
     [("=", 2, "<b>", 4), (400, "forbidden initial character found: =")]
     ])
 def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
-    result = check_row_values(row)
+    result = check_row_values(row, checkers=checkers)
+    assert result == expected
+
+
+@pytest.mark.parametrize("row", [(1, "<ha>", 3, 4),
+                                 (1, 2, " javascript :", 4),
+                                 (1, 2, 3, "="),
+                                 ("' OR '1'='1'", 2, 3, 4)])
+def test_check_row_values_always_passes_when_checkers_empty(row):
+    result = check_row_values(row, checkers=[])
+    assert result == (200, "")
+
+
+@pytest.mark.parametrize("row, expected", [
+    [(1, "<ha>", 3, 4), (200, "")],
+    [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
+    [(1, 2, 3, "="), (200, "")],
+    [("' OR '1'='1'", 2, 3, 4), (200, "")]
+    ])
+def test_check_row_values_only_detects_issue_associated_with_supplied_checker(row, expected):
+    result = check_row_values(row, checkers=[javascript_url_check])
     assert result == expected
 
 
@@ -113,9 +137,9 @@ def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
     ["1,2,3\n", "4,5,6\n", "7,8,9\n"],
     ["1 , 2, 3\n", "4, five, 6\n", "7, *, <\n"]
     ])
-def test_csv_scan_passes_good_files(file_content):
+def test_scan_for_suspicious_content_passes_good_files(file_content):
     file_object = make_uploadfile(file_content)
-    validator = ScanCSV()
+    validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
     assert result == (200, "")
 
@@ -128,11 +152,22 @@ def test_csv_scan_passes_good_files(file_content):
     (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
      (400, "Problem in bad.csv row 2 - forbidden initial character found: +9"))
     ])
-def test_csv_scan_finds_bad_rows(file_content, expected):
+def test_scan_for_suspicious_content_finds_bad_rows(file_content, expected):
     file_object = make_uploadfile(file_content, "bad.csv")
-    validator = ScanCSV()
+    validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
     assert result == expected
+
+
+def test_scan_for_suspicious_content_finds_sql_injection_in_xml_file():
+    file_content = ["<?xml version = '1.0' encoding = 'UTF-8'?>\n",
+                    "<matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>"]
+    file_object = make_uploadfile(file_content, "bad.xml")
+    validator = ScanForSuspiciousContent()
+    result = validator.validate(file_object, xml_mode=True)
+    expected_message = ("Problem in bad.xml row 1 - possible SQL injection found in: "
+                        "<matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>")
+    assert result == (400, expected_message)
 
 
 @pytest.mark.parametrize("delimiter,file_content",
@@ -140,23 +175,24 @@ def test_csv_scan_finds_bad_rows(file_content, expected):
                           (";", ["1;2;3", "4;5;6", "7;8;9"]),
                           ("#", ["1#2#3", "4#5#6", "7#8#9"])
                           ])
-def test_csv_scan_works_with_different_delimiters(delimiter, file_content):
+def test_scan_for_suspicious_content_works_with_different_delimiters(delimiter, file_content):
     mock_scan = MagicMock(return_value=(200, ""))
     file_object = make_uploadfile(file_content, "variety.csv")
-    validator = ScanCSV()
-    with patch("src.validation.csv_validator.check_row_values", mock_scan):
+    validator = ScanForSuspiciousContent()
+    with patch("src.validation.suspicious_content_validator.check_row_values", mock_scan):
         result = validator.validate(file_object, delimiter=delimiter)
-    # try to make mock's args_list into something more convenient
-    args_list = [e[0] for e in mock_scan.call_args_list]
+    # Extract relevant part of mock's args_list into something more convenient
+    # Interested in the values supplied, not the checkers
+    wanted_args_list = [e[0][0] for e in mock_scan.call_args_list]
     assert result == (200, "")
     # Checking that the values have been correctly separated
-    assert args_list == [(['1', '2', '3'],), (['4', '5', '6'],), (['7', '8', '9'],)]
+    assert wanted_args_list == [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ]
 
 
-def test_csv_scan_with_invalid_file_data_gives_expecte_error():
+def test_scan_for_suspicious_content_with_invalid_file_data_gives_expecte_error():
     "Not actual CSV data that can be checked"
     file_object = make_uploadfile([b"%PDF-1.4\r\n%\xe2\xe3\xcf\xd3\r\n"], "document.pdf", "application/pdf",
                                   to_bytes=False)
-    validator = ScanCSV()
+    validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
-    assert result == (400, 'Unable to process document.pdf. Is it a CSV file?')
+    assert result == (400, 'Unable to process document.pdf. Is it a valid file?')
