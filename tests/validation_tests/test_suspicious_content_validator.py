@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from src.validation.suspicious_content_validator import check_item, check_row_values, ScanForSuspiciousContent
-from src.validation.text_checkers import sql_injection_check, html_tag_check, javascript_url_check, excel_char_check
+from src.validation.text_checkers import text_checkers
 
 from fastapi import UploadFile
 
 
-checkers = [sql_injection_check, html_tag_check, javascript_url_check, excel_char_check]
+checkers = text_checkers.values()
 
 
 def make_uploadfile(file_content, filename="dummy_file.txt", mime_type="text/plain", to_bytes=True) -> UploadFile:
@@ -125,7 +125,7 @@ def test_check_row_values_always_passes_when_checkers_empty(row):
     [("' OR '1'='1'", 2, 3, 4), (200, "")]
     ])
 def test_check_row_values_only_detects_issue_associated_with_supplied_checker(row, expected):
-    result = check_row_values(row, checkers=[javascript_url_check])
+    result = check_row_values(row, checkers=[text_checkers.get("javascript_url_check")])
     assert result == expected
 
 

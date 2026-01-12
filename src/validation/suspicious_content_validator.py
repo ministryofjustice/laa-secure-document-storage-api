@@ -4,7 +4,7 @@ import structlog
 import codecs
 from fastapi import UploadFile
 from src.validation.file_validator import FileValidator
-from src.validation.text_checkers import sql_injection_check, html_tag_check, javascript_url_check, excel_char_check
+from src.validation.text_checkers import text_checkers
 from src.validation.text_checkers import StringCheck
 
 
@@ -12,8 +12,12 @@ logger = structlog.get_logger()
 
 
 class ScanForSuspiciousContent(FileValidator):
-    def validate(self, file_object: UploadFile, delimiter: str = ",",
-                 xml_mode: bool = False, **kwargs) -> Tuple[int, str]:
+    def validate(self,
+                 file_object: UploadFile,
+                 delimiter: str = ",",
+                 xml_mode: bool = False,
+                 scan_types: Iterable[str] | None = None,
+                 **kwargs) -> Tuple[int, str]:
         """
         Scans file for potentially malicious content
 
@@ -27,10 +31,10 @@ class ScanForSuspiciousContent(FileValidator):
         try:
             if xml_mode:
                 reader = line_reader
-                checkers = [sql_injection_check, javascript_url_check, excel_char_check]
+                checkers = [v for k, v in text_checkers.items() if k != "html_tag_check"]
             else:
                 reader = csv.reader
-                checkers = [sql_injection_check, html_tag_check, javascript_url_check, excel_char_check]
+                checkers = text_checkers.values()
 
             # reader needs iterable that returns strings but FastAPI file_object.file
             # returns bytes. codecs.iterdecode conveniently converts the byte values to str
