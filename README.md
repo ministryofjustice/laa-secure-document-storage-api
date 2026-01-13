@@ -2,6 +2,8 @@
 
 A repository containing the API for the LAA shared component for secure document storage.
 
+[![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/laa-secure-document-storage-api/badge)](https://github-community.service.justice.gov.uk/repository-standards/laa-secure-document-storage-api)
+
 ## Running locally
 
 ### Requires
