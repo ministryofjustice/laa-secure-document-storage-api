@@ -12,6 +12,9 @@ logger = structlog.get_logger()
 
 
 class ScanForSuspiciousContent(FileValidator):
+    all_scan_types: list[str] = list(text_checkers.keys())
+    xml_scan_types: list[str] = [e for e in all_scan_types if e != "html_tag_check"]
+
     def validate(self,
                  file_object: UploadFile,
                  delimiter: str = ",",
@@ -24,18 +27,34 @@ class ScanForSuspiciousContent(FileValidator):
         :param file_object: should be a text file
         :param delimiter: delimiter used in CSV file - optional, defaults to comma
         :param xml_mode: xml file scan when true.
+        :param scan_types: optional iterable of chosen scan types. All supplied values must be valid
+                           otherwise the scan will return a 400 error. Defaults to all scan types if
+                           xml_mode is False, but default excludes html_tag_check when xml_mode is True.
+                           Note when manually specified, html_tag_check will run in xml_mode but will
+                           almost certainly result in "fail" result because xml files typically include
+                           tags. Also if scan_type is repeated, it will still only run once.
         :return: status_code: int, detail: str
         """
         status_code = 200
         message = ""
-        try:
-            if xml_mode:
-                reader = line_reader
-                checkers = [v for k, v in text_checkers.items() if k != "html_tag_check"]
-            else:
-                reader = csv.reader
-                checkers = text_checkers.values()
 
+        if scan_types:
+            invalid_scan_types = self.find_invalid_scan_types(scan_types)
+            if invalid_scan_types:
+                return 400, f"Invalid scan_types value(s) supplied: {invalid_scan_types}"
+        else:
+            scan_types = self.all_scan_types
+            if xml_mode:
+                scan_types = self.xml_scan_types
+        # each checker only included once even if named more than once in scan_types
+        checkers = [v for k, v in text_checkers.items() if k in scan_types]
+
+        if xml_mode:
+            reader = line_reader
+        else:
+            reader = csv.reader
+
+        try:
             # reader needs iterable that returns strings but FastAPI file_object.file
             # returns bytes. codecs.iterdecode conveniently converts the byte values to str
             # whilst retaining line-by-line iteration.
@@ -55,6 +74,9 @@ class ScanForSuspiciousContent(FileValidator):
             status_code = 500
             message = f"Unexpected error when processing {file_object.filename}"
         return status_code, message
+
+    def find_invalid_scan_types(self, scan_types: Iterable[str]) -> list[str]:
+        return [st for st in scan_types if st not in self.all_scan_types]
 
 
 def line_reader(file: TextIO, **kwargs) -> Iterator[list[str]]:
