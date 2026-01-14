@@ -224,7 +224,9 @@ def test_scan_for_suspicious_content_returns_expected_error_when_invalid_scan_ty
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object,
                                 scan_types=["html_tag_check", "hidden_tiger_check", "crouching_dragon_check"])
-    assert result == (400, "Invalid scan_types value(s) supplied: ['hidden_tiger_check', 'crouching_dragon_check']")
+    assert result == (400, ("Invalid scan_types value(s) supplied: ['hidden_tiger_check', 'crouching_dragon_check']."
+                            " Must be from: ['sql_injection_check', 'html_tag_check',"
+                            " 'javascript_url_check', 'excel_char_check']."))
 
 
 def test_scan_for_suspicious_content_runs_html_tag_check_in_xml_mode_if_manually_chosen():
