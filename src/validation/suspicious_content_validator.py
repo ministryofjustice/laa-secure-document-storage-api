@@ -41,12 +41,13 @@ class ScanForSuspiciousContent(FileValidator):
         if scan_types:
             invalid_scan_types = self.find_invalid_scan_types(scan_types)
             if invalid_scan_types:
-                return 400, f"Invalid scan_types value(s) supplied: {invalid_scan_types}"
+                return 400, (f"Invalid scan_types value(s) supplied: {invalid_scan_types}."
+                             f" Must be from: {self.all_scan_types}.")
         else:
             scan_types = self.all_scan_types
             if xml_mode:
                 scan_types = self.xml_scan_types
-        # each checker only included once even if named more than once in scan_types
+        # each checker only included once even if listed more than once in scan_types
         checkers = [v for k, v in text_checkers.items() if k in scan_types]
 
         if xml_mode:
