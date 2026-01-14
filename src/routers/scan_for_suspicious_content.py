@@ -53,6 +53,6 @@ async def scan_for_suspicious_content(
     logger.info(f"Scan completed for {file.filename}: No malicious content detected")
     return JSONResponse(
         status_code=200, content={
-            "success": f"{mode_text}No malicious content detected"
+            "success": f"{mode_text}No malicious content detected.{message}"
         }
     )

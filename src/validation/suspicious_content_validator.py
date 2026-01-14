@@ -47,8 +47,9 @@ class ScanForSuspiciousContent(FileValidator):
             scan_types = self.all_scan_types
             if xml_mode:
                 scan_types = self.xml_scan_types
+
         # each checker only included once even if listed more than once in scan_types
-        checkers = [v for k, v in text_checkers.items() if k in scan_types]
+        checkers = get_checkers_from_scan_types(scan_types)
 
         if xml_mode:
             reader = line_reader
@@ -63,7 +64,7 @@ class ScanForSuspiciousContent(FileValidator):
             for ri, row in enumerate(row_reader):
                 status_code, message = check_row_values(row, checkers)
                 if status_code != 200:
-                    message = f"Problem in {file_object.filename} row {ri} - {message}"
+                    message = f"Problem in {file_object.filename} row {ri} - {message}."
                     break
         except (csv.Error, UnicodeDecodeError) as csv_err:
             logger.error(f"ScanForMaliciousContent unable to process {file_object.filename}: "
@@ -74,10 +75,20 @@ class ScanForSuspiciousContent(FileValidator):
             logger.error(f"Error checking file {file_object.filename}: {exc_err.__class__.__name__} {exc_err}")
             status_code = 500
             message = f"Unexpected error when processing {file_object.filename}"
-        return status_code, message
+        counts = {c.name: c.execution_count for c in checkers}
+        return status_code, message + f" Scans run: {counts}"
 
     def find_invalid_scan_types(self, scan_types: Iterable[str]) -> list[str]:
         return [st for st in scan_types if st not in self.all_scan_types]
+
+
+def get_checkers_from_scan_types(scan_types: Iterable[str]) -> list[StringCheck]:
+    checkers = []
+    for scan_type, checker in text_checkers.items():
+        if scan_type in scan_types:
+            checker.execution_count = 0
+            checkers.append(checker)
+    return checkers
 
 
 def line_reader(file: TextIO, **kwargs) -> Iterator[list[str]]:
