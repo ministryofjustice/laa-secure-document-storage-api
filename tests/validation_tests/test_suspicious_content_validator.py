@@ -341,4 +341,3 @@ def test_get_checkers_from_scan_types():
     # Unchosen checkers retain original execution_count values
     assert text_checkers["javascript_url_check"].execution_count == 123
     assert text_checkers["excel_char_check"].execution_count == 123
-
