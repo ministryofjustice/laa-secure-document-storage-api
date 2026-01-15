@@ -1,6 +1,10 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.validation.suspicious_content_validator import check_item, check_row_values, ScanForSuspiciousContent
+from src.validation.suspicious_content_validator import (check_item,
+                                                         check_row_values,
+                                                         ScanForSuspiciousContent,
+                                                         get_checkers_from_scan_types)
+
 from src.validation.text_checkers import text_checkers
 
 from fastapi import UploadFile
@@ -304,3 +308,37 @@ def test_scan_for_suspicious_content_runs_expected_manually_chosen_scans(scan_ty
     checker_instance_list = [e[0][1] for e in mock_scan.call_args_list][0]
     checker_names = [e.name for e in checker_instance_list]
     assert checker_names == expected_result
+
+
+# Support methods/functions
+
+
+@pytest.mark.parametrize("scan_types,expected_result", [
+    (["sql_injection_check", "html_tag_check", "javascript_url_check", "excel_char_check"], []),
+    (["sql_injection_check", "html_tag_check", "mot_check", ""], ["mot_check", ""])
+    ])
+def test_find_invalid_scan_types(scan_types, expected_result):
+    validator = ScanForSuspiciousContent()
+    result = validator.find_invalid_scan_types(scan_types)
+    assert result == expected_result
+
+
+def test_get_checkers_from_scan_types():
+    # Setting execution_count > 0 for all checkers so we can check it's reset to 0 for those chosen
+    for _, checker in text_checkers.items():
+        checker.execution_count = 123
+    returned_checkers = get_checkers_from_scan_types(['sql_injection_check', 'html_tag_check'])
+    checker0 = returned_checkers[0]
+    checker1 = returned_checkers[1]
+    # Chosen checkers returned and have execution_counts set to 0
+    assert len(returned_checkers) == 2
+    assert checker0.name == 'sql_injection_check'
+    assert checker0.execution_count == 0
+    assert checker0 is text_checkers['sql_injection_check']
+    assert checker1.name == 'html_tag_check'
+    assert checker1.execution_count == 0
+    assert checker1 is text_checkers['html_tag_check']
+    # Unchosen checkers retain original execution_count values
+    assert text_checkers["javascript_url_check"].execution_count == 123
+    assert text_checkers["excel_char_check"].execution_count == 123
+
