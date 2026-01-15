@@ -43,8 +43,8 @@ async def scan_for_suspicious_content(
     validator = suspicious_content_validator.ScanForSuspiciousContent()
     status_code, message = validator.validate(file, delimiter, xml_mode=xml_mode, scan_types=scan_types)
     if status_code != 200:
-        logger.info((f"Scan completed for {file.filename}:"
-                     f" Possible malicious content detected or scan failed. {mode_text} {message}"))
+        logger.info((f"Scan attempted for {file.filename}:"
+                     f" Possible malicious content detected or scan failed. {mode_text}{message}"))
         raise HTTPException(
             status_code=status_code,
             detail=f"{mode_text}{message}"
@@ -53,6 +53,6 @@ async def scan_for_suspicious_content(
     logger.info(f"Scan completed for {file.filename}: No malicious content detected")
     return JSONResponse(
         status_code=200, content={
-            "success": f"{mode_text}No malicious content detected.{message}"
+            "success": f"{mode_text}No malicious content detected. {message}"
         }
     )

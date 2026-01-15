@@ -21,7 +21,7 @@ def test_we_have_expected_checkers(checker_name):
 def test_sql_injection_check_finds_suspicious_content(item):
     checker = text_checkers["sql_injection_check"]
     result = checker.check(item)
-    assert result == (400, f"{checker.message}{item.strip()}")
+    assert result == (400, f"{checker.message}`{item.strip()}`")
 
 
 @pytest.mark.parametrize("item", [
@@ -39,7 +39,7 @@ def test_sql_injection_check_passes_ordinary_content(item):
 def test_html_tag_check_finds_suspicious_content(item):
     checker = text_checkers["html_tag_check"]
     result = checker.check(item)
-    assert result == (400, f"{checker.message}{item.strip()}")
+    assert result == (400, f"{checker.message}`{item.strip()}`")
 
 
 @pytest.mark.parametrize("item", ["1<2", ">>>>here!", "bobins<<"])
@@ -52,7 +52,7 @@ def test_html_tag_check_passes_ordinary_content(item):
 def test_javascript_url_check_finds_suspicious_content(item):
     checker = text_checkers["javascript_url_check"]
     result = checker.check(item)
-    assert result == (400, f"{checker.message}{item.strip()}")
+    assert result == (400, f"{checker.message}`{item.strip()}`")
 
 
 @pytest.mark.parametrize("item", [" lavascript  :"])
@@ -65,7 +65,7 @@ def test_javascript_url_check_passes_ordinary_content(item):
 def test_excel_char_check_finds_suspicious_content(item):
     checker = text_checkers["excel_char_check"]
     result = checker.check(item)
-    assert result == (400, f"{checker.message}{item.strip()}")
+    assert result == (400, f"{checker.message}`{item.strip()}`")
 
 
 @pytest.mark.parametrize("item", ["1+", "a-b", "1=1", "a@b"])

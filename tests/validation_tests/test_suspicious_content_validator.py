@@ -32,21 +32,21 @@ def test_check_item_passes_allowed_items(item):
 
 
 @pytest.mark.parametrize("item,expected", [
-    ("<Boo>", (400, "possible HTML tag(s) found in: <Boo>")),
-    (" <Boo> ", (400, "possible HTML tag(s) found in: <Boo>")),
+    ("<Boo>", (400, "possible HTML tag(s) found in: `<Boo>`")),
+    (" <Boo> ", (400, "possible HTML tag(s) found in: `<Boo>`")),
     ("Carmela <script>alert(Malicious Business)</script>",
-     (400, "possible HTML tag(s) found in: Carmela <script>alert(Malicious Business)</script>")),
-    ("<One><Two>", (400, "possible HTML tag(s) found in: <One><Two>")),
-    (" javascript  :", (400, "suspected javascript URL found in: javascript  :")),
-    (" JaVascriPT    :", (400, "suspected javascript URL found in: JaVascriPT    :")),
-    ("=", (400, "forbidden initial character found: =")),
-    (" =", (400, "forbidden initial character found: =")),
-    ("@", (400, "forbidden initial character found: @")),
-    (" @", (400, "forbidden initial character found: @")),
-    ("+", (400, "forbidden initial character found: +")),
-    (" +", (400, "forbidden initial character found: +")),
-    ("-", (400, "forbidden initial character found: -")),
-    (" -", (400, "forbidden initial character found: -"))
+     (400, "possible HTML tag(s) found in: `Carmela <script>alert(Malicious Business)</script>`")),
+    ("<One><Two>", (400, "possible HTML tag(s) found in: `<One><Two>`")),
+    (" javascript  :", (400, "suspected javascript URL found in: `javascript  :`")),
+    (" JaVascriPT    :", (400, "suspected javascript URL found in: `JaVascriPT    :`")),
+    ("=", (400, "forbidden initial character found: `=`")),
+    (" =", (400, "forbidden initial character found: `=`")),
+    ("@", (400, "forbidden initial character found: `@`")),
+    (" @", (400, "forbidden initial character found: `@`")),
+    ("+", (400, "forbidden initial character found: `+`")),
+    (" +", (400, "forbidden initial character found: `+`")),
+    ("-", (400, "forbidden initial character found: `-`")),
+    (" -", (400, "forbidden initial character found: `-`"))
     ])
 def test_check_item_finds_expected_issues(item, expected):
     result = check_item(item,  checkers=checkers)
@@ -63,7 +63,7 @@ def test_check_item_finds_expected_issues(item, expected):
     "'; EXEC sp_MSForEachTable 'DROP TABLE ?'; --"
     ])
 def test_check_item_finds_possible_sql_injection(item):
-    expected = (400, f"possible SQL injection found in: {item.strip()}")
+    expected = (400, f"possible SQL injection found in: `{item.strip()}`")
     result = check_item(item, checkers=checkers)
     assert result == expected
 
@@ -95,11 +95,11 @@ def test_check_row_values_with_good_rows(good_row):
 
 
 @pytest.mark.parametrize("row,expected", [
-    [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in: <ha>")],
-    [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
-    [(1, 2, 3, "="), (400, "forbidden initial character found: =")],
-    [("=", 2, 3, 4), (400, "forbidden initial character found: =")],
-    [("' OR '1'='1'", 2, 3, 4), (400, "possible SQL injection found in: ' OR '1'='1'")]
+    [(1, "<ha>", 3, 4), (400, "possible HTML tag(s) found in: `<ha>`")],
+    [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: `javascript :`")],
+    [(1, 2, 3, "="), (400, "forbidden initial character found: `=`")],
+    [("=", 2, 3, 4), (400, "forbidden initial character found: `=`")],
+    [("' OR '1'='1'", 2, 3, 4), (400, "possible SQL injection found in: `' OR '1'='1'`")]
     ])
 def test_check_row_values_with_bad_rows(row, expected):
     result = check_row_values(row, checkers=checkers)
@@ -107,8 +107,8 @@ def test_check_row_values_with_bad_rows(row, expected):
 
 
 @pytest.mark.parametrize("row,expected", [
-    [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in: <a>")],
-    [("=", 2, "<b>", 4), (400, "forbidden initial character found: =")]
+    [("<a>", 2, 3, "="), (400, "possible HTML tag(s) found in: `<a>`")],
+    [("=", 2, "<b>", 4), (400, "forbidden initial character found: `=`")]
     ])
 def test_check_row_values_with_bad_rows_stops_at_first_problem(row, expected):
     result = check_row_values(row, checkers=checkers)
@@ -126,7 +126,7 @@ def test_check_row_values_always_passes_when_checkers_empty(row):
 
 @pytest.mark.parametrize("row, expected", [
     [(1, "<ha>", 3, 4), (200, "")],
-    [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: javascript :")],
+    [(1, 2, " javascript :", 4), (400, "suspected javascript URL found in: `javascript :`")],
     [(1, 2, 3, "="), (200, "")],
     [("' OR '1'='1'", 2, 3, 4), (200, "")]
     ])
@@ -150,7 +150,8 @@ def test_scan_for_suspicious_content_passes_good_csv_files(file_content):
     file_object = make_uploadfile(file_content)
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
-    assert result == (200, "")
+    assert result[0] == 200
+    assert result[1].startswith("Scans run:")
 
 
 @pytest.mark.parametrize("delimiter,file_content",
@@ -167,24 +168,25 @@ def test_scan_for_suspicious_content_works_with_different_csv_delimiters(delimit
     # Extract relevant part of mock's args_list into something more convenient
     # Interested in the values supplied, not the checkers
     wanted_args_list = [e[0][0] for e in mock_scan.call_args_list]
-    assert result == (200, "")
+    assert result[0] == 200
     # Checking that the values have been correctly separated
-    assert wanted_args_list == [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ]
+    assert wanted_args_list == [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']]
 
 
 @pytest.mark.parametrize("file_content,expected", [
     (["1, 2, <zzz>\n", "4, 5, 6\n", "7, 8, 9"],
-     (400,  "Problem in bad.csv row 0 - possible HTML tag(s) found in: <zzz>")),
+     (400,  "Problem in bad.csv row 0 - possible HTML tag(s) found in: `<zzz>`")),
     (["1, 2, 3\n", "4, 5, javascript  :\n", "7, 8, 9"],
-     (400,  "Problem in bad.csv row 1 - suspected javascript URL found in: javascript  :")),
+     (400,  "Problem in bad.csv row 1 - suspected javascript URL found in: `javascript  :`")),
     (["1, 2, 3\n", "4, 5, 6\n", "7, 8, +9"],
-     (400, "Problem in bad.csv row 2 - forbidden initial character found: +9"))
+     (400, "Problem in bad.csv row 2 - forbidden initial character found: `+9`"))
     ])
 def test_scan_for_suspicious_content_finds_bad_csv_rows(file_content, expected):
     file_object = make_uploadfile(file_content, "bad.csv")
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
-    assert result == expected
+    assert result[0] == expected[0]
+    assert expected[1] in result[1]
 
 
 def test_scan_for_suspicious_content_passes_good_xml_file():
@@ -193,7 +195,9 @@ def test_scan_for_suspicious_content_passes_good_xml_file():
     file_object = make_uploadfile(file_content, "good.xml")
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object, xml_mode=True)
-    assert result == (200, "")
+    assert result[0] == 200
+    # xml file with two rows, so two scans per check
+    assert result[1] == "Scans run: {'sql_injection_check': 2, 'javascript_url_check': 2, 'excel_char_check': 2}"
 
 
 # Validator - tests with expected validation failures
@@ -206,8 +210,9 @@ def test_scan_for_suspicious_content_finds_sql_injection_in_xml_file():
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object, xml_mode=True)
     expected_message = ("Problem in bad.xml row 1 - possible SQL injection found in: "
-                        "<matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>")
-    assert result == (400, expected_message)
+                        "`<matterStart code=SCHEDULE_REF>Test' UNION SELECT * FROM users --</matterStart>`")
+    assert result[0] == 400
+    assert result[1].startswith(expected_message)
 
 
 def test_scan_for_suspicious_content_with_invalid_file_data_gives_expected_error():
@@ -216,10 +221,14 @@ def test_scan_for_suspicious_content_with_invalid_file_data_gives_expected_error
                                   to_bytes=False)
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object)
-    assert result == (400, 'Unable to process document.pdf. Is it a valid file?')
+    expected_message = ("Unable to process document.pdf. Is it a valid file?"
+                        " Scans run: {'sql_injection_check': 0, 'html_tag_check': 0,"
+                        " 'javascript_url_check': 0, 'excel_char_check': 0}")
+    assert result == (400, expected_message)
 
 
 def test_scan_for_suspicious_content_returns_expected_error_when_invalid_scan_types_given():
+    "Result text has no 'Scans run:' counts because execution ends before scans attempted"
     file_object = make_uploadfile(["1,2,3"])
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object,
@@ -236,7 +245,8 @@ def test_scan_for_suspicious_content_runs_html_tag_check_in_xml_mode_if_manually
     validator = ScanForSuspiciousContent()
     result = validator.validate(file_object, xml_mode=True, scan_types=["html_tag_check"])
     expected_message = ("Problem in good.xml row 0 - "
-                        "possible HTML tag(s) found in: <?xml version = '1.0' encoding = 'UTF-8'?>")
+                        "possible HTML tag(s) found in: `<?xml version = '1.0' encoding = 'UTF-8'?>`."
+                        " Scans run: {'html_tag_check': 1}")
     assert result == (400, expected_message)
 
 
@@ -250,7 +260,7 @@ def test_scan_for_suspicious_content_applies_expected_default_csv_scan_types():
     with patch("src.validation.suspicious_content_validator.check_row_values", mock_scan):
         result = validator.validate(file_object)
     # Mock should always return this but checking just in case
-    assert result == (200, "")
+    assert result[0] == 200
     # Extract relevant part of mock's args_list into something more convenient
     # [0]on end because whole thing is in another list which only has one element
     checker_instance_list = [e[0][1] for e in mock_scan.call_args_list][0]
@@ -265,7 +275,7 @@ def test_scan_for_suspicious_content_applies_expected_default_xml_scan_types():
     validator = ScanForSuspiciousContent()
     with patch("src.validation.suspicious_content_validator.check_row_values", mock_scan):
         result = validator.validate(file_object, xml_mode=True)
-    assert result == (200, "")
+    assert result[0] == 200
     checker_instance_list = [e[0][1] for e in mock_scan.call_args_list][0]
     checker_names = [e.name for e in checker_instance_list]
     assert checker_names == ['sql_injection_check', 'javascript_url_check', 'excel_char_check']
@@ -290,7 +300,7 @@ def test_scan_for_suspicious_content_runs_expected_manually_chosen_scans(scan_ty
     validator = ScanForSuspiciousContent()
     with patch("src.validation.suspicious_content_validator.check_row_values", mock_scan):
         result = validator.validate(file_object, scan_types=scan_types)
-    assert result == (200, "")
+    assert result[0] == 200
     checker_instance_list = [e[0][1] for e in mock_scan.call_args_list][0]
     checker_names = [e.name for e in checker_instance_list]
     assert checker_names == expected_result

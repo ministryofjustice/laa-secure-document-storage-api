@@ -41,6 +41,7 @@ class ScanForSuspiciousContent(FileValidator):
         if scan_types:
             invalid_scan_types = self.find_invalid_scan_types(scan_types)
             if invalid_scan_types:
+                logger.error(f"ScanForMaliciousContent received invalid scan_types: {invalid_scan_types}")
                 return 400, (f"Invalid scan_types value(s) supplied: {invalid_scan_types}."
                              f" Must be from: {self.all_scan_types}.")
         else:
@@ -64,19 +65,19 @@ class ScanForSuspiciousContent(FileValidator):
             for ri, row in enumerate(row_reader):
                 status_code, message = check_row_values(row, checkers)
                 if status_code != 200:
-                    message = f"Problem in {file_object.filename} row {ri} - {message}."
+                    message = f"Problem in {file_object.filename} row {ri} - {message}. "
                     break
         except (csv.Error, UnicodeDecodeError) as csv_err:
             logger.error(f"ScanForMaliciousContent unable to process {file_object.filename}: "
                          f"{csv_err.__class__.__name__} {csv_err}")
             status_code = 400
-            message = f"Unable to process {file_object.filename}. Is it a valid file?"
+            message = f"Unable to process {file_object.filename}. Is it a valid file? "
         except Exception as exc_err:
             logger.error(f"Error checking file {file_object.filename}: {exc_err.__class__.__name__} {exc_err}")
             status_code = 500
-            message = f"Unexpected error when processing {file_object.filename}"
+            message = f"Unexpected error when processing {file_object.filename}. "
         counts = {c.name: c.execution_count for c in checkers}
-        return status_code, message + f" Scans run: {counts}"
+        return status_code, message + f"Scans run: {counts}"
 
     def find_invalid_scan_types(self, scan_types: Iterable[str]) -> list[str]:
         return [st for st in scan_types if st not in self.all_scan_types]
