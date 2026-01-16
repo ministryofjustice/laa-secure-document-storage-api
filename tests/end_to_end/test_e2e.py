@@ -429,27 +429,74 @@ def test_virus_check_passes_clean_file():
 # Scan for Malicious Content Tests - with real files loaded from filing system (authentic!)
 
 @pytest.mark.e2e
-def test_scan_for_malicious_content_detects_html_tags():
+def test_scan_for_malicious_content_detects_html_tags_by_default():
     upload_file = bad_csv_tags.get_data()
     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
                           headers=token_getter.get_headers(),
                           files=upload_file)
     expected = ("Problem in Postman/html_tags.csv row 3 - possible HTML tag(s) found in: "
-                "Carmela <script>alert(Malicious Business)</script>")
+                "`Carmela <script>alert(Malicious Business)</script>`."
+                " Scans run: {'sql_injection_check': 7, 'html_tag_check': 7,"
+                " 'javascript_url_check': 6, 'excel_char_check': 6}"
+                )
     assert response.status_code == 400
     assert response.json()["detail"] == expected
 
 
 @pytest.mark.e2e
-def test_scan_for_malicious_content_detects_sql_injection():
+def test_scan_for_malicious_content_detects_sql_injection_by_default():
     upload_file = bad_csv_sql.get_data()
     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
                           headers=token_getter.get_headers(),
                           files=upload_file)
     expected = ("Problem in Postman/sql_inject.csv row 4 - possible SQL injection found in: "
-                "Durga'); DROP TABLE students;--")
+                "`Durga'); DROP TABLE students;--`."
+                " Scans run: {'sql_injection_check': 9, 'html_tag_check': 8,"
+                " 'javascript_url_check': 8, 'excel_char_check': 8}")
     assert response.status_code == 400
     assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_detects_sql_injection_when_sql_injection_check_selected():
+    upload_file = bad_csv_sql.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          data={"scan_types": ["sql_injection_check"]},
+                          files=upload_file)
+    expected = ("Problem in Postman/sql_inject.csv row 4 - possible SQL injection found in: "
+                "`Durga'); DROP TABLE students;--`. Scans run: {'sql_injection_check': 9}")
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_doesnt_detect_sql_injection_when_sql_injection_check_excluded():
+    "This file has SQL injection issue but we're skipping sql_injection_check, so result is 'pass'"
+    upload_file = bad_csv_sql.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          # sql_injection_check deliberately missed out form the below
+                          data={"scan_types": ['html_tag_check', 'javascript_url_check', 'excel_char_check']},
+                          files=upload_file)
+    assert response.status_code == 200
+    assert response.json()["success"] == ("No malicious content detected."
+                                          " Scans run: {'html_tag_check': 10, 'javascript_url_check': 10,"
+                                          " 'excel_char_check': 10}")
+
+
+@pytest.mark.e2e
+def test_scan_for_malicious_content_returns_error_message_when_invalid_scan_type_given():
+    upload_file = bad_csv_sql.get_data()
+    response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
+                          headers=token_getter.get_headers(),
+                          data={"scan_types": ['html_tag_check', 'hidden_tiger_check']},
+                          files=upload_file)
+    expected_message = ("Invalid scan_types value(s) supplied: ['hidden_tiger_check']."
+                        " Must be from: ['sql_injection_check', 'html_tag_check',"
+                        " 'javascript_url_check', 'excel_char_check'].")
+    assert response.status_code == 400
+    assert response.json()["detail"] == expected_message
 
 
 @pytest.mark.e2e
@@ -462,7 +509,8 @@ def test_scan_for_malicious_content_detects_sql_injection_in_xml_file():
                           files=upload_file)
     expected = ("(XML Scan) Problem in Postman/outcomes_with_sql_injection_keywords.xml row 8 - "
                 "possible SQL injection found in: "
-                "<outcomeItem name=\"CASE_REF_NUMBER\">'; DROP TABLE claims; --</outcomeItem>")
+                "`<outcomeItem name=\"CASE_REF_NUMBER\">'; DROP TABLE claims; --</outcomeItem>`."
+                " Scans run: {'sql_injection_check': 9, 'javascript_url_check': 8, 'excel_char_check': 8}")
     assert response.status_code == 400
     assert response.json()["detail"] == expected
 
@@ -474,7 +522,9 @@ def test_scan_for_malicious_content_passes_clean_file():
                           headers=token_getter.get_headers(),
                           files=upload_file)
     assert response.status_code == 200
-    assert response.json()["success"] == "No malicious content detected"
+    assert response.json()["success"] == ("No malicious content detected."
+                                          " Scans run: {'sql_injection_check': 6, 'html_tag_check': 6,"
+                                          " 'javascript_url_check': 6, 'excel_char_check': 6}")
 
 
 # Scan for Malicious Content Tests - with quasi files created in RAM (convenient!)
@@ -499,9 +549,10 @@ def test_scan_for_malicious_content_detects_sql_injection_in_quasi_files(content
                           headers=token_getter.get_headers(),
                           data={"delimiter": ","},
                           files=file_data)
-    expected = f"Problem in {filename} row 0 - possible SQL injection found in: {bad_part}"
+    expected = f"Problem in {filename} row 0 - possible SQL injection found in: `{bad_part}`"
     assert response.status_code == 400
-    assert response.json()["detail"] == expected
+    # For simplicty not checking "Scans run:" part of response but this is checked in tests above
+    assert response.json()["detail"].startswith(expected)
 
 
 @pytest.mark.e2e
@@ -519,7 +570,7 @@ def test_scan_for_malicious_content_passes_safe_quasi_files(content, filename):
                           data={"delimiter": ","},
                           files=file_data)
     assert response.status_code == 200
-    assert response.json()["success"] == "No malicious content detected"
+    assert response.json()["success"].startswith("No malicious content detected")
 
 
 @pytest.mark.e2e
@@ -528,7 +579,9 @@ def test_scan_for_malicious_content_detects_sql_injection_in_xml_mode():
     response = client.put(f"{HOST_URL}/scan_for_suspicious_content",
                           headers=token_getter.get_headers(),
                           files=file_data)
-    expected = "(XML Scan) Problem in badxml.zzz row 0 - possible SQL injection found in: <xml> DROP TABLE students;--"
+    expected = ("(XML Scan) Problem in badxml.zzz row 0 - possible SQL injection found in:"
+                " `<xml> DROP TABLE students;--`. Scans run: {'sql_injection_check': 1,"
+                " 'javascript_url_check': 0, 'excel_char_check': 0}")
     assert response.status_code == 400
     assert response.json()["detail"] == expected
 
@@ -540,4 +593,6 @@ def test_scan_for_malicious_content_passes_safe_file_in_xml_mode():
                           headers=token_getter.get_headers(),
                           files=file_data)
     assert response.status_code == 200
-    assert response.json()["success"] == "(XML Scan) No malicious content detected"
+    assert response.json()["success"] == ("(XML Scan) No malicious content detected."
+                                          " Scans run: {'sql_injection_check': 1,"
+                                          " 'javascript_url_check': 1, 'excel_char_check': 1}")

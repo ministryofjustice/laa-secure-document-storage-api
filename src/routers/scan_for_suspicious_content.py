@@ -15,6 +15,7 @@ async def scan_for_suspicious_content(
             request: Request,
             file: UploadFile = File(...),
             delimiter: str = ",",
+            scan_types: list[str] | None = None,
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
     """
@@ -24,6 +25,11 @@ async def scan_for_suspicious_content(
     If file has mimetype "application/xml" or "text/xml" (case insensitive), scan will
     automatically be in XML mode and delimiter ignored. Also, when XML mode used, the
     response text will start "(XML Scan)"
+
+    There are four types of scan: `sql_injection_check`, `html_tag_check`, `javascript_url_check` & `excel_char_check`
+    By default, all four are run for CSV files but `html_tag_check` is excluded for XML files because they are
+    expected to contain tags. Alternatively it is possible to manually specify by using the `scan_types`
+    optional parameter, e.g. `"scan_types": ["html_tag_check", "excel_char_check"]`
 
     * 200 - No suspected malicious content was detected
     * 400 - Suspected malicious content was detected
@@ -35,9 +41,10 @@ async def scan_for_suspicious_content(
         mode_text = "(XML Scan) "
 
     validator = suspicious_content_validator.ScanForSuspiciousContent()
-    status_code, message = validator.validate(file, delimiter, xml_mode=xml_mode)
+    status_code, message = validator.validate(file, delimiter, xml_mode=xml_mode, scan_types=scan_types)
     if status_code != 200:
-        logger.info(f"Scan completed for {file.filename}: Possible malicious content detected")
+        logger.info((f"Scan attempted for {file.filename}:"
+                     f" Possible malicious content detected or scan failed. {mode_text}{message}"))
         raise HTTPException(
             status_code=status_code,
             detail=f"{mode_text}{message}"
@@ -46,6 +53,6 @@ async def scan_for_suspicious_content(
     logger.info(f"Scan completed for {file.filename}: No malicious content detected")
     return JSONResponse(
         status_code=200, content={
-            "success": f"{mode_text}No malicious content detected"
+            "success": f"{mode_text}No malicious content detected. {message}"
         }
     )

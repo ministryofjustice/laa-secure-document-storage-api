@@ -47,7 +47,8 @@ def test_scan_for_suspicious_content_with_no_file(test_client):
 
 @patch("src.routers.scan_for_suspicious_content.suspicious_content_validator.ScanForSuspiciousContent.validate")
 def test_scan_for_suspicious_content_with_clean_csv_file(validate_mock, test_client):
-    validate_mock.return_value = (200, "")
+    text_from_mock = "<Additional text goes here>"
+    validate_mock.return_value = (200, text_from_mock)
     files = {
         "file": ("clean.csv", BytesIO(b"name,age\nAlice,30\nBob,25"), "text/csv")
     }
@@ -55,13 +56,14 @@ def test_scan_for_suspicious_content_with_clean_csv_file(validate_mock, test_cli
     response = test_client.put("/scan_for_suspicious_content", files=files)
 
     assert response.status_code == 200
-    assert response.json() == {"success": "No malicious content detected"}
+    assert response.json() == {"success": f"No malicious content detected. {text_from_mock}"}
     validate_mock.assert_called_once()
 
 
 @patch("src.routers.scan_for_suspicious_content.suspicious_content_validator.ScanForSuspiciousContent.validate")
 def test_scan_for_suspicious_content_with_clean_xml_file(validate_mock, test_client):
-    validate_mock.return_value = (200, "")
+    text_from_mock = "<Additional text goes here>"
+    validate_mock.return_value = (200, text_from_mock)
     files = {
         "file": ("clean.zzz", BytesIO(b"<xml> mostly harmless"), "text/xml")
     }
@@ -69,5 +71,5 @@ def test_scan_for_suspicious_content_with_clean_xml_file(validate_mock, test_cli
     response = test_client.put("/scan_for_suspicious_content", files=files)
 
     assert response.status_code == 200
-    assert response.json() == {"success": "(XML Scan) No malicious content detected"}
+    assert response.json() == {"success": f"(XML Scan) No malicious content detected. {text_from_mock}"}
     validate_mock.assert_called_once()
