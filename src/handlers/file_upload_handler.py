@@ -97,7 +97,7 @@ async def run_initial_file_checks(request: Request,
 
     # Mandatory validation - must run before client-specific validation
     if not error_status:
-        status_code, detail = mandatory_file_validator.run_mandatory_validators(file)
+        status_code, detail = await mandatory_file_validator.run_mandatory_validators(file)
         if status_code != 200:
             error_status = (status_code, detail)
 

@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from src.validation.mandatory_file_validator import (
     NoDirectoryPathInFilename,
     NoWindowsVolumeInFilename,
@@ -141,6 +142,7 @@ def test_individual_mandatory_validators(validator_class, filename, expected_sta
     assert detail == expected_detail, assert_msg
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "filename, expected_status, expected_detail, assert_msg",
     [
@@ -164,8 +166,9 @@ def test_individual_mandatory_validators(validator_class, filename, expected_sta
         ),
     ]
 )
-def test_run_mandatory_validators(filename, expected_status, expected_detail, assert_msg):
+@patch("src.validation.mandatory_file_validator.NoVirusFoundInFile.validate", return_value=(200, ""))
+async def test_run_mandatory_validators(mock_av_scan, filename, expected_status, expected_detail, assert_msg):
     file = make_uploadfile(name=filename, content=b"dummy")
-    status, detail = run_mandatory_validators(file)
+    status, detail = await run_mandatory_validators(file)
     assert status == expected_status, assert_msg
     assert detail == expected_detail, assert_msg

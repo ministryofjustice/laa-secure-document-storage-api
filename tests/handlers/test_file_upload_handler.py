@@ -212,7 +212,9 @@ async def test_handle_file_upload_save_failure(
        return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
-async def test_handle_file_upload_checksum_failure(audit_put_item_mock,
+@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
+async def test_handle_file_upload_checksum_failure(mandatory_validators_mock,
+                                                   audit_put_item_mock,
                                                    validate_or_error_mock,
                                                    scan_request_mock,
                                                    get_file_checksum_mock):
