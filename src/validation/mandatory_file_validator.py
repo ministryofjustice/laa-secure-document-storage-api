@@ -3,6 +3,10 @@ from fastapi import UploadFile
 import re
 import structlog
 from typing import Tuple
+import io
+import inspect
+from src.services.clam_av_service import virus_check
+
 
 logger = structlog.get_logger()
 
@@ -18,6 +22,21 @@ class MandatoryFileValidator(abc.ABC):
         """
         # This method should be overridden by subclasses, so raise an error if this is called
         raise NotImplementedError()
+
+
+class NoVirusFoundInFile(MandatoryFileValidator):
+    async def validate(self, file_object: UploadFile, **kwargs) -> Tuple[int, str]:
+        """
+        Runs Clam AV virus scan
+        """
+        file_content = await file_object.read()
+        response, status = await virus_check(io.BytesIO(file_content))
+        # Return file reference point to start to make subsequent read possible
+        await file_object.seek(0)
+        if status == 200:
+            return 200, ""
+        else:
+            return 400, "Virus Found"
 
 
 class NoUrlInFilename(MandatoryFileValidator):
@@ -96,10 +115,13 @@ class NoUnacceptableCharactersInFilename(MandatoryFileValidator):
         return 200, ""
 
 
-def run_mandatory_validators(file_object):
+async def run_mandatory_validators(file_object):
     for validator_class in MandatoryFileValidator.__subclasses__():
         validator = validator_class()
-        status, detail = validator.validate(file_object)
+        if inspect.iscoroutinefunction(validator.validate):
+            status, detail = await validator.validate(file_object)
+        else:
+            status, detail = validator.validate(file_object)
         if status != 200:
             return status, detail
     return 200, ""
