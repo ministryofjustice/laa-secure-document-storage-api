@@ -225,7 +225,7 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
                                             'checksum': expected_checksum}
     assert response_details["virus_file.txt"] == {'filename': 'virus_file.txt',
                                                   'positions': [1],
-                                                  'outcomes': [{'status_code': 400, 'detail': ['Virus Found']}],
+                                                  'outcomes': [{'status_code': 400, 'detail': 'Virus Found'}],
                                                   'checksum': None}  # likely auto-convert of json null to Python None
     assert response_details["bad_type.exe"] == {'filename': 'bad_type.exe',
                                                 'positions': [2],
@@ -259,7 +259,7 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
         audit_item_1 = audit_table_client.get_audit_row_e2e(response, 1)
         assert audit_item_1.get("file_id") == {'S': "virus_file.txt"}
         assert audit_item_1.get("operation_type") == {'S': 'FAILED'}
-        assert audit_item_1.get("error_details") == {'S': f"{response.url.path}: ['Virus Found']"}
+        assert audit_item_1.get("error_details") == {'S': f"{response.url.path}: Virus Found"}
         # Bad mimetype
         audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
         assert audit_item_2.get("file_id") == {'S': "bad_type.exe"}

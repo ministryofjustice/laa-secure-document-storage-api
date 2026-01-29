@@ -236,7 +236,7 @@ def test_put_file_with_virus_is_blocked():
                           files=upload_virus_file,
                           data=UPLOAD_BODY)
     assert response.status_code == 400
-    assert response.json()["detail"] == ["Virus Found"]
+    assert response.json()["detail"] == "Virus Found"
 
 
 @pytest.mark.e2e
@@ -271,7 +271,7 @@ def test_put_file_without_file_fails_as_expected():
                           headers=token_getter.get_headers(),
                           data=UPLOAD_BODY)
     assert response.status_code == 400
-    assert response.json()["detail"] == ["File is required"]
+    assert response.json()["detail"] == "File is required"
 
 
 # Retrieve File Tests (Deprecated)
@@ -374,7 +374,7 @@ def test_post_file_with_virus_is_blocked():
                            files=upload_virus_file,
                            data=UPLOAD_BODY)
     assert response.status_code == 400
-    assert response.json()["detail"] == ["Virus Found"]
+    assert response.json()["detail"] == "Virus Found"
 
 
 @pytest.mark.e2e
@@ -404,7 +404,7 @@ def test_post_file_with_missing_bucket_is_blocked():
 def test_post_file_without_file_fails_as_expected():
     response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), data=UPLOAD_BODY)
     assert response.status_code == 400
-    assert response.json()["detail"] == ["File is required"]
+    assert response.json()["detail"] == "File is required"
 
 
 # Virus Check Tests
@@ -415,7 +415,7 @@ def test_virus_check_detects_virus():
     upload_virus_file = virus_file.get_data()
     response = client.put(f"{HOST_URL}/virus_check_file", headers=token_getter.get_headers(), files=upload_virus_file)
     assert response.status_code == 400
-    assert response.json()["detail"] == ["Virus Found"]
+    assert response.json()["detail"] == "Virus Found"
 
 
 @pytest.mark.e2e
