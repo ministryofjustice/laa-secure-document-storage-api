@@ -146,8 +146,9 @@ def get_ordered_validators(run_order: Iterable[MandatoryFileValidator] = ()):
 validator_classes_in_run_order = get_ordered_validators((HaveFile, NoVirusFoundInFile))
 
 
-async def run_mandatory_validators(file_object: UploadFile) -> Tuple[int, str]:
-    for validator_class in validator_classes_in_run_order:
+async def run_selected_validators(file_object: UploadFile,
+                                  validators: Iterable[MandatoryFileValidator]) -> Tuple[int, str]:
+    for validator_class in validators:
         validator = validator_class()
         if inspect.iscoroutinefunction(validator.validate):
             status, detail = await validator.validate(file_object)
@@ -156,3 +157,21 @@ async def run_mandatory_validators(file_object: UploadFile) -> Tuple[int, str]:
         if status != 200:
             return status, detail
     return 200, ""
+
+
+async def run_mandatory_validators(file_object: UploadFile) -> Tuple[int, str]:
+    """
+    This runs all mandatory validators, including virus scan. Intended for use
+    with file upload to S3.
+    """
+    result = await run_selected_validators(file_object, validator_classes_in_run_order)
+    return result
+
+
+async def run_virus_check(file_object: UploadFile) -> Tuple[int, str]:
+    """
+    This only runs the file validators particularly concerned with the virus scan.
+    Intended for use with the virus_check_file endpoint.
+    """
+    result = await run_selected_validators(file_object, [HaveFile, NoVirusFoundInFile])
+    return result

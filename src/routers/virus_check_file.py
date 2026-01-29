@@ -6,7 +6,8 @@ from fastapi.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
-from src.validation import clam_av_validator
+from src.validation.mandatory_file_validator import run_virus_check
+from src.validation.header_validator import run_header_validators
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -23,11 +24,18 @@ async def virus_check_file(
     * 200 If no known viruses were detected
     * 400 If known viruses were detected
     """
-    validation_result = await clam_av_validator.scan_request(request.headers, file)
-    if validation_result.status_code != 200:
+    header_status_code, header_message = run_header_validators(request.headers)
+    if header_status_code != 200:
         raise HTTPException(
-            status_code=validation_result.status_code,
-            detail=validation_result.message
+            status_code=header_status_code,
+            detail=header_message
+        )
+
+    virus_scan_status_code, virus_scan_message = await run_virus_check(file)
+    if virus_scan_status_code != 200:
+        raise HTTPException(
+            status_code=virus_scan_status_code,
+            detail=virus_scan_message
         )
 
     logger.info(f"File {file.filename} has negative AV scan result")
