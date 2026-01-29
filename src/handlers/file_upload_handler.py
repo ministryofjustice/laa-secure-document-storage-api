@@ -9,7 +9,9 @@ from src.services import audit_service, s3_service
 from src.services.checksum_service import get_file_checksum
 from src.utils.operation_types import OperationType
 from src.utils.request_types import RequestType
-from src.validation import clam_av_validator, client_configured_validator, mandatory_file_validator
+from src.validation.header_validator import run_header_validators
+from src.validation.mandatory_file_validator import run_mandatory_validators
+from src.validation import client_configured_validator
 
 
 logger = structlog.get_logger()
@@ -90,14 +92,15 @@ async def run_initial_file_checks(request: Request,
                                   file: UploadFile,
                                   client_config: ClientConfig) -> tuple[str, tuple[str | list]]:
     error_status = ()
-    # Antivirus scan - note unlike the other checks, validation_result.message is a list, not str
-    validation_result = await clam_av_validator.scan_request(request.headers, file)
-    if validation_result.status_code != 200:
-        error_status = (validation_result.status_code, validation_result.message)
 
-    # Mandatory validation - must run before client-specific validation
+    # Request header validation
+    header_status_code, header_message = run_header_validators(request.headers)
+    if header_status_code != 200:
+        error_status = (header_status_code, header_message)
+
+    # Mandatory validation (includes av scan) - must run before client-specific validation
     if not error_status:
-        status_code, detail = await mandatory_file_validator.run_mandatory_validators(file)
+        status_code, detail = await run_mandatory_validators(file)
         if status_code != 200:
             error_status = (status_code, detail)
 

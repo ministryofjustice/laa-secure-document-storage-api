@@ -5,7 +5,7 @@ from io import BytesIO
 
 @patch("src.routers.virus_check_file.run_virus_check")
 def test_virus_check_file_with_virus(scan_mock, test_client):
-    scan_mock.side_effect = HTTPException(status_code=400, detail="Virus detected")
+    scan_mock.side_effect = HTTPException(status_code=400, detail="Virus Found")
     files = {
         "file": ("infected_file.txt", BytesIO(b"goodbye world"), "text/plain")
     }
@@ -13,7 +13,7 @@ def test_virus_check_file_with_virus(scan_mock, test_client):
     response = test_client.put("/virus_check_file", files=files)
 
     assert response.status_code == 400
-    assert response.json() == {"detail": "Virus detected"}
+    assert response.json() == {"detail": "Virus Found"}
     scan_mock.assert_called_once()
 
 

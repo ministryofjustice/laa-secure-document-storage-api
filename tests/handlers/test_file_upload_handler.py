@@ -4,7 +4,6 @@ import pytest
 from fastapi import HTTPException
 
 from src.handlers.file_upload_handler import handle_file_upload_logic
-from src.models.validation_response import ValidationResponse
 from src.utils.request_types import RequestType
 
 
@@ -30,14 +29,11 @@ from src.utils.request_types import RequestType
 @patch("src.handlers.file_upload_handler.s3_service.save", return_value=True)
 @patch("src.handlers.file_upload_handler.s3_service.file_exists")
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
-@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
-       return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
-@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
+@patch("src.handlers.file_upload_handler.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_success(
     mandatory_validators_mock,
     validate_or_error_mock,
-    scan_request_mock,
     audit_put_item_mock,
     file_exists_mock,
     save_mock,
@@ -48,7 +44,7 @@ async def test_handle_file_upload_success(
 ):
     # x-request-id is needed in headers as it's the source of request_id that's passed to audit table.
     # Would be more authentic to have unique value per request but fixed value is fine for this test.
-    request = MagicMock(headers={"x-request-id": "1"})
+    request = MagicMock(headers={"x-request-id": "1", "content-length": 1})
     file = MagicMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
@@ -73,7 +69,6 @@ async def test_handle_file_upload_success(
     assert file_existed_return == file_existed
     audit_put_item_mock.assert_called_once()
     save_mock.assert_called_once()
-    scan_request_mock.assert_called_once()
     mandatory_validators_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     file_exists_mock.assert_called_once()
@@ -83,20 +78,17 @@ async def test_handle_file_upload_success(
 # =========================== FAILURE =========================== #
 
 @pytest.mark.asyncio
-@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
-       return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.s3_service.file_exists", return_value=True)
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
-@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
+@patch("src.handlers.file_upload_handler.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_POST_existing_file_failure(
     mandatory_validators_mock,
     validate_or_error_mock,
     audit_put_item_mock,
-    file_exists_mock,
-    scan_request_mock
+    file_exists_mock
 ):
-    request = MagicMock(headers={"x-request-id": "post-existing-file-1"})
+    request = MagicMock(headers={"x-request-id": "post-existing-file-1", "content-length": 1})
     file = MagicMock()
     file.filename = "preexisting_test_file.txt"
     file.file = BytesIO(b"Test content")
@@ -117,20 +109,19 @@ async def test_handle_file_upload_POST_existing_file_failure(
 
     assert exc_info.value.status_code == 409
     assert f"File {file.filename} already exists and cannot be overwritten" in str(exc_info.value.detail)
-    scan_request_mock.assert_called_once()
     mandatory_validators_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     file_exists_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
-@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request")
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
-async def test_handle_file_upload_antivirus_failure(audit_put_item_mock, scan_request_mock):
+@patch("src.handlers.file_upload_handler.run_mandatory_validators")
+async def test_handle_file_upload_antivirus_failure(mandatory_validators_mock, audit_put_item_mock):
 
-    scan_request_mock.return_value = ValidationResponse(status_code=400, message="Virus detected")
+    mandatory_validators_mock.return_value = (400, "Virus Found")
 
-    request = MagicMock(headers={"x-request-id": "virus-scan-fail-1"})
+    request = MagicMock(headers={"x-request-id": "virus-scan-fail-1", "content-length": 1})
     file = MagicMock()
     file.filename = "infected_file.txt"
     file.file = BytesIO(b"Bad content")
@@ -152,29 +143,23 @@ async def test_handle_file_upload_antivirus_failure(audit_put_item_mock, scan_re
         )
 
     assert exc_info.value.status_code == 400
-    assert exc_info.value.detail == "Virus detected"
-
-    scan_request_mock.assert_called_once()
+    assert exc_info.value.detail == "Virus Found"
 
 
 @pytest.mark.asyncio
 @patch("src.handlers.file_upload_handler.s3_service.save", return_value=False)
 @patch("src.handlers.file_upload_handler.s3_service.file_exists", return_value=False)
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
-@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request")
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
-@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
+@patch("src.handlers.file_upload_handler.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_save_failure(
     mandatory_validators_mock,
     validate_or_error_mock,
-    scan_request_mock,
     audit_put_item_mock,
     file_exists_mock,
-    save_mock,
+    save_mock
 ):
-    scan_request_mock.return_value = ValidationResponse(status_code=200, message="")
-
-    request = MagicMock(headers={"x-request-id": "1"})
+    request = MagicMock(headers={"x-request-id": "1", "content-length": 1})
     file = MagicMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
@@ -198,7 +183,6 @@ async def test_handle_file_upload_save_failure(
     assert exc_info.value.status_code == 500
     assert "failed to save" in str(exc_info.value.detail)
 
-    scan_request_mock.assert_called_once()
     mandatory_validators_mock.assert_called_once()
     validate_or_error_mock.assert_called_once()
     audit_put_item_mock.assert_called_once()
@@ -208,18 +192,15 @@ async def test_handle_file_upload_save_failure(
 
 @pytest.mark.asyncio
 @patch("src.handlers.file_upload_handler.get_file_checksum", return_value=("", "Unexpected error getting checksum"))
-@patch("src.handlers.file_upload_handler.clam_av_validator.scan_request",
-       return_value=ValidationResponse(status_code=200, message=""))
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_or_error")
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
-@patch("src.handlers.file_upload_handler.mandatory_file_validator.run_mandatory_validators", return_value=(200, ""))
+@patch("src.handlers.file_upload_handler.run_mandatory_validators", return_value=(200, ""))
 async def test_handle_file_upload_checksum_failure(mandatory_validators_mock,
                                                    audit_put_item_mock,
                                                    validate_or_error_mock,
-                                                   scan_request_mock,
                                                    get_file_checksum_mock):
 
-    request = MagicMock(headers={"x-request-id": "checksum-failure-1"})
+    request = MagicMock(headers={"x-request-id": "checksum-failure-1", "content-length": 1})
     file = MagicMock()
     file.filename = "test_file.txt"
     file.file = BytesIO(b"Test content")
