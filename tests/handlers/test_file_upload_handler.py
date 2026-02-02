@@ -147,6 +147,38 @@ async def test_handle_file_upload_antivirus_failure(mandatory_validators_mock, a
 
 
 @pytest.mark.asyncio
+@patch("src.handlers.file_upload_handler.audit_service.put_item")
+@patch("src.handlers.file_upload_handler.run_mandatory_validators")
+async def test_handle_file_upload_antivirus_unexpected_result(mandatory_validators_mock, audit_put_item_mock):
+
+    mandatory_validators_mock.return_value = (500, "Virus scan gave non-standard result")
+
+    request = MagicMock(headers={"x-request-id": "virus-scan-fail-1", "content-length": 1})
+    file = MagicMock()
+    file.filename = "unlucky_file.txt"
+    file.file = BytesIO(b"Weird content")
+
+    body = MagicMock()
+    body.model_dump.return_value = {"bucketName": "test_bucket"}
+
+    client_config = MagicMock()
+    client_config.bucket_name = "test_bucket"
+    client_config.azure_display_name = "Test Client"
+
+    with pytest.raises(HTTPException) as exc_info:
+        await handle_file_upload_logic(
+            request=request,
+            file=file,
+            body=body,
+            client_config=client_config,
+            request_type=RequestType.POST
+        )
+
+    assert exc_info.value.status_code == 500
+    assert exc_info.value.detail == "Virus scan gave non-standard result"
+
+
+@pytest.mark.asyncio
 @patch("src.handlers.file_upload_handler.s3_service.save", return_value=False)
 @patch("src.handlers.file_upload_handler.s3_service.file_exists", return_value=False)
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
