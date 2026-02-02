@@ -2,7 +2,11 @@ import abc
 from fastapi import UploadFile
 import re
 import structlog
-from typing import Tuple
+from typing import Tuple, Iterable
+import io
+import inspect
+from src.services.clam_av_service import virus_check
+
 
 logger = structlog.get_logger()
 
@@ -18,6 +22,40 @@ class MandatoryFileValidator(abc.ABC):
         """
         # This method should be overridden by subclasses, so raise an error if this is called
         raise NotImplementedError()
+
+
+class HaveFile(MandatoryFileValidator):
+    def validate(self, file_object: UploadFile, **kwargs) -> Tuple[int, str]:
+        """
+        Validate that we have a file object with a filename.
+        """
+        if file_object is None or not file_object.filename:
+            return 400, "File is required"
+        else:
+            return 200, ""
+
+
+class NoVirusFoundInFile(MandatoryFileValidator):
+    """
+    This validator replaces previous check_antivirus function and its original
+    two pass/fail responses have been replicated here. Both original and replacement
+    use underlying virus_check function which is unchanged. However, virus_check is
+    also able to also return an "Error occurred while processing" response
+    with status code 500. Currently this validator would report this as "Virus Found"
+    which is misleading. Could extend to cover this in future update.
+    """
+    async def validate(self, file_object: UploadFile, **kwargs) -> Tuple[int, str]:
+        """
+        Runs Clam AV virus scan
+        """
+        file_content = await file_object.read()
+        response, status = await virus_check(io.BytesIO(file_content))
+        # Return file reference point to start to make subsequent read possible
+        await file_object.seek(0)
+        if status == 200:
+            return 200, ""
+        else:
+            return 400, "Virus Found"
 
 
 class NoUrlInFilename(MandatoryFileValidator):
@@ -96,10 +134,52 @@ class NoUnacceptableCharactersInFilename(MandatoryFileValidator):
         return 200, ""
 
 
-def run_mandatory_validators(file_object):
-    for validator_class in MandatoryFileValidator.__subclasses__():
+def get_ordered_validators(run_order: Iterable[MandatoryFileValidator] = ()):
+    """
+    Returns list of all MandatoryFileValidator derived classes with any specified
+    in optional run_order parameter at the start of the list. Any unspecified
+    validators also included but in default positions (likely same as definition order).
+    """
+    validators = MandatoryFileValidator.__subclasses__()
+    priority_validators = []
+    for validator in run_order:
+        if validator not in validators:
+            raise ValueError(f"Class {validator} must be subclass of MandatoryFileValidator")
+        priority_validators.append(validator)
+        validators.remove(validator)
+    return priority_validators + validators
+
+
+# Unspecified MandatoryFileValidator validators are also included but in default arbitrary order
+validator_classes_in_run_order = get_ordered_validators((HaveFile, NoVirusFoundInFile))
+
+
+async def run_selected_validators(file_object: UploadFile,
+                                  validators: Iterable[MandatoryFileValidator]) -> Tuple[int, str]:
+    for validator_class in validators:
         validator = validator_class()
-        status, detail = validator.validate(file_object)
+        if inspect.iscoroutinefunction(validator.validate):
+            status, detail = await validator.validate(file_object)
+        else:
+            status, detail = validator.validate(file_object)
         if status != 200:
             return status, detail
     return 200, ""
+
+
+async def run_mandatory_validators(file_object: UploadFile) -> Tuple[int, str]:
+    """
+    This runs all mandatory validators, including virus scan. Intended for use
+    with file upload to S3.
+    """
+    result = await run_selected_validators(file_object, validator_classes_in_run_order)
+    return result
+
+
+async def run_virus_check(file_object: UploadFile) -> Tuple[int, str]:
+    """
+    This only runs the file validators particularly concerned with the virus scan.
+    Intended for use with the virus_check_file endpoint.
+    """
+    result = await run_selected_validators(file_object, [HaveFile, NoVirusFoundInFile])
+    return result

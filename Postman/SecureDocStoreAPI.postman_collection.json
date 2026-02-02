@@ -800,7 +800,7 @@
 									"",
 									"pm.test(\"Check response detail for Virus Found\", function () {",
 									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": [\"Virus Found\"]});",
+									"    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1647,7 +1647,7 @@
 									"",
 									"pm.test(\"Check response detail for Virus Found\", function () {",
 									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": [\"Virus Found\"]});",
+									"    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
 									"});"
 								],
 								"type": "text/javascript",
@@ -2978,7 +2978,7 @@
 									"",
 									"pm.test(\"Check response detail for Virus Found\", function () {",
 									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": [\"Virus Found\"]});",
+									"    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
 									"});"
 								],
 								"type": "text/javascript",
