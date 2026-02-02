@@ -23,6 +23,7 @@ async def virus_check_file(
     Scans the provided file for known viruses using a regularly updated internal ClamAV service, responding with:
     * 200 If no known viruses were detected
     * 400 If known viruses were detected
+    * 500 Unexpected error while processing
     """
     header_status_code, header_message = run_header_validators(request.headers)
     if header_status_code != 200:
