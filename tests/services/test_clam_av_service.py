@@ -12,7 +12,7 @@ from src.services.clam_av_service import ClamAVService, ClamAvServiceStatusRepor
 @pytest.mark.parametrize("scan_result,expected_status,expected_message",  [
     ({"stream": ["OK"]}, 200, ""),
     ({"stream": ["FOUND"]}, 400, "Virus Found"),
-    ({"stream": ["ERROR"]}, 500, "Error occurred while processing")
+    ({"stream": ["ERROR"]}, 500, "Virus scan gave non-standard result")
 ])
 async def test_check_av_service(mock_clamd, scan_result, expected_status, expected_message):
     # Create BytesIO object simulating a file

@@ -42,9 +42,9 @@ class ClamAVService:
             message = 'Virus Found'
             status = 400
         else:
-            message = 'Error occurred while processing'
+            message = 'Virus scan gave non-standard result'
             status = 500
-            logger.error('Unexpected virus scan result')
+            logger.error(f'Virus scan gave non-standard result: {scan_result['stream'][0]}')
         return status, message
 
 

@@ -189,12 +189,12 @@ async def test_return_value_from_virus_validator_is_same_as_virus_check(mock_vir
 
 @pytest.mark.asyncio
 @patch("src.validation.mandatory_file_validator.virus_check",
-       return_value=(500, 'Error occurred while processing'))
+       return_value=(500, 'Virus scan gave non-standard result'))
 async def test_no_virus_found_get_processing_error_when_processing_error(mock_virus_check):
     file = make_uploadfile(name="unluckyfile.txt", content=b"dummy")
     validator = NoVirusFoundInFile()
     result = await validator.validate(file_object=file)
-    assert result == (500, 'Error occurred while processing')
+    assert result == (500, 'Virus scan gave non-standard result')
 
 
 @pytest.mark.asyncio

@@ -35,7 +35,7 @@ async def save_file(
     The following codes may be returned from the automatic virus scan:
     * 411 If file content length is not present
     * 400 If a virus is detected
-    * 500 Unexpected error while processing
+    * 500 Virus scan gave non-standard result
 
     Any code other than 201 CREATED means the file has not been saved.
     """
