@@ -183,7 +183,7 @@ async def test_return_value_from_virus_validator_is_same_as_virus_check(mock_vir
     file = make_uploadfile(name="testfile.txt", content=b"dummy")
     validator = NoVirusFoundInFile()
     result = await validator.validate(file_object=file)
-    # Result should be same as mock_return_value as validator should forward result from
+    # Result should be same as mock_return_value as validator should forward the response
     assert result == mock_return_value
 
 
@@ -252,6 +252,15 @@ async def test_run_virus_check_fail(mock_virus_check):
     file = make_uploadfile(name="badfile.txt", content=b"dummy")
     result = await run_virus_check(file)
     assert result == (400, "Virus Found")
+
+
+@pytest.mark.asyncio
+@patch("src.validation.mandatory_file_validator.virus_check",
+       return_value=(500, "Virus scan gave non-standard result"))
+async def test_run_virus_check_non_standard_result(mock_virus_check):
+    file = make_uploadfile(name="unlucky.txt", content=b"dummy")
+    result = await run_virus_check(file)
+    assert result == (500, "Virus scan gave non-standard result")
 
 
 # Validator run-order selection tests
