@@ -49,13 +49,10 @@ class NoVirusFoundInFile(MandatoryFileValidator):
         Runs Clam AV virus scan
         """
         file_content = await file_object.read()
-        response, status = await virus_check(io.BytesIO(file_content))
+        status, message = await virus_check(io.BytesIO(file_content))
         # Return file reference point to start to make subsequent read possible
         await file_object.seek(0)
-        if status == 200:
-            return 200, ""
-        else:
-            return 400, "Virus Found"
+        return status, message
 
 
 class NoUrlInFilename(MandatoryFileValidator):

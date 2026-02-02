@@ -33,21 +33,19 @@ class ClamAVService:
         return ClamAVService._instance
 
     # documentation used for this https://docs.clamav.net/manual/Usage/Scanning.html
-    async def check(self, file: BytesIO):
+    async def check(self, file: BytesIO) -> tuple[int, str]:
         status = 200
-        response = {}
         scan_result = self._clamd.instream(file)
         if scan_result['stream'][0] == 'OK':
-            message = 'file has no virus'
+            message = ''
         elif scan_result['stream'][0] == 'FOUND':
-            message = 'file has virus'
+            message = 'Virus Found'
             status = 400
         else:
             message = 'Error occurred while processing'
             status = 500
-
-        response['message'] = message
-        return response, status
+            logger.error('Unexpected virus scan result')
+        return status, message
 
 
 async def virus_check(file: BytesIO):
