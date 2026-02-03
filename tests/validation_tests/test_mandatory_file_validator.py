@@ -158,8 +158,7 @@ def test_have_file_validator_fails_when_no_filename():
 
 
 @pytest.mark.asyncio
-# Note when patching virus_check - unlike validators the returned status code is 2nd element, not 1st
-@patch("src.validation.mandatory_file_validator.virus_check", return_value=({"message": "file has no virus"}, 200))
+@patch("src.validation.mandatory_file_validator.virus_check", return_value=(200, ""))
 async def test_no_virus_found_pass(mock_virus_check):
     file = make_uploadfile(name="goodfile.txt", content=b"dummy")
     validator = NoVirusFoundInFile()
@@ -168,28 +167,34 @@ async def test_no_virus_found_pass(mock_virus_check):
 
 
 @pytest.mark.asyncio
-# Note when patching virus_check - unlike validators the returned status code is 2nd element, not 1st
-@patch("src.validation.mandatory_file_validator.virus_check", return_value=({"message": "file has virus"}, 400))
+@patch("src.validation.mandatory_file_validator.virus_check", return_value=(400, "Virus Found"))
 async def test_no_virus_found_fail(mock_virus_check):
-    file = make_uploadfile(name="goodfile.txt", content=b"dummy")
+    file = make_uploadfile(name="badfile.txt", content=b"dummy")
     validator = NoVirusFoundInFile()
     result = await validator.validate(file_object=file)
     assert result == (400, "Virus Found")
 
 
 @pytest.mark.asyncio
-# Note when patching virus_check - unlike validators the returned status code is 2nd element, not 1st
-@patch("src.validation.mandatory_file_validator.virus_check",
-       return_value=({"message": "Error occurred while processing"}, 500))
-async def test_no_virus_found_get_fail_when_processing_error(mock_virus_check):
-    """
-    This is existing expected behaviour, i.e. get "Virus Found" when there's a processing error.
-    Could be changed in future update to give response about the processing error instead.
-    """
-    file = make_uploadfile(name="goodfile.txt", content=b"dummy")
+@pytest.mark.parametrize("mock_return_value", [(418, "Time for tea!"), (500, "SOS"), (500, "Computer says no")])
+@patch("src.validation.mandatory_file_validator.virus_check")
+async def test_return_value_from_virus_validator_is_same_as_virus_check(mock_virus_check, mock_return_value):
+    mock_virus_check.return_value = mock_return_value
+    file = make_uploadfile(name="testfile.txt", content=b"dummy")
     validator = NoVirusFoundInFile()
     result = await validator.validate(file_object=file)
-    assert result == (400, "Virus Found")
+    # Result should be same as mock_return_value as validator should forward the response
+    assert result == mock_return_value
+
+
+@pytest.mark.asyncio
+@patch("src.validation.mandatory_file_validator.virus_check",
+       return_value=(500, 'Virus scan gave non-standard result'))
+async def test_no_virus_found_get_processing_error_when_processing_error(mock_virus_check):
+    file = make_uploadfile(name="unluckyfile.txt", content=b"dummy")
+    validator = NoVirusFoundInFile()
+    result = await validator.validate(file_object=file)
+    assert result == (500, 'Virus scan gave non-standard result')
 
 
 @pytest.mark.asyncio
@@ -225,16 +230,15 @@ async def test_run_mandatory_validators(mock_av_scan, filename, expected_status,
 
 
 @pytest.mark.asyncio
-@patch("src.validation.mandatory_file_validator.virus_check", return_value=({"message": "file has no virus"}, 200))
+@patch("src.validation.mandatory_file_validator.virus_check", return_value=(200, ""))
 async def test_run_virus_check_pass(mock_virus_check):
     file = make_uploadfile(name="goodfile.txt", content=b"dummy")
     result = await run_virus_check(file)
-    # When result is "pass" returned message is "", not the message returned by virus_check
     assert result == (200, "")
 
 
 @pytest.mark.asyncio
-@patch("src.validation.mandatory_file_validator.virus_check", return_value=({"message": "file has no virus"}, 200))
+@patch("src.validation.mandatory_file_validator.virus_check", return_value=(200, ""))
 async def test_run_virus_check_bad_file(mock_virus_check):
     "If no filename or file, virus scan does not take place - get 'File is required' message"
     file = make_uploadfile(name="", content=b"dummy")
@@ -243,12 +247,20 @@ async def test_run_virus_check_bad_file(mock_virus_check):
 
 
 @pytest.mark.asyncio
-@patch("src.validation.mandatory_file_validator.virus_check", return_value=({"message": "file has virus"}, 400))
-async def test_run_virus_check_faile(mock_virus_check):
-    file = make_uploadfile(name="goodfile.txt", content=b"dummy")
+@patch("src.validation.mandatory_file_validator.virus_check", return_value=(400, "Virus Found"))
+async def test_run_virus_check_fail(mock_virus_check):
+    file = make_uploadfile(name="badfile.txt", content=b"dummy")
     result = await run_virus_check(file)
-    # Message is "Virus Found", not messge returned by virus_check.
     assert result == (400, "Virus Found")
+
+
+@pytest.mark.asyncio
+@patch("src.validation.mandatory_file_validator.virus_check",
+       return_value=(500, "Virus scan gave non-standard result"))
+async def test_run_virus_check_non_standard_result(mock_virus_check):
+    file = make_uploadfile(name="unlucky.txt", content=b"dummy")
+    result = await run_virus_check(file)
+    assert result == (500, "Virus scan gave non-standard result")
 
 
 # Validator run-order selection tests

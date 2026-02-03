@@ -33,8 +33,9 @@ async def save_file(
     * 409 CONFLICT if file already exists
 
     The following codes may be returned from the automatic virus scan:
-    * 411 if file content length is not present
-    * 400 if a virus is detected
+    * 411 If file content length is not present
+    * 400 If a virus is detected
+    * 500 Virus scan gave non-standard result
 
     Any code other than 201 CREATED means the file has not been saved.
     """

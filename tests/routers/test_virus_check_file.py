@@ -17,6 +17,20 @@ def test_virus_check_file_with_virus(scan_mock, test_client):
     scan_mock.assert_called_once()
 
 
+@patch("src.routers.virus_check_file.run_virus_check")
+def test_virus_check_file_with_unexpected_virus_scan_result(scan_mock, test_client):
+    scan_mock.side_effect = HTTPException(status_code=500, detail="Virus scan gave non-standard result")
+    files = {
+        "file": ("unlucky_file.txt", BytesIO(b"What in the world?"), "text/plain")
+    }
+
+    response = test_client.put("/virus_check_file", files=files)
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Virus scan gave non-standard result"}
+    scan_mock.assert_called_once()
+
+
 def test_virus_check_file_with_no_file(test_client):
     response = test_client.put("/virus_check_file",)
 

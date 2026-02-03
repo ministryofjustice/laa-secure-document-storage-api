@@ -36,26 +36,15 @@ class HaveFile(MandatoryFileValidator):
 
 
 class NoVirusFoundInFile(MandatoryFileValidator):
-    """
-    This validator replaces previous check_antivirus function and its original
-    two pass/fail responses have been replicated here. Both original and replacement
-    use underlying virus_check function which is unchanged. However, virus_check is
-    also able to also return an "Error occurred while processing" response
-    with status code 500. Currently this validator would report this as "Virus Found"
-    which is misleading. Could extend to cover this in future update.
-    """
     async def validate(self, file_object: UploadFile, **kwargs) -> Tuple[int, str]:
         """
         Runs Clam AV virus scan
         """
         file_content = await file_object.read()
-        response, status = await virus_check(io.BytesIO(file_content))
+        status, message = await virus_check(io.BytesIO(file_content))
         # Return file reference point to start to make subsequent read possible
         await file_object.seek(0)
-        if status == 200:
-            return 200, ""
-        else:
-            return 400, "Virus Found"
+        return status, message
 
 
 class NoUrlInFilename(MandatoryFileValidator):
