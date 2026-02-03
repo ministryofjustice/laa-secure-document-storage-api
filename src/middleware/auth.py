@@ -67,6 +67,13 @@ def fetch_jwks(jwks_uri):
 
 
 def validate_token(token: str, aud: str, tenant_id: str) -> dict:
+    # Raise any token processing errors as 401 to the client to avoid leaking information
+    bad_token_exception = _AuthenticationError(status_code=401, detail="Invalid or expired token")
+    # Note None option included for completeness but unlikely for None to reach this point
+    # when token originates from request headers.
+    if token in ("", "None", None):
+        logger.error(f"Empty or invalid token: '{token}'")
+        raise bad_token_exception
     try:
         # Fetch the OpenID configuration to get the JWK URI
         oidc_config = fetch_oidc_config(tenant_id)
@@ -76,8 +83,7 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
         unverified_header = jwt.get_unverified_header(token)
     except Exception as error:
         logger.error(f"Error processing token: {error.__class__.__name__} {error}")
-        # Raise any token processing errors as 401 to the client to avoid leaking information
-        raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
+        raise bad_token_exception
 
     rsa_key_data = None
     for key in jwks['keys']:
@@ -87,7 +93,7 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
 
     if not rsa_key_data:
         logger.error("No rsa key found")
-        raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
+        raise bad_token_exception
 
     try:
         rsa_key = jwk.construct(rsa_key_data, 'RS256')
@@ -100,13 +106,13 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
         )
     except ExpiredSignatureError as signature_error:
         logger.error(f"Error processing token: Signature invalid {signature_error}")
-        raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
+        raise bad_token_exception
     except JWTClaimsError as claims_error:
         logger.error(f"Error processing token: Claims error {claims_error}")
         raise _AuthenticationError(status_code=403, detail="Forbidden")
     except JWTError as error:
         logger.error(f"Unexpected error processing token: {error.__class__.__name__} {error}")
-        raise _AuthenticationError(status_code=401, detail="Invalid or expired token")
+        raise bad_token_exception
 
     # Ensure token has `azp` claim which is used to identify the client
     if payload.get('azp') is None:

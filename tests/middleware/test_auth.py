@@ -29,6 +29,14 @@ def test_incorrect_auth_scheme(audit_service_mock):
 
 
 @pytest.mark.normal_auth
+@pytest.mark.parametrize("bad_headers", [{'Authorization': 'Bearer None'}, {'Authorization': 'Bearer '}])
+def test_empty_token(audit_service_mock, bad_headers):
+    response = test_client.get('/retrieve_file?file_key=README.md', headers=bad_headers)
+    assert response.status_code == 401
+    assert response.text == '{"detail":"Invalid or expired token"}'
+
+
+@pytest.mark.normal_auth
 @patch('src.middleware.auth.jwt.decode')
 @patch('src.middleware.auth.jwk.construct')
 @patch('src.middleware.auth.jwt.get_unverified_header')
