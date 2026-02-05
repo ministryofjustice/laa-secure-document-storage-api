@@ -78,7 +78,7 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
     return validator_kwargs
 
 
-async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> Tuple[int, str]:
+async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> list[int, list]:
     """
     Validates the file object against a list of validators, returning (200, None) if all validators pass,
     or the first failing validator's status code and message.
@@ -91,8 +91,9 @@ async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> Tup
     :return: status_code: int, detail: str
     """
     if file_object is None or not file_object.filename:
-        return 400, "File is required"
+        return [400, [(400, "File is required")]]
 
+    results = [200, []]
     for validator_spec in validator_specs:
         validator = get_validator(validator_spec.name)
         validator_kwargs = validator_spec.validator_kwargs
@@ -102,11 +103,15 @@ async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> Tup
             else:
                 status, detail = validator.validate(file_object, **validator_kwargs)
             if status != 200:
-                return status, detail
+                results[1].append((status, detail))
+                if status > results[0]:
+                    results[0] = status
+                if not validator.continue_to_next_validator_on_fail:
+                    return results
         except Exception as e:
             logger.error(f"Error while running validator {validator.__class__.__name__}: {e}")
             return 500, "Internal error handling file"
-    return 200, ""
+    return results
 
 
 async def validate_or_error(file_object, validators: List[FileValidatorSpec]) -> Tuple[int, str]:
