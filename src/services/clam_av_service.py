@@ -44,7 +44,7 @@ class ClamAVService:
         else:
             message = 'Virus scan gave non-standard result'
             status = 500
-            logger.error(f'Virus scan gave non-standard result: {scan_result['stream'][0]}')
+            logger.error(f"Virus scan gave non-standard result: {scan_result['stream'][0]}")
         return status, message
 
 
