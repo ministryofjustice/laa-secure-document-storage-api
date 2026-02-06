@@ -31,7 +31,7 @@ python-dateutil = "*"
 
 [dev-packages]
 flake8 = "==7.3.0"
-pytest = "==9.0.2"
+pytest = "==8.4.2"
 httpx = "==0.28.1"
 pytest-asyncio = "==1.2.0"
 
