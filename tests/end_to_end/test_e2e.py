@@ -247,7 +247,7 @@ def test_put_file_with_disallowed_file_type_is_blocked():
                           files=upload_disallowed_file,
                           data=UPLOAD_BODY)
     assert response.status_code == 415
-    assert response.json()["detail"] == "File mimetype not allowed"
+    assert response.json()["detail"] == [[415, "File mimetype not allowed"]]
 
 
 @pytest.mark.e2e
@@ -385,7 +385,7 @@ def test_post_file_with_disallowed_file_type_is_blocked():
                            files=upload_disallowed_file,
                            data=UPLOAD_BODY)
     assert response.status_code == 415
-    assert response.json()["detail"] == "File mimetype not allowed"
+    assert response.json()["detail"] == [[415, "File mimetype not allowed"]]
 
 
 @pytest.mark.e2e

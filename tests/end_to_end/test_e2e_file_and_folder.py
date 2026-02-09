@@ -180,7 +180,7 @@ def test_put_invalid_filename_is_rejected(new_filename):
         audit_item = audit_table_client.get_audit_row_e2e(response, 0)
         assert audit_item.get("file_id") == {'S': new_filename}
         assert audit_item.get("operation_type") == {'S': 'FAILED'}
-        assert audit_item.get("error_details") == {'S': f'{response.url.path}: File extension not allowed'}
+        assert audit_item.get("error_details") == {'S': f"{response.url.path}: [(415, 'File extension not allowed')]"}
 
 
 @pytest.mark.e2e

@@ -230,11 +230,12 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
     assert response_details["bad_type.exe"] == {'filename': 'bad_type.exe',
                                                 'positions': [2],
                                                 'outcomes': [{'status_code': 415,
-                                                              'detail': 'File mimetype not allowed'}],
+                                                              'detail': [[415, "File mimetype not allowed"]]}],
                                                 'checksum': None}  # likely auto-convert of json null to Python None
     assert response_details["..."] == {'filename': '...',
                                        'positions': [3],
-                                       'outcomes': [{'status_code': 415, 'detail': 'File extension not allowed'}],
+                                       'outcomes': [{'status_code': 415,
+                                                     "detail": [[415, "File extension not allowed"]]}],
                                        'checksum': None}
     assert response_details["bad_char|.txt"] == {'filename': 'bad_char|.txt',
                                                  'positions': [4],
@@ -264,12 +265,13 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
         audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
         assert audit_item_2.get("file_id") == {'S': "bad_type.exe"}
         assert audit_item_2.get("operation_type") == {'S': 'FAILED'}
-        assert audit_item_2.get("error_details") == {'S': f'{response.url.path}: File mimetype not allowed'}
+        assert audit_item_2.get("error_details") == {'S': f"{response.url.path}: [(415, 'File mimetype not allowed')]"}
         # Bad file extension
         audit_item_3 = audit_table_client.get_audit_row_e2e(response, 3)
         assert audit_item_3.get("file_id") == {'S': "..."}
         assert audit_item_3.get("operation_type") == {'S': 'FAILED'}
-        assert audit_item_3.get("error_details") == {'S': f'{response.url.path}: File extension not allowed'}
+        assert audit_item_3.get("error_details") == {'S':
+            f"{response.url.path}: [(415, 'File extension not allowed')]"}
         # Bad character in filename
         audit_item_4 = audit_table_client.get_audit_row_e2e(response, 4)
         assert audit_item_4.get("file_id") == {'S': "bad_char|.txt"}
