@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import structlog
 from fastapi import HTTPException
@@ -78,22 +78,25 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
     return validator_kwargs
 
 
-async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> list[int, list]:
+async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> list[tuple[int, str]]:
     """
-    Validates the file object against a list of validators, returning (200, None) if all validators pass,
-    or the first failing validator's status code and message.
+    Validates the file object against a list of validators, returning [(200, "") if all validators pass.
 
     Validators are executed in the provided order, any exception raised during execution of a validator
-    will be logged and returned as an internal error (500, "Internal error handling file")
+    will be logged and returned as an internal error (500, "Internal error handling file").
+
+    Behaviour upon validator failure depends on the validator's continue_to_next_validator_on_fail attribute.
+    When True, validation will proceed to the next validator in sequence. When False, the validation
+    sequence ends and currently accumulated results returned.
 
     :param validator_specs:
     :param file_object:
-    :return: status_code: int, detail: str
+    :return:[(status_code: int, detail: str)]
     """
     if file_object is None or not file_object.filename:
         return [400, [(400, "File is required")]]
 
-    results = [200, []]
+    errors_found = []
     for validator_spec in validator_specs:
         validator = get_validator(validator_spec.name)
         validator_kwargs = validator_spec.validator_kwargs
@@ -103,27 +106,53 @@ async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> lis
             else:
                 status, detail = validator.validate(file_object, **validator_kwargs)
             if status != 200:
-                results[1].append((status, detail))
-                if status > results[0]:
-                    results[0] = status
+                errors_found.append((status, detail))
                 if not validator.continue_to_next_validator_on_fail:
-                    return results
+                    break
         except Exception as e:
             logger.error(f"Error while running validator {validator.__class__.__name__}: {e}")
-            return 500, "Internal error handling file"
-    return results
+            errors_found.append((500, "Internal error handling file"))
+            if not validator.continue_to_next_validator_on_fail:
+                break
+    return errors_found if errors_found else [(200, "")]
 
 
-async def validate_or_error(file_object, validators: List[FileValidatorSpec]) -> Tuple[int, str]:
+def get_status_code_for_response(validation_results: list[tuple[int, str]]) -> int:
     """
-    Validates the file object against a list of validators, returning (200, None) if all validators pass,
-    or the first failing validator's status code and message.
+    From list of validation results, pick status code to respresent
+    them all. If all the same, then return that. If different 4xx
+    results, return 422. If multiple results include a 500, return
+    500.
+
+    Meant for use with error results but will give valid
+    200 response from a "success" validation result [(200, "")]
+    """
+    status_code = 422
+    try:
+        # set comprehension, not dict!
+        unique_codes = {e[0] for e in validation_results}
+    except Exception as e:
+        logger.error(f"Exception from get_summary_code: {e}")
+        raise e
+    if len(unique_codes) == 1:
+        status_code = unique_codes.pop()
+    else:
+        if 500 in unique_codes:
+            status_code = 500
+    return status_code
+
+
+async def validate_or_error(file_object, validators: list[FileValidatorSpec]) -> tuple[int, str]:
+    """
+    Validates the file object against a list of validators, returning (200, "") if all validators pass,
+    or raise an HTTPException with relevant status_code and detail if one or more validators failed.
 
     :param validators:
     :param file_object:
     :return: status_code: int, detail: str
     """
-    status_code, detail = await validate(file_object, validators)
-    if status_code != 200:
-        raise HTTPException(status_code=status_code, detail=detail)
+    results = await validate(file_object, validators)
+    if results != [(200, "")]:
+        status_code = get_status_code_for_response(results)
+        raise HTTPException(status_code=status_code, detail=results)
     return 200, ""
