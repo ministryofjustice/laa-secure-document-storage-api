@@ -140,7 +140,7 @@ def test_file_validator(
         ]),
         make_uploadfile(content=b"123456", name="test.txt"),
         413, "File size is too large",
-        "Failing validator is first in list"
+        "Description out-of-date (was - Failing validator is first in list)"
     ),
     (
         make_config([
@@ -240,8 +240,6 @@ async def test_file_validator_from_config(
         ):
     results = await validate(file_object, validator_config.file_validators)
     assert results == [(expected_status, expected_detail)]
-    #assert status == expected_status, assert_msg
-    #assert detail == expected_detail, assert_msg
 
 
 @pytest.mark.asyncio
