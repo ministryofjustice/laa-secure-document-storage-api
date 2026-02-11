@@ -1,10 +1,24 @@
 import pytest
+from unittest.mock import patch
+from fastapi import HTTPException
 from src.validation.client_configured_validator import generate_all_filevalidatorspecs
 from src.validation.client_configured_validator import get_kwargs_for_filevalidator
 from src.validation.client_configured_validator import get_validator_validate_docstring
+from src.validation.client_configured_validator import get_status_code_for_response
+from src.validation.client_configured_validator import validate_or_error
 from src.validation.file_validator import MaxFileSize, MinFileSize
 from src.validation.file_validator import AllowedFileExtensions, DisallowedFileExtensions
 from src.validation.file_validator import AllowedMimetypes, DisallowedMimetypes
+
+"""
+Location of test for functions: validate and get_validator
+
+Tests for the two above functions are in test_file_validator.py rather than here.
+Likely for convenience of using functions that create test data there.
+
+Potentially could move them to this file but we have plans to change the way validators
+work which might require a larger reorganisation, so leaving as-is for now.
+"""
 
 
 def test_generate_all_filevalidatorspecs_returns_expected_validators():
@@ -180,3 +194,65 @@ def test_get_validator_validate_docstring_with_actual_validator():
     """
     headline, all = get_validator_validate_docstring(MaxFileSize)
     assert len(headline) <= len(all)
+
+
+@pytest.mark.parametrize("validator_results,expected_result", [
+    # Singular pass - same 200 code result
+    ([(200, "")], 200),
+    # Singular fail - same 415 code result
+    ([(415, "Unsupported Media Tripe")], 415),
+    # Two fails with different 4xx status codes - 422 result
+    ([(415, "Unsupported Media Tripe"), (400, "Bad Repast")], 422),
+    # Three fails with one having 500 status code - 500 result
+    ([(415, "Unsupported Media Tripe"), (400, "Bad Repast"), (500, "Infernal Server Error")], 500),
+    # Three fails, all having 500 status code - 500 result
+    ([(500, "Infernal Server Error"), (500, "Infernal Server Error"), (500, "Infernal Server Error")], 500),
+    # Three fails, all having 400 status code - 400 result
+    ([(400, "Bad Repast"), (400, "Bad Repast"), (400, "Bad Repast")], 400),
+    # Three fails, each with different status ocde - 422 result
+    ([(400, "Bad Repast"), (417, "Expectation Dashed"), (421, "Misdirected Tourist")], 422)
+    ])
+def test_get_status_code_from_response(validator_results, expected_result):
+    result = get_status_code_for_response(validator_results)
+    assert result == expected_result
+
+
+@pytest.mark.asyncio
+async def test_validate_or_error_with_pass():
+    # Note these values don't really matter due to patching of validate return value.
+    # This test concerns the format of result rather than the validation itself
+    file = ""
+    validators = []
+    with patch("src.validation.client_configured_validator.validate", return_value=[(200, "")]):
+        result = await validate_or_error(file, validators)
+    assert result == (200, "")
+
+
+# Note this function raises an HTTPException when there is a "fail" result.
+# The expected results here are based on Pytest's ExceptionInfo representation
+# of the exception, not HTTPException directly.
+@pytest.mark.asyncio
+@pytest.mark.parametrize("validate_result,expected_result", [
+    # Single failure
+    ([(400, 'Size is too small')],
+     "400: [(400, 'Size is too small')]"),
+    # Two failures with same status codes
+    ([(415, 'File mimetype not allowed'), (415, 'File extension not allowed')],
+     "415: [(415, 'File mimetype not allowed'), (415, 'File extension not allowed')]"),
+    # Two failures with different status codes - gets 422
+    ([(400, "Size is too small"), (415, "File extension not allowed")],
+     "422: [(400, 'Size is too small'), (415, 'File extension not allowed')]"),
+    # 500 error present
+    ([(400, "Size is too small"), (500, "Infernal Server Error")],
+     "500: [(400, 'Size is too small'), (500, 'Infernal Server Error')]")
+    ])
+async def test_validate_or_error_with_fail(validate_result, expected_result):
+    # Note the fileobject and  validators values  don't really matter due to patching of
+    # validate return value. This test concerns the format of result/exception rather
+    # than validation itself
+    fileobject = ""
+    validators = []
+    with patch("src.validation.client_configured_validator.validate", return_value=validate_result):
+        with pytest.raises(HTTPException) as excinfo:
+            _ = await validate_or_error(fileobject, validators)
+    assert str(excinfo.value) == expected_result
