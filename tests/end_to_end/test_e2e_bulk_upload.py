@@ -283,3 +283,30 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
         assert audit_item_5.get("file_id") == {'S': good_file2}
         assert audit_item_5.get("operation_type") == {'S': 'CREATE'}
         assert audit_item_5.get("error_details") == {'S': ''}
+
+
+# Test above has mutliple errors but limited to one-per-file.
+# This test has one file with 2 client-configured validator fails.
+@pytest.mark.e2e
+def test_bulk_load_with_file_with_more_than_one_error():
+    good_file1 = make_unique_name("good_file.txt")
+    good_file2 = make_unique_name("good_file.txt")
+    files = [
+            test_md_file.get_data_tuple(good_file1),  # Valid file
+            disallowed_file.get_data_tuple("bad_type."),  # Bad mimetype and empty file extension
+            test_md_file.get_data_tuple(good_file2),  # Another valid file
+            ]
+
+    response = client.put(f"{HOST_URL}/bulk_upload",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
+
+    response_details = response.json()
+    assert response.status_code == 200
+    assert response_details[good_file1]["outcomes"] == [{'detail': 'saved', 'status_code': 201}]
+    assert response_details[good_file2]["outcomes"] == [{'detail': 'saved', 'status_code': 201}]
+    assert response_details["bad_type."]["outcomes"] == [{'detail': [[415, "File extension not allowed"],
+                                                                     [415, "File mimetype not allowed"]],
+                                                          'status_code': 415}
+                                                         ]

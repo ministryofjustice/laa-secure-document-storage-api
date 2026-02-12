@@ -275,3 +275,25 @@ def test_zero_byte_file_can_be_uploaded():
                           files=files,
                           data=UPLOAD_BODY)
     assert response.status_code == 201
+
+
+# File should fail two client-configured validator checks
+# with error response having details of both "fails".
+@pytest.mark.e2e
+def test_put_file_with_more_than_one_error():
+    fake_file = BytesIO(b"12345")
+    # File has both missing extension and disallowed 'text/x-sh' mimetype
+    files = {'file': ("no_extension.", fake_file, 'text/x-sh')}
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
+    details = response.json().get("detail")
+
+    # 415 (not 422) because both errors share 415 status code
+    # (Note options limited by laa-sds config json file contents)
+    assert response.status_code == 415
+    # The 2 messages could be in either order, so using `len()` and `in`
+    assert len(details) == 2
+    assert [415, 'File extension not allowed'] in details
+    assert [415, 'File mimetype not allowed'] in details
