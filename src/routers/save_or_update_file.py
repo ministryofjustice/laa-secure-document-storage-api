@@ -19,7 +19,7 @@ logger = structlog.get_logger()
 @router.put("/save_or_update_file")
 async def save_or_update_file(
     request: Request,
-    file: Optional[UploadFile] = UploadFile(None),
+    file: Optional[UploadFile] = None,
     body: FileUpload = Depends(validate_json(FileUpload)),
     client_config: ClientConfig = Depends(client_config_middleware),
 ):
@@ -39,6 +39,9 @@ async def save_or_update_file(
 
     Any code other than 200 OK or 201 CREATED means the file has not been saved.
     """
+    if file is None:
+        file = UploadFile(file=None, filename="")
+
     response, file_existed = await handle_file_upload_logic(
         request=request,
         file=file,
