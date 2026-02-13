@@ -25,7 +25,6 @@ async def handle_file_upload_logic(
     request_type: RequestType,
     filename_position: int = 0
 ) -> Tuple[Dict, bool]:
-
     # Bucket check
     metadata = body.model_dump() or {}
     bucket_name = metadata.pop("bucketName", None)
@@ -41,7 +40,18 @@ async def handle_file_upload_logic(
     checksum, error_status = await run_initial_file_checks(request, file, client_config)
 
     folder_prefix = metadata.pop("folder", "")
-    full_filename = os.path.join(folder_prefix, file.filename) if folder_prefix else file.filename
+
+    # Noticed this can fail in Postman collection run when "without file" tests are run, as a None
+    # filename is received (although get "" filename instead from single request of this type).
+    # Exception handling quick fix before full investigation. Note "fail" error_status should already
+    # be in place from run_initial_file_checks()
+    try:
+        full_filename = os.path.join(folder_prefix, file.filename) if folder_prefix else file.filename
+    except TypeError as e:
+        logger.error(f"Creating full filename failed with file object {file}, {e}")
+        logger.error(f"Current error_status from checks: {error_status}")
+        full_filename = ""
+
     file_existed = False
 
     # Check file not already in S3 when POST request

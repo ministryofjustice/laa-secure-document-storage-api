@@ -1,7 +1,7 @@
 import mimetypes
 import uuid
 from typing import Dict, List
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import UploadFile
@@ -41,6 +41,9 @@ def make_config(validator_specs: List[FileValidatorSpec]) -> ClientConfig:
         azure_display_name="test",
         file_validators=validator_specs
     )
+
+
+# Tests of individual validators
 
 
 @pytest.mark.parametrize("validator, validator_kwargs, file_object, expected_status, expected_detail, assert_msg", [
@@ -85,11 +88,11 @@ def make_config(validator_specs: List[FileValidatorSpec]) -> ClientConfig:
         200, "", "File with double extension should be allowed if final extension is valid"
     ),
     (
-        "AllowedFileExtensions", {"extensions": ["jpg", "txt",]}, make_uploadfile(name="test.txt"),
+        "AllowedFileExtensions", {"extensions": ["jpg", "txt"]}, make_uploadfile(name="test.txt"),
         200, "", "File has one of the multiple allowed extensions"
     ),
     (
-        "AllowedFileExtensions", {"extensions": ["jpg", "txt",]}, make_uploadfile(name="test.txt.jpg"),
+        "AllowedFileExtensions", {"extensions": ["jpg", "txt"]}, make_uploadfile(name="test.txt.jpg"),
         200, "", "File has all of the multiple allowed extensions"
     ),
     (
@@ -108,6 +111,10 @@ def test_file_validator(
     assert detail == expected_detail, assert_msg
 
 
+# Tests of validate function
+
+
+# No more than one validator failure per-test - single result, no check of "continue on fail" behaviour
 @pytest.mark.asyncio
 @pytest.mark.parametrize("validator_config, file_object, expected_status, expected_detail, assert_msg", [
     (
@@ -138,9 +145,9 @@ def test_file_validator(
             make_validatorspec("MinFileSize", size=1),
             make_validatorspec("AllowedFileExtensions", extensions=["txt", ])
         ]),
-        make_uploadfile(content=b"123456", name="test.pdf"),
+        make_uploadfile(content=b"123456", name="test.txt"),
         413, "File size is too large",
-        "Failing validator is first in list"
+        "Description out-of-date (was - Failing validator is first in list)"
     ),
     (
         make_config([
@@ -238,9 +245,65 @@ async def test_file_validator_from_config(
             validator_config: ClientConfig, file_object: UploadFile,
             expected_status: int, expected_detail: str | None, assert_msg: str
         ):
-    status, detail = await validate(file_object, validator_config.file_validators)
-    assert status == expected_status, assert_msg
-    assert detail == expected_detail, assert_msg
+    results = await validate(file_object, validator_config.file_validators)
+    assert results == [(expected_status, expected_detail)]
+
+
+# Includes "continue on fail" continue behaviour
+@pytest.mark.asyncio
+@pytest.mark.parametrize("file_content,filename,mimetype,expected_result", [
+    # Good file - single "pass" result
+    (b"12345", "good_file.txt", "text/plain", [(200, "")]),
+    # File that's too large - single "fail" result
+    (b"123456", "toobig.txt", "text/palin", [(413, "File size is too large")]),
+    # File that is too large and has wrong mimetype - two "fail" results
+    (b"123456", "toobig.txt", "evil/virus", [(413, "File size is too large"), (415, "File mimetype not allowed")]),
+    # File that is too large, has wrong mimetype and wrong extension - three "fail" results (and 2 status codes)
+    (b"123456", "toobig.doc", "evil/virus",
+     [(413, "File size is too large"), (415, "File mimetype not allowed"), (415, "File extension not allowed")])
+    ])
+# Test has fixed spec but different files objects
+async def test_validate_continue_on_fail(file_content, filename, mimetype, expected_result):
+    # Make validator config
+    spec = [make_validatorspec("MaxFileSize", size=5),
+            make_validatorspec("DisallowedMimetypes", content_types=["evil/virus"]),
+            make_validatorspec("DisallowedFileExtensions", extensions=["doc"])]
+    config = make_config(spec)
+    # Make file object
+    file_object = make_uploadfile(content=file_content, name=filename)
+    file_object.content_type = mimetype
+    # Validate file
+    result = await validate(file_object, config.file_validators)
+    # Using sets because different order is still a pass
+    assert set(result) == set(expected_result)
+    # Also checking len in case unwanted repeated values
+    assert len(result) == len(expected_result)
+
+
+# Same two validatators used with same file - first with "stop" and second with "continue"
+@pytest.mark.asyncio
+async def test_validate_gives_expected_result_with_continue_flag_true_and_false():
+    # Make config with two validators, with MaxFileSize listed first
+    config = make_config([make_validatorspec("MaxFileSize", size=5),
+                          make_validatorspec("DisallowedFileExtensions", extensions=["doc"])])
+    # Make file that fails both validators - too big and wrong extension
+    badfile = make_uploadfile(content=b"123456", name="whatsup.doc")
+
+    # Run scan with MaxFileSize set to NOT continue on fail - expect result with single error
+    with patch("src.validation.file_validator.MaxFileSize.continue_to_next_validator_on_fail", False):
+        result_with_stop = await validate(badfile, config.file_validators)
+
+    # Run scan with MaxFileSize set to continue on fail - expect result with two errors
+    with patch("src.validation.file_validator.MaxFileSize.continue_to_next_validator_on_fail", True):
+        result_with_continue = await validate(badfile, config.file_validators)
+
+    # Check result from "stop on fail" - single error reported
+    assert result_with_stop == [(413, 'File size is too large')]
+    # Check result from "continue on fail" - two errors reported
+    assert result_with_continue == [(413, 'File size is too large'), (415, "File extension not allowed")]
+
+
+# get_validator tests
 
 
 @pytest.mark.asyncio

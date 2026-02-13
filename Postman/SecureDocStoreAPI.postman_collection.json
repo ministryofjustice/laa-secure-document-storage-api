@@ -1,3207 +1,3209 @@
 {
-	"info": {
-		"_postman_id": "fbf41a7a-ffb4-4247-8641-2e78cf5f2079",
-		"name": "SecureDocStoreAPI",
-		"description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "43175045"
-	},
-	"item": [
-		{
-			"name": "SDSHealthAndStatusTests",
-			"item": [
-				{
-					"name": "Health Check",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to check the health of the API",
-									"pm.test(\"Response code is 200\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response body shows health status\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('Health', 'OK');",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{SDSBaseUrl}}/health",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"health"
-							]
-						},
-						"description": "Expect a 200 OK response from /health"
-					},
-					"response": []
-				},
-				{
-					"name": "Ping (Reachability) Check",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to check the health of the API",
-									"pm.test(\"Response code is 200\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response body shows pong\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('ping', 'pong');",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{SDSBaseUrl}}/ping",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"ping"
-							]
-						},
-						"description": "Expect a 200 OK response from /ping"
-					},
-					"response": []
-				},
-				{
-					"name": "Status Check",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to check the status of the API",
-									"pm.test(\"Response code is 200\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var status = pm.response.json();",
-									"",
-									"pm.test(\"Authentication status success\", function() {",
-									"    var service_status = status.services.find(obj => {if(obj.label === 'authentication') return obj})",
-									"        pm.expect(service_status.observations.find(obj => {",
-									"            return obj.category === 'failure'",
-									"    })).to.be.undefined",
-									"});",
-									"",
-									"pm.test(\"Authorisation status success\", function() {",
-									"    var service_status = status.services.find(obj => {if(obj.label === 'authorisation') return obj})",
-									"        pm.expect(service_status.observations.find(obj => {",
-									"            return obj.category === 'failure'",
-									"    })).to.be.undefined",
-									"});",
-									"",
-									"pm.test(\"Configuration status success\", function() {",
-									"    var service_status = status.services.find(obj => {if(obj.label === 'configuration') return obj})",
-									"        pm.expect(service_status.observations.find(obj => {",
-									"            return obj.category === 'failure'",
-									"    })).to.be.undefined",
-									"});",
-									"",
-									"pm.test(\"Audit status success\", function() {",
-									"    var service_status = status.services.find(obj => {if(obj.label === 'audit') return obj})",
-									"        pm.expect(service_status.observations.find(obj => {",
-									"            return obj.category === 'failure'",
-									"    })).to.be.undefined",
-									"});",
-									"",
-									"pm.test(\"Storage status success\", function() {",
-									"    var service_status = status.services.find(obj => {if(obj.label === 'storage') return obj})",
-									"        pm.expect(service_status.observations.find(obj => {",
-									"            return obj.category === 'failure'",
-									"    })).to.be.undefined",
-									"});",
-									"",
-									"pm.test(\"Antivirus status success\", function() {",
-									"    var service_status = status.services.find(obj => {if(obj.label === 'antivirus') return obj})",
-									"        pm.expect(service_status.observations.find(obj => {",
-									"            return obj.category === 'failure'",
-									"    })).to.be.undefined",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{SDSBaseUrl}}/status",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"status"
-							]
-						},
-						"description": "Expect a 200 OK response from /status"
-					},
-					"response": []
-				},
-				{
-					"name": "Available Validators Check",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to check the status of the API",
-									"pm.test(\"Response code is 200\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"",
-									"var details = pm.response.json()",
-									"",
-									"pm.test(\"Response is list\", () => {",
-									"    pm.expect(details).to.be.an(\"array\");",
-									"});",
-									"",
-									"",
-									"pm.test(\"All list items have expected keys\", () => {",
-									"    details.forEach(function (item, index) {",
-									"    pm.expect(item).to.have.keys('name','description','validator_kwargs');",
-									"    });",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{SDSBaseUrl}}/available_validators",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"available_validators"
-							]
-						},
-						"description": "Expect a 200 OK response from /available_validators"
-					},
-					"response": []
-				}
-			],
-			"description": "Tests on the health and status endpoints"
-		},
-		{
-			"name": "SDSDocsTests",
-			"item": [
-				{
-					"name": "Swagger Docs Check",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to check the health of the API",
-									"pm.test(\"Response code is 200\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response body includes Swagger UI elements\", function() {",
-									"    pm.expect(pm.response.text()).to.include(\"Swagger UI\");",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{SDSBaseUrl}}/docs",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"docs"
-							]
-						},
-						"description": "Expect a 200 OK response from Swagger route /docs, and for content to include Swagger elements."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "SDSAuthTests",
-			"item": [
-				{
-					"name": "Missing token",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"response code is 403\", function() {",
-									"    pm.response.to.have.status(403);",
-									"});",
-									"",
-									"",
-									"pm.test(\"response message is not authenticated\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql(\"Forbidden\");",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"packages": {},
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"retrieve_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "README.md"
-								}
-							]
-						},
-						"description": "Expect a 403 FORBIDDEN with no authentication token (hence anonymous)"
-					},
-					"response": []
-				},
-				{
-					"name": "Invalid scope token",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Runs before invalid scope test",
-									"",
-									"function postRequest(secret) {",
-									"    const postRequest = {",
-									"        url: tokenUrl,",
-									"        method: 'POST',",
-									"        header: {",
-									"            'Content-Type': 'application/x-www-form-urlencoded'",
-									"        },",
-									"        body: {",
-									"            mode: 'urlencoded',",
-									"            urlencoded:",
-									"                [",
-									"                    { key: 'grant_type', value: 'client_credentials' },",
-									"                    { key: 'client_id', value: clientId },",
-									"                    { key: 'client_secret', value: secret },",
-									"                    { key: 'scope', value: scope }",
-									"                ]",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(postRequest, (error, response) => {",
-									"        let jsonData = response.json()",
-									"        pm.variables.set(\"bearerToken\", jsonData.access_token)",
-									"    })",
-									"}",
-									"",
-									"// resolve variables from the environment",
-									"const tokenUrl = pm.environment.get('AzureTokenUrl')",
-									"const clientId = pm.environment.get('SDSClientID')",
-									"const scope = pm.environment.get('InvalidScope')",
-									"var envSecret = pm.environment.get('SDSClientSecret')",
-									"",
-									"// locally resolve secret from vault, in pipeline use env var\",",
-									"if (envSecret.startsWith('{{vault:')) {",
-									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
-									"    // use .then() in place of await to support newman runner",
-									"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
-									"}",
-									"else {",
-									"    postRequest(envSecret)",
-									"}"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test invalid scope token",
-									"pm.test(\"response code is 403\", function() {",
-									"    pm.response.to.have.status(403);",
-									"});",
-									"",
-									"pm.test(\"Response body shows Invalid Token\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'Forbidden');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"retrieve_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "README.md"
-								}
-							]
-						},
-						"description": "Expect a 403 FORBIDDEN when using a token with the wrong scope (resolved in pre-request)"
-					},
-					"response": []
-				},
-				{
-					"name": "Invalid token",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Runs before invalid scope test",
-									"",
-									"function postRequest(secret) {",
-									"    const postRequest = {",
-									"        url: tokenUrl,",
-									"        method: 'POST',",
-									"        header: {",
-									"            'Content-Type': 'application/x-www-form-urlencoded'",
-									"        },",
-									"        body: {",
-									"            mode: 'urlencoded',",
-									"            urlencoded:",
-									"                [",
-									"                    { key: 'grant_type', value: 'client_credentials' },",
-									"                    { key: 'client_id', value: clientId },",
-									"                    { key: 'client_secret', value: secret },",
-									"                    { key: 'scope', value: scope }",
-									"                ]",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(postRequest, (error, response) => {",
-									"        let jsonData = response.json()",
-									"        pm.variables.set(\"bearerToken\", \"invalid token\")",
-									"    })",
-									"}",
-									"",
-									"// resolve variables from the environment",
-									"const tokenUrl = pm.environment.get('AzureTokenUrl')",
-									"const clientId = pm.environment.get('SDSClientID')",
-									"const scope = pm.environment.get('InvalidScope')",
-									"var envSecret = pm.environment.get('SDSClientSecret')",
-									"",
-									"// locally resolve secret from vault, in pipeline use env var\",",
-									"if (envSecret.startsWith('{{vault:')) {",
-									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
-									"    // use .then() in place of await to support newman runner",
-									"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
-									"}",
-									"else {",
-									"    postRequest(envSecret)",
-									"}"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test invalid scope token",
-									"pm.test(\"response code is 401\", function() {",
-									"    pm.response.to.have.status(401);",
-									"});",
-									"",
-									"pm.test(\"Response body shows Invalid Token\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'Invalid or expired token');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"retrieve_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "README.md"
-								}
-							]
-						},
-						"description": "Expect a 401 UNAUTHORIZED when using an invalid token."
-					},
-					"response": []
-				}
-			],
-			"description": "Tests to ensure auth fails on invalid requests"
-		},
-		{
-			"name": "SDSSaveOrUpdateFileTests",
-			"item": [
-				{
-					"name": "Save Or Update File – New File (Expect 201)",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const timestamp = new Date().getTime();",
-									"const uniqueFilename = `test_file_${timestamp}.md`;",
-									"pm.environment.set(\"unique_filename\", uniqueFilename);"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function () {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\"}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_or_update_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_or_update_file"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Save Or Update File – Existing File (Expect 200)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function () {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property(",
-									"        'success',",
-									"        'File updated successfully in ' + pm.environment.get('SDSBucket') +",
-									"        ' with key ' + pm.environment.get('unique_filename')",
-									"    );",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}",
-									"description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\": \"\"}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_or_update_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_or_update_file"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Save Or Update File With Virus",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test(\"Check response detail for Virus Found\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "eicar.txt"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_or_update_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_or_update_file"
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
-					},
-					"response": []
-				},
-				{
-					"name": "Save Or Update Disallowed File Type",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 415\", function () {",
-									"    pm.response.to.have.status(415);",
-									"});",
-									"",
-									"pm.test(\"File mimetype not allowed\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": \"File mimetype not allowed\"});",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.exe"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_or_update_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_or_update_file"
-							]
-						},
-						"description": "Expect a 415 UNSUPPORTED MEDIA TYPE when saving a mock executable file as disallowed by client config."
-					},
-					"response": []
-				},
-				{
-					"name": "Save Or Update File With Missing Bucket",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"pm.test(\"Response has required fields\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('detail');",
-									"    pm.expect(responseBody.detail).to.have.property('bucketName');",
-									"    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md"
-								},
-								{
-									"key": "body",
-									"value": "{\"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_or_update_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_or_update_file"
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when no bucket is defined in the save-or-update request"
-					},
-					"response": []
-				},
-				{
-					"name": "Save Or Update File Without File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"",
-									"});",
-									"",
-									"pm.test(\"Response has required fields\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('detail');",
-									"    pm.expect(responseBody.detail).to.include('File is required');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_or_update_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_or_update_file"
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when calling save_or_update_file without a file"
-					},
-					"response": []
-				}
-			],
-			"description": "Tests on the /save_or_update_file endpoint",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				}
-			]
-		},
-		{
-			"name": "SDSRetrieveFileTests (Deprecated)",
-			"item": [
-				{
-					"name": "Retrieve File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test retrieve file",
-									"pm.test(\"response code is 200\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"response contains fileURL key\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}.md",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"retrieve_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "{{unique_filename}}"
-								}
-							]
-						},
-						"description": "Run 'Save Or Update File' request first then expect 200 OK"
-					},
-					"response": []
-				},
-				{
-					"name": "Retrieve Non-Existent File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to verify getting a 404 response for a non-existent file",
-									"pm.test(\"Status code is 404\", function () {",
-									"    pm.response.to.have.status(404);",
-									"});",
-									"",
-									"pm.test(\"Response body shows file not found\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'The file non_existent could not be found.');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key=non_existent",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"retrieve_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "non_existent"
-								}
-							]
-						},
-						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
-					},
-					"response": []
-				}
-			],
-			"description": "Test using the deprecated /retrieve_file endpoint"
-		},
-		{
-			"name": "SDSGetFileTests",
-			"item": [
-				{
-					"name": "Get File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test get file",
-									"pm.test(\"response code is 200\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"response contains fileURL key\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}.md",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"get_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "{{unique_filename}}"
-								}
-							]
-						},
-						"description": "Run 'Save Or Update File' request first then expect 200 OK"
-					},
-					"response": []
-				},
-				{
-					"name": "Get Non-Existent File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to verify getting a 404 response for a non-existent file",
-									"pm.test(\"Status code is 404\", function () {",
-									"    pm.response.to.have.status(404);",
-									"});",
-									"",
-									"pm.test(\"Response body shows file not found\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'The file non_existent could not be found.');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/get_file?file_key=non_existent",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"get_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "non_existent"
-								}
-							]
-						},
-						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
-					},
-					"response": []
-				}
-			],
-			"description": "Test on the /get_file endpoint"
-		},
-		{
-			"name": "SDSSaveFileTests",
-			"item": [
-				{
-					"name": "Save File - New File (Expect 201)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const timestamp = new Date().getTime();",
-									"const uniqueFilename = `test_file_${timestamp}.md`;",
-									"pm.environment.set(\"unique_filename\", uniqueFilename);"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "body",
-									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
-									"type": "text"
-								  },
-								  {
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 201 OK when saving a new file."
-					},
-					"response": []
-				},
-				{
-					"name": "Save File - Existing File (Expect 409)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 409\", function () {",
-									"    pm.response.to.have.status(409);",
-									"});",
-									"",
-									"pm.test(\"Response has required fields\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('detail');",
-									"    pm.expect(responseBody.detail).to.include('File ' + pm.environment.get('unique_filename') + ' already exists and cannot be overwritten via the /save_file endpoint. Use PUT endpoint /save_or_update_file to overwrite.');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							  }
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "body",
-									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
-									"type": "text"
-								  },
-								  {
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 409 when saving a file that already exists in bucket ."
-					},
-					"response": []
-				},
-				{
-					"name": "Save File With Virus",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test(\"Check response detail for Virus Found\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "eicar.txt"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
-					},
-					"response": []
-				},
-				{
-					"name": "Save Disallowed File Type",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 415\", function () {",
-									"    pm.response.to.have.status(415);",
-									"});",
-									"",
-									"pm.test(\"File mimetype not allowed\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": \"File mimetype not allowed\"});",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.exe"
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 415 UNSUPPORTED MEDIA TYPE when uploading a mock executable file as disallowed by client config."
-					},
-					"response": []
-				},
-				{
-					"name": "Save File With Missing Bucket",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"pm.test(\"Response has required fields\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('detail');",
-									"    pm.expect(responseBody.detail).to.have.property('bucketName');",
-									"    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md"
-								},
-								{
-									"key": "body",
-									"value": "{\"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when no bucket is defined in the save request"
-					},
-					"response": []
-				},
-				{
-					"name": "Save File Without File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 400\", function () {",
-									"    pm.response.to.have.status(400);",
-									"",
-									"});",
-									"",
-									"pm.test(\"Response has required fields\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('detail');",
-									"    pm.expect(responseBody.detail).to.include('File is required');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "body",
-									"value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when calling save_file without a file"
-					},
-					"response": []
-				}
-			],
-			"description": "Tests on the /save_file endpoint",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				}
-			]
-		},
-		{
-			"name": "SDSDeleteFilesTests",
-			"item": [
-				{
-					"name": "Save A File For Deleting",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is CREATED\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_a'));",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "body",
-									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_a}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 201 OK when saving a new file."
-					},
-					"response": []
-				},
-				{
-					"name": "Save B File For Deleting",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is CREATED\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_b'));",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "body",
-									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_b}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 201 OK when saving a new file."
-					},
-					"response": []
-				},
-				{
-					"name": "Save C File For Deleting",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is CREATED\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_c'));",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "body",
-									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_c}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 201 OK when saving a new file."
-					},
-					"response": []
-				},
-				{
-					"name": "Save D File For Deleting",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is CREATED\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_d'));",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "body",
-									"value": "{\"bucketName\": \"{{SDSBucket}}\"}",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename_d}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/save_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"save_file"
-							]
-						},
-						"description": "Expect a 201 OK when saving a new file."
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Single File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"",
-									"pm.test(\"response code is OK\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"response contains filename key\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_a'));",
-									"});",
-									"",
-									"pm.test(\"response contains expected deletion status for file\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody[pm.variables.get('unique_filename_a')]).to.equal(204);",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_a}}",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"delete_files"
-							],
-							"query": [
-								{
-									"key": "file_keys",
-									"value": "{{unique_filename_a}}"
-								}
-							]
-						},
-						"description": "Run 'Save Or Update File' request first then expect 200 OK"
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Single File - No File Key Provided",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"",
-									"pm.test(\"Status code is 400 - BAD REQUEST\", function() {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test(\"Request must include at least one filename\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('detail');",
-									"    pm.expect(responseBody.detail).to.include('File key is missing');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={}",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"delete_files"
-							],
-							"query": [
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when no filename(s) are provided for deletion"
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Single File Without Authorisation",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"",
-									"pm.test(\"Status code is 403 - FORBIDDEN\", function() {",
-									"    pm.response.to.have.status(403);",
-									"});",
-									"",
-									"pm.test(\"Response message is not authorised\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'Forbidden');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Sets token without necessary scope to delete before test runs",
-									"",
-									"function postRequest(secret) {",
-									"    const postRequest = {",
-									"        url: tokenUrl,",
-									"        method: 'POST',",
-									"        header: {",
-									"            'Content-Type': 'application/x-www-form-urlencoded'",
-									"        },",
-									"        body: {",
-									"            mode: 'urlencoded',",
-									"            urlencoded:",
-									"                [",
-									"                    { key: 'grant_type', value: 'client_credentials' },",
-									"                    { key: 'client_id', value: clientId },",
-									"                    { key: 'client_secret', value: secret },",
-									"                    { key: 'scope', value: scope }",
-									"                ]",
-									"        }",
-									"    };",
-									"",
-									"    pm.sendRequest(postRequest, (error, response) => {",
-									"        let jsonData = response.json()",
-									"        pm.variables.set(\"bearerToken\", jsonData.access_token)",
-									"    })",
-									"}",
-									"",
-									"// resolve variables from the environment",
-									"const tokenUrl = pm.environment.get('AzureTokenUrl')",
-									"const clientId = pm.environment.get('SDSClientID')",
-									"const scope = pm.environment.get('InvalidScope')",
-									"var envSecret = pm.environment.get('SDSClientSecret')",
-									"",
-									"// locally resolve secret from vault, in pipeline use env var\",",
-									"if (envSecret.startsWith('{{vault:')) {",
-									"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
-									"    // use .then() in place of await to support newman runner",
-									"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
-									"}",
-									"else {",
-									"    postRequest(envSecret)",
-									"}"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={unique_filename_d}",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"delete_files"
-							],
-							"query": [
-								{
-									"key": "file_keys",
-									"value": "{{unique_filename_d}}"
-								}
-							]
-						},
-						"description": "Expect a 403 FORBIDDEN outcome when user does not hold the required permissions to delete files"
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Non-Existent File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"",
-									"pm.test(\"Overall status code is 200 - OK \", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains filename key\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.variables.get('non_existent_file'));",
-									"});",
-									"",
-									"pm.test(\"Outcome code for file is 404 - FILE NOT FOUND\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody[pm.variables.get('non_existent_file')]).to.equal(404);",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{non_existent_file}}",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"delete_files"
-							],
-							"query": [
-								{
-									"key": "file_keys",
-									"value": "{{non_existent_file}}"
-								}
-							]
-						},
-						"description": "Expect a 404 NOT FOUND outcome when trying to delete a file that cannot be found in specified bucket"
-					},
-					"response": []
-				},
-				{
-					"name": "Retrieve Deleted File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is NOT FOUND\", function () {",
-									"    pm.response.to.have.status(404);",
-									"});",
-									"",
-									"pm.test(\"Response body shows file not found\", function() {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('detail', 'The file '+pm.variables.get('unique_filename_a')+' could not be found.');",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename_a}}",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"retrieve_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "{{unique_filename_a}}"
-								}
-							]
-						},
-						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
-					},
-					"response": []
-				},
-				{
-					"name": "Retrieve Non-Deleted File",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is SUCCESS\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"response contains fileURL key\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename_b}}",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"retrieve_file"
-							],
-							"query": [
-								{
-									"key": "file_key",
-									"value": "{{unique_filename_b}}"
-								}
-							]
-						},
-						"description": "Expect 404 NOT FOUND when requesting a file that does not exist"
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Multiple Files",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"",
-									"pm.test(\"response code is OK\", function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"response contains filename key\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_b'));",
-									"});",
-									"",
-									"pm.test(\"response contains expected deletion status for file\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody[pm.variables.get('unique_filename_b')]).to.equal(204);",
-									"});",
-									"",
-									"pm.test(\"response contains filename key\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_c'));",
-									"});",
-									"",
-									"pm.test(\"response contains expected deletion status for file\", function() {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody[pm.variables.get('unique_filename_c')]).to.equal(204);",
-									"});",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_b}}&file_keys={{unique_filename_c}}",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"delete_files"
-							],
-							"query": [
-								{
-									"key": "file_keys",
-									"value": "{{unique_filename_b}}"
-								},
-								{
-									"key": "file_keys",
-									"value": "{{unique_filename_c}}"
-								}
-							]
-						},
-						"description": "Run 'Save Or Update File' request first then expect 200 OK"
-					},
-					"response": []
-				}
-			],
-			"description": "Test the /delete_files endpoint",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							"// Scope vars to the run",
-							"if ( ! pm.variables.has(\"unique_filename_a\") ) {",
-							"    const timestamp = new Date().getTime();",
-							"    pm.variables.set(\"unique_filename_a\", `test_file_${timestamp}_a.md`);",
-							"    pm.variables.set(\"unique_filename_b\", `test_file_${timestamp}_b.md`);",
-							"    pm.variables.set(\"unique_filename_c\", `test_file_${timestamp}_c.md`);",
-							"    pm.variables.set(\"unique_filename_d\", `test_file_${timestamp}_d.md`);",
-							"    pm.variables.set(\"non_existent_file\", `non_existent_file_${timestamp}.md`);",
-							"}",
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				}
-			]
-		},
-		{
-			"name": "SDSVirusCheckFileTests",
-			"item": [
-				{
-					"name": "Check File With Virus",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is BAD REQUEST\", function () {",
-									"    pm.response.to.have.status(400);",
-									"});",
-									"",
-									"pm.test(\"Check response detail for Virus Found\", function () {",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const uuid = require(\"uuid\");",
-									"const uniqueFilename = 'test_file_'+uuid.v4()+'.md';",
-									"pm.environment.set(\"unique_filename\", uniqueFilename);"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "eicar.txt",
-									"fileName": "{{unique_filename}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/virus_check_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"virus_check_file"
-							]
-						},
-						"description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
-					},
-					"response": []
-				},
-				{
-					"name": "Check File Without Virus",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"const uuid = require(\"uuid\");",
-									"const uniqueFilename = 'test_file_'+uuid.v4()+'.md';",
-									"pm.environment.set(\"unique_filename\", uniqueFilename);"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is OK\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response body shows success\", function () {",
-									"    const responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody).to.have.property('success', 'No virus found');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "bearer {{bearerToken}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "test_file.md",
-									"fileName": "{{unique_filename}}"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{SDSBaseUrl}}/virus_check_file",
-							"host": [
-								"{{SDSBaseUrl}}"
-							],
-							"path": [
-								"virus_check_file"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"description": "Tests the /virus_check_files endpoint",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				}
-			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"exec": [
-					"// Always runs before every request",
-					"",
-					"function postRequest(secret) {",
-					"    const postRequest = {",
-					"        url: tokenUrl,",
-					"        method: 'POST',",
-					"        header: {",
-					"            'Content-Type': 'application/x-www-form-urlencoded'",
-					"        },",
-					"        body: {",
-					"            mode: 'urlencoded',",
-					"            urlencoded:",
-					"                [",
-					"                    { key: 'grant_type', value: 'client_credentials' },",
-					"                    { key: 'client_id', value: clientId },",
-					"                    { key: 'client_secret', value: secret },",
-					"                    { key: 'scope', value: scope }",
-					"                ]",
-					"        }",
-					"    };",
-					"",
-					"    pm.sendRequest(postRequest, (error, response) => {",
-					"        let jsonData = response.json()",
-					"        pm.variables.set(\"bearerToken\", jsonData.access_token)",
-					"    })",
-					"}",
-					"",
-					"// resolve variables from the environment",
-					"const tokenUrl = pm.environment.get('AzureTokenUrl')",
-					"const clientId = pm.environment.get('SDSClientID')",
-					"const scope = pm.environment.get('ValidScope')",
-					"var envSecret = pm.environment.get('SDSClientSecret')",
-					"",
-					"// locally resolve secret from vault, in pipeline use env var\",",
-					"if (envSecret.startsWith('{{vault:')) {",
-					"    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
-					"    // use .then() in place of await to support newman runner",
-					"    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
-					"}",
-					"else {",
-					"    postRequest(envSecret)",
-					"}"
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"exec": [
-					""
-				]
-			}
-		}
-	]
+  "info": {
+    "_postman_id": "459c2be1-5fd2-4e42-940f-f6f3f6c90231",
+    "name": "SecureDocStoreAPI",
+    "description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44343518"
+  },
+  "item": [
+    {
+      "name": "SDSHealthAndStatusTests",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to check the health of the API",
+                  "pm.test(\"Response code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows health status\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('Health', 'OK');",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{SDSBaseUrl}}/health",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Expect a 200 OK response from /health"
+          },
+          "response": []
+        },
+        {
+          "name": "Ping (Reachability) Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to check the health of the API",
+                  "pm.test(\"Response code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows pong\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('ping', 'pong');",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{SDSBaseUrl}}/ping",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "ping"
+              ]
+            },
+            "description": "Expect a 200 OK response from /ping"
+          },
+          "response": []
+        },
+        {
+          "name": "Status Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to check the status of the API",
+                  "pm.test(\"Response code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var status = pm.response.json();",
+                  "",
+                  "pm.test(\"Authentication status success\", function() {",
+                  "    var service_status = status.services.find(obj => {if(obj.label === 'authentication') return obj})",
+                  "        pm.expect(service_status.observations.find(obj => {",
+                  "            return obj.category === 'failure'",
+                  "    })).to.be.undefined",
+                  "});",
+                  "",
+                  "pm.test(\"Authorisation status success\", function() {",
+                  "    var service_status = status.services.find(obj => {if(obj.label === 'authorisation') return obj})",
+                  "        pm.expect(service_status.observations.find(obj => {",
+                  "            return obj.category === 'failure'",
+                  "    })).to.be.undefined",
+                  "});",
+                  "",
+                  "pm.test(\"Configuration status success\", function() {",
+                  "    var service_status = status.services.find(obj => {if(obj.label === 'configuration') return obj})",
+                  "        pm.expect(service_status.observations.find(obj => {",
+                  "            return obj.category === 'failure'",
+                  "    })).to.be.undefined",
+                  "});",
+                  "",
+                  "pm.test(\"Audit status success\", function() {",
+                  "    var service_status = status.services.find(obj => {if(obj.label === 'audit') return obj})",
+                  "        pm.expect(service_status.observations.find(obj => {",
+                  "            return obj.category === 'failure'",
+                  "    })).to.be.undefined",
+                  "});",
+                  "",
+                  "pm.test(\"Storage status success\", function() {",
+                  "    var service_status = status.services.find(obj => {if(obj.label === 'storage') return obj})",
+                  "        pm.expect(service_status.observations.find(obj => {",
+                  "            return obj.category === 'failure'",
+                  "    })).to.be.undefined",
+                  "});",
+                  "",
+                  "pm.test(\"Antivirus status success\", function() {",
+                  "    var service_status = status.services.find(obj => {if(obj.label === 'antivirus') return obj})",
+                  "        pm.expect(service_status.observations.find(obj => {",
+                  "            return obj.category === 'failure'",
+                  "    })).to.be.undefined",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{SDSBaseUrl}}/status",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "status"
+              ]
+            },
+            "description": "Expect a 200 OK response from /status"
+          },
+          "response": []
+        },
+        {
+          "name": "Available Validators Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to check the status of the API",
+                  "pm.test(\"Response code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "",
+                  "var details = pm.response.json()",
+                  "",
+                  "pm.test(\"Response is list\", () => {",
+                  "    pm.expect(details).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"All list items have expected keys\", () => {",
+                  "    details.forEach(function (item, index) {",
+                  "    pm.expect(item).to.have.keys('name','description','validator_kwargs');",
+                  "    });",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{SDSBaseUrl}}/available_validators",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "available_validators"
+              ]
+            },
+            "description": "Expect a 200 OK response from /available_validators"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests on the health and status endpoints"
+    },
+    {
+      "name": "SDSDocsTests",
+      "item": [
+        {
+          "name": "Swagger Docs Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to check the health of the API",
+                  "pm.test(\"Response code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body includes Swagger UI elements\", function() {",
+                  "    pm.expect(pm.response.text()).to.include(\"Swagger UI\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{SDSBaseUrl}}/docs",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "docs"
+              ]
+            },
+            "description": "Expect a 200 OK response from Swagger route /docs, and for content to include Swagger elements."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SDSAuthTests",
+      "item": [
+        {
+          "name": "Missing token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"response code is 403\", function() {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"response message is not authenticated\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.eql(\"Forbidden\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "packages": {},
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "retrieve_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "README.md"
+                }
+              ]
+            },
+            "description": "Expect a 403 FORBIDDEN with no authentication token (hence anonymous)"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid scope token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Runs before invalid scope test",
+                  "",
+                  "function postRequest(secret) {",
+                  "    const postRequest = {",
+                  "        url: tokenUrl,",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/x-www-form-urlencoded'",
+                  "        },",
+                  "        body: {",
+                  "            mode: 'urlencoded',",
+                  "            urlencoded:",
+                  "                [",
+                  "                    { key: 'grant_type', value: 'client_credentials' },",
+                  "                    { key: 'client_id', value: clientId },",
+                  "                    { key: 'client_secret', value: secret },",
+                  "                    { key: 'scope', value: scope }",
+                  "                ]",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(postRequest, (error, response) => {",
+                  "        let jsonData = response.json()",
+                  "        pm.variables.set(\"bearerToken\", jsonData.access_token)",
+                  "    })",
+                  "}",
+                  "",
+                  "// resolve variables from the environment",
+                  "const tokenUrl = pm.environment.get('AzureTokenUrl')",
+                  "const clientId = pm.environment.get('SDSClientID')",
+                  "const scope = pm.environment.get('InvalidScope')",
+                  "var envSecret = pm.environment.get('SDSClientSecret')",
+                  "",
+                  "// locally resolve secret from vault, in pipeline use env var\",",
+                  "if (envSecret.startsWith('{{vault:')) {",
+                  "    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+                  "    // use .then() in place of await to support newman runner",
+                  "    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+                  "}",
+                  "else {",
+                  "    postRequest(envSecret)",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test invalid scope token",
+                  "pm.test(\"response code is 403\", function() {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows Invalid Token\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('detail', 'Forbidden');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "retrieve_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "README.md"
+                }
+              ]
+            },
+            "description": "Expect a 403 FORBIDDEN when using a token with the wrong scope (resolved in pre-request)"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Runs before invalid scope test",
+                  "",
+                  "function postRequest(secret) {",
+                  "    const postRequest = {",
+                  "        url: tokenUrl,",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/x-www-form-urlencoded'",
+                  "        },",
+                  "        body: {",
+                  "            mode: 'urlencoded',",
+                  "            urlencoded:",
+                  "                [",
+                  "                    { key: 'grant_type', value: 'client_credentials' },",
+                  "                    { key: 'client_id', value: clientId },",
+                  "                    { key: 'client_secret', value: secret },",
+                  "                    { key: 'scope', value: scope }",
+                  "                ]",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(postRequest, (error, response) => {",
+                  "        let jsonData = response.json()",
+                  "        pm.variables.set(\"bearerToken\", \"invalid token\")",
+                  "    })",
+                  "}",
+                  "",
+                  "// resolve variables from the environment",
+                  "const tokenUrl = pm.environment.get('AzureTokenUrl')",
+                  "const clientId = pm.environment.get('SDSClientID')",
+                  "const scope = pm.environment.get('InvalidScope')",
+                  "var envSecret = pm.environment.get('SDSClientSecret')",
+                  "",
+                  "// locally resolve secret from vault, in pipeline use env var\",",
+                  "if (envSecret.startsWith('{{vault:')) {",
+                  "    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+                  "    // use .then() in place of await to support newman runner",
+                  "    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+                  "}",
+                  "else {",
+                  "    postRequest(envSecret)",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test invalid scope token",
+                  "pm.test(\"response code is 401\", function() {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows Invalid Token\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('detail', 'Invalid or expired token');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/retrieve_file?file_key=README.md",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "retrieve_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "README.md"
+                }
+              ]
+            },
+            "description": "Expect a 401 UNAUTHORIZED when using an invalid token."
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests to ensure auth fails on invalid requests"
+    },
+    {
+      "name": "SDSSaveOrUpdateFileTests",
+      "item": [
+        {
+          "name": "Save Or Update File – New File (Expect 201)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = new Date().getTime();",
+                  "const uniqueFilename = `test_file_${timestamp}.md`;",
+                  "pm.environment.set(\"unique_filename\", uniqueFilename);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function () {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename}}",
+                  "src": "test_file.md"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\"}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_or_update_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_or_update_file"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Or Update File – Existing File (Expect 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function () {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property(",
+                  "        'success',",
+                  "        'File updated successfully in ' + pm.environment.get('SDSBucket') +",
+                  "        ' with key ' + pm.environment.get('unique_filename')",
+                  "    );",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename}}",
+                  "description": "Saves the file with the same name as in previous test (Save Or Update File – New File) to simulate overwriting a file",
+                  "src": "test_file.md"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\": \"\"}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_or_update_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_or_update_file"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Or Update File With Virus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Check response detail for Virus Found\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "eicar.txt"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_or_update_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_or_update_file"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
+          },
+          "response": []
+        },
+        {
+          "name": "Save Or Update Disallowed File Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 415\", function () {",
+                  "    pm.response.to.have.status(415);",
+                  "});",
+                  "",
+                  "pm.test(\"File mimetype not allowed\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.eql({\"detail\": [[415,\"File mimetype not allowed\"]]});",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "test_file.exe"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_or_update_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_or_update_file"
+              ]
+            },
+            "description": "Expect a 415 UNSUPPORTED MEDIA TYPE when saving a mock executable file as disallowed by client config."
+          },
+          "response": []
+        },
+        {
+          "name": "Save Or Update File With Missing Bucket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('detail');",
+                  "    pm.expect(responseBody.detail).to.have.property('bucketName');",
+                  "    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "test_file.md"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_or_update_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_or_update_file"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when no bucket is defined in the save-or-update request"
+          },
+          "response": []
+        },
+        {
+          "name": "Save Or Update File Without File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "",
+                  "});",
+                  "",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('detail');",
+                  "    pm.expect(responseBody.detail).to.include('File is required');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_or_update_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_or_update_file"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when calling save_or_update_file without a file"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests on the /save_or_update_file endpoint",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SDSRetrieveFileTests (Deprecated)",
+      "item": [
+        {
+          "name": "Retrieve File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test retrieve file",
+                  "pm.test(\"response code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"response contains fileURL key\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "retrieve_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{unique_filename}}"
+                }
+              ]
+            },
+            "description": "Run 'Save Or Update File' request first then expect 200 OK"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Non-Existent File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to verify getting a 404 response for a non-existent file",
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows file not found\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('detail', 'The file non_existent could not be found.');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/retrieve_file?file_key=non_existent",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "retrieve_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "non_existent"
+                }
+              ]
+            },
+            "description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+          },
+          "response": []
+        }
+      ],
+      "description": "Test using the deprecated /retrieve_file endpoint"
+    },
+    {
+      "name": "SDSGetFileTests",
+      "item": [
+        {
+          "name": "Get File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test get file",
+                  "pm.test(\"response code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"response contains fileURL key\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/get_file?file_key={{unique_filename}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "get_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{unique_filename}}"
+                }
+              ]
+            },
+            "description": "Run 'Save Or Update File' request first then expect 200 OK"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Non-Existent File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to verify getting a 404 response for a non-existent file",
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows file not found\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('detail', 'The file non_existent could not be found.');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/get_file?file_key=non_existent",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "get_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "non_existent"
+                }
+              ]
+            },
+            "description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+          },
+          "response": []
+        }
+      ],
+      "description": "Test on the /get_file endpoint"
+    },
+    {
+      "name": "SDSSaveFileTests",
+      "item": [
+        {
+          "name": "Save File - New File (Expect 201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.environment.get('unique_filename'));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = new Date().getTime();",
+                  "const uniqueFilename = `test_file_${timestamp}.md`;",
+                  "pm.environment.set(\"unique_filename\", uniqueFilename);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename}}",
+                  "src": "test_file.md"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 201 OK when saving a new file."
+          },
+          "response": []
+        },
+        {
+          "name": "Save File - Existing File (Expect 409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('detail');",
+                  "    pm.expect(responseBody.detail).to.include('File ' + pm.environment.get('unique_filename') + ' already exists and cannot be overwritten via the /save_file endpoint. Use PUT endpoint /save_or_update_file to overwrite.');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename}}",
+                  "src": "test_file.md"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 409 when saving a file that already exists in bucket ."
+          },
+          "response": []
+        },
+        {
+          "name": "Save File With Virus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Check response detail for Virus Found\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "eicar.txt"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
+          },
+          "response": []
+        },
+        {
+          "name": "Save Disallowed File Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 415\", function () {",
+                  "    pm.response.to.have.status(415);",
+                  "});",
+                  "",
+                  "pm.test(\"File mimetype not allowed\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.eql({\"detail\": [[415,\"File mimetype not allowed\"]]});",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "test_file.exe"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 415 UNSUPPORTED MEDIA TYPE when uploading a mock executable file as disallowed by client config."
+          },
+          "response": []
+        },
+        {
+          "name": "Save File With Missing Bucket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('detail');",
+                  "    pm.expect(responseBody.detail).to.have.property('bucketName');",
+                  "    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "test_file.md"
+                },
+                {
+                  "key": "body",
+                  "value": "{\"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when no bucket is defined in the save request"
+          },
+          "response": []
+        },
+        {
+          "name": "Save File Without File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "",
+                  "});",
+                  "",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('detail');",
+                  "    pm.expect(responseBody.detail).to.include('File is required');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\":\"{{SDSBucket}}\", \"folder\":\"testmult\"} ",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when calling save_file without a file"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests on the /save_file endpoint",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SDSDeleteFilesTests",
+      "item": [
+        {
+          "name": "Save A File For Deleting",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is CREATED\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_a'));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename_a}}",
+                  "src": "test_file.md"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 201 OK when saving a new file."
+          },
+          "response": []
+        },
+        {
+          "name": "Save B File For Deleting",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is CREATED\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_b'));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename_b}}",
+                  "src": "test_file.md"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 201 OK when saving a new file."
+          },
+          "response": []
+        },
+        {
+          "name": "Save C File For Deleting",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is CREATED\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_c'));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename_c}}",
+                  "src": "test_file.md"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 201 OK when saving a new file."
+          },
+          "response": []
+        },
+        {
+          "name": "Save D File For Deleting",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is CREATED\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('success', 'File saved successfully in ' + pm.environment.get('SDSBucket') + ' with key ' + pm.variables.get('unique_filename_d'));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "body",
+                  "value": "{\"bucketName\": \"{{SDSBucket}}\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename_d}}",
+                  "src": "test_file.md"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/save_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "save_file"
+              ]
+            },
+            "description": "Expect a 201 OK when saving a new file."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Single File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"response code is OK\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"response contains filename key\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_a'));",
+                  "});",
+                  "",
+                  "pm.test(\"response contains expected deletion status for file\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody[pm.variables.get('unique_filename_a')]).to.equal(204);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_a}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "delete_files"
+              ],
+              "query": [
+                {
+                  "key": "file_keys",
+                  "value": "{{unique_filename_a}}"
+                }
+              ]
+            },
+            "description": "Run 'Save Or Update File' request first then expect 200 OK"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Single File - No File Key Provided",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"Status code is 400 - BAD REQUEST\", function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Request must include at least one filename\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('detail');",
+                  "    pm.expect(responseBody.detail).to.include('File key is missing');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/delete_files",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "delete_files"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when no filename(s) are provided for deletion"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Single File Without Authorisation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"Status code is 403 - FORBIDDEN\", function() {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test(\"Response message is not authorised\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('detail', 'Forbidden');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Sets token without necessary scope to delete before test runs",
+                  "",
+                  "function postRequest(secret) {",
+                  "    const postRequest = {",
+                  "        url: tokenUrl,",
+                  "        method: 'POST',",
+                  "        header: {",
+                  "            'Content-Type': 'application/x-www-form-urlencoded'",
+                  "        },",
+                  "        body: {",
+                  "            mode: 'urlencoded',",
+                  "            urlencoded:",
+                  "                [",
+                  "                    { key: 'grant_type', value: 'client_credentials' },",
+                  "                    { key: 'client_id', value: clientId },",
+                  "                    { key: 'client_secret', value: secret },",
+                  "                    { key: 'scope', value: scope }",
+                  "                ]",
+                  "        }",
+                  "    };",
+                  "",
+                  "    pm.sendRequest(postRequest, (error, response) => {",
+                  "        let jsonData = response.json()",
+                  "        pm.variables.set(\"bearerToken\", jsonData.access_token)",
+                  "    })",
+                  "}",
+                  "",
+                  "// resolve variables from the environment",
+                  "const tokenUrl = pm.environment.get('AzureTokenUrl')",
+                  "const clientId = pm.environment.get('SDSClientID')",
+                  "const scope = pm.environment.get('InvalidScope')",
+                  "var envSecret = pm.environment.get('SDSClientSecret')",
+                  "",
+                  "// locally resolve secret from vault, in pipeline use env var\",",
+                  "if (envSecret.startsWith('{{vault:')) {",
+                  "    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+                  "    // use .then() in place of await to support newman runner",
+                  "    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+                  "}",
+                  "else {",
+                  "    postRequest(envSecret)",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_d}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "delete_files"
+              ],
+              "query": [
+                {
+                  "key": "file_keys",
+                  "value": "{{unique_filename_d}}"
+                }
+              ]
+            },
+            "description": "Expect a 403 FORBIDDEN outcome when user does not hold the required permissions to delete files"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Non-Existent File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"Overall status code is 200 - OK \", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains filename key\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property(pm.variables.get('non_existent_file'));",
+                  "});",
+                  "",
+                  "pm.test(\"Outcome code for file is 404 - FILE NOT FOUND\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody[pm.variables.get('non_existent_file')]).to.equal(404);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/delete_files?file_keys={{non_existent_file}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "delete_files"
+              ],
+              "query": [
+                {
+                  "key": "file_keys",
+                  "value": "{{non_existent_file}}"
+                }
+              ]
+            },
+            "description": "Expect a 404 NOT FOUND outcome when trying to delete a file that cannot be found in specified bucket"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Deleted File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is NOT FOUND\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows file not found\", function() {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('detail', 'The file '+pm.variables.get('unique_filename_a')+' could not be found.');",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename_a}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "retrieve_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{unique_filename_a}}"
+                }
+              ]
+            },
+            "description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Non-Deleted File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is SUCCESS\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"response contains fileURL key\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property('fileURL').that.is.a('string');",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/retrieve_file?file_key={{unique_filename_b}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "retrieve_file"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{unique_filename_b}}"
+                }
+              ]
+            },
+            "description": "Expect 404 NOT FOUND when requesting a file that does not exist"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Multiple Files",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "pm.test(\"response code is OK\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"response contains filename key\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_b'));",
+                  "});",
+                  "",
+                  "pm.test(\"response contains expected deletion status for file\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody[pm.variables.get('unique_filename_b')]).to.equal(204);",
+                  "});",
+                  "",
+                  "pm.test(\"response contains filename key\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.have.property(pm.variables.get('unique_filename_c'));",
+                  "});",
+                  "",
+                  "pm.test(\"response contains expected deletion status for file\", function() {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody[pm.variables.get('unique_filename_c')]).to.equal(204);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/delete_files?file_keys={{unique_filename_b}}&file_keys={{unique_filename_c}}",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "delete_files"
+              ],
+              "query": [
+                {
+                  "key": "file_keys",
+                  "value": "{{unique_filename_b}}"
+                },
+                {
+                  "key": "file_keys",
+                  "value": "{{unique_filename_c}}"
+                }
+              ]
+            },
+            "description": "Run 'Save Or Update File' request first then expect 200 OK"
+          },
+          "response": []
+        }
+      ],
+      "description": "Test the /delete_files endpoint",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              "// Scope vars to the run",
+              "if ( ! pm.variables.has(\"unique_filename_a\") ) {",
+              "    const timestamp = new Date().getTime();",
+              "    pm.variables.set(\"unique_filename_a\", `test_file_${timestamp}_a.md`);",
+              "    pm.variables.set(\"unique_filename_b\", `test_file_${timestamp}_b.md`);",
+              "    pm.variables.set(\"unique_filename_c\", `test_file_${timestamp}_c.md`);",
+              "    pm.variables.set(\"unique_filename_d\", `test_file_${timestamp}_d.md`);",
+              "    pm.variables.set(\"non_existent_file\", `non_existent_file_${timestamp}.md`);",
+              "}",
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SDSVirusCheckFileTests",
+      "item": [
+        {
+          "name": "Check File With Virus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is BAD REQUEST\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Check response detail for Virus Found\", function () {",
+                  "    var responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.eql({\"detail\": \"Virus Found\"});",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const uuid = require(\"uuid\");",
+                  "const uniqueFilename = 'test_file_'+uuid.v4()+'.md';",
+                  "pm.environment.set(\"unique_filename\", uniqueFilename);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename}}",
+                  "src": "eicar.txt"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/virus_check_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "virus_check_file"
+              ]
+            },
+            "description": "Expect a 400 BAD REQUEST when saving the eicar mock virus file"
+          },
+          "response": []
+        },
+        {
+          "name": "Check File Without Virus",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const uuid = require(\"uuid\");",
+                  "const uniqueFilename = 'test_file_'+uuid.v4()+'.md';",
+                  "pm.environment.set(\"unique_filename\", uniqueFilename);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body shows success\", function () {",
+                  "    const responseBody = pm.response.json();",
+                  "    pm.expect(responseBody).to.be.an('object');",
+                  "    pm.expect(responseBody).to.have.property('success', 'No virus found');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{bearerToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "fileName": "{{unique_filename}}",
+                  "src": "test_file.md"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{SDSBaseUrl}}/virus_check_file",
+              "host": [
+                "{{SDSBaseUrl}}"
+              ],
+              "path": [
+                "virus_check_file"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests the /virus_check_files endpoint",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          "// Always runs before every request",
+          "",
+          "function postRequest(secret) {",
+          "    const postRequest = {",
+          "        url: tokenUrl,",
+          "        method: 'POST',",
+          "        header: {",
+          "            'Content-Type': 'application/x-www-form-urlencoded'",
+          "        },",
+          "        body: {",
+          "            mode: 'urlencoded',",
+          "            urlencoded:",
+          "                [",
+          "                    { key: 'grant_type', value: 'client_credentials' },",
+          "                    { key: 'client_id', value: clientId },",
+          "                    { key: 'client_secret', value: secret },",
+          "                    { key: 'scope', value: scope }",
+          "                ]",
+          "        }",
+          "    };",
+          "",
+          "    pm.sendRequest(postRequest, (error, response) => {",
+          "        let jsonData = response.json()",
+          "        pm.variables.set(\"bearerToken\", jsonData.access_token)",
+          "    })",
+          "}",
+          "",
+          "// resolve variables from the environment",
+          "const tokenUrl = pm.environment.get('AzureTokenUrl')",
+          "const clientId = pm.environment.get('SDSClientID')",
+          "const scope = pm.environment.get('ValidScope')",
+          "var envSecret = pm.environment.get('SDSClientSecret')",
+          "",
+          "// locally resolve secret from vault, in pipeline use env var\",",
+          "if (envSecret.startsWith('{{vault:')) {",
+          "    secretKey = envSecret.replace('{{vault:', '').replace('}}', '')",
+          "    // use .then() in place of await to support newman runner",
+          "    pm.vault.get(secretKey).then(vaultValue => postRequest(vaultValue))",
+          "}",
+          "else {",
+          "    postRequest(envSecret)",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
 }

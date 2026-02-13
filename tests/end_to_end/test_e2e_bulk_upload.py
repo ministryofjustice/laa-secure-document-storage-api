@@ -230,11 +230,12 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
     assert response_details["bad_type.exe"] == {'filename': 'bad_type.exe',
                                                 'positions': [2],
                                                 'outcomes': [{'status_code': 415,
-                                                              'detail': 'File mimetype not allowed'}],
+                                                              'detail': [[415, "File mimetype not allowed"]]}],
                                                 'checksum': None}  # likely auto-convert of json null to Python None
     assert response_details["..."] == {'filename': '...',
                                        'positions': [3],
-                                       'outcomes': [{'status_code': 415, 'detail': 'File extension not allowed'}],
+                                       'outcomes': [{'status_code': 415,
+                                                     "detail": [[415, "File extension not allowed"]]}],
                                        'checksum': None}
     assert response_details["bad_char|.txt"] == {'filename': 'bad_char|.txt',
                                                  'positions': [4],
@@ -264,12 +265,13 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
         audit_item_2 = audit_table_client.get_audit_row_e2e(response, 2)
         assert audit_item_2.get("file_id") == {'S': "bad_type.exe"}
         assert audit_item_2.get("operation_type") == {'S': 'FAILED'}
-        assert audit_item_2.get("error_details") == {'S': f'{response.url.path}: File mimetype not allowed'}
+        assert audit_item_2.get("error_details") == {'S': f"{response.url.path}: [(415, 'File mimetype not allowed')]"}
         # Bad file extension
         audit_item_3 = audit_table_client.get_audit_row_e2e(response, 3)
         assert audit_item_3.get("file_id") == {'S': "..."}
         assert audit_item_3.get("operation_type") == {'S': 'FAILED'}
-        assert audit_item_3.get("error_details") == {'S': f'{response.url.path}: File extension not allowed'}
+        assert audit_item_3.get("error_details") == {'S': f"{response.url.path}"
+                                                     ": [(415, 'File extension not allowed')]"}
         # Bad character in filename
         audit_item_4 = audit_table_client.get_audit_row_e2e(response, 4)
         assert audit_item_4.get("file_id") == {'S': "bad_char|.txt"}
@@ -281,3 +283,30 @@ def test_bulk_upload_with_invalid_files_returns_expected_errors():
         assert audit_item_5.get("file_id") == {'S': good_file2}
         assert audit_item_5.get("operation_type") == {'S': 'CREATE'}
         assert audit_item_5.get("error_details") == {'S': ''}
+
+
+# Test above has mutliple errors but limited to one-per-file.
+# This test has one file with 2 client-configured validator fails.
+@pytest.mark.e2e
+def test_bulk_load_with_file_with_more_than_one_error():
+    good_file1 = make_unique_name("good_file.txt")
+    good_file2 = make_unique_name("good_file.txt")
+    files = [
+            test_md_file.get_data_tuple(good_file1),  # Valid file
+            disallowed_file.get_data_tuple("bad_type."),  # Bad mimetype and empty file extension
+            test_md_file.get_data_tuple(good_file2),  # Another valid file
+            ]
+
+    response = client.put(f"{HOST_URL}/bulk_upload",
+                          headers=token_getter.get_headers(),
+                          files=files,
+                          data=UPLOAD_BODY)
+
+    response_details = response.json()
+    assert response.status_code == 200
+    assert response_details[good_file1]["outcomes"] == [{'detail': 'saved', 'status_code': 201}]
+    assert response_details[good_file2]["outcomes"] == [{'detail': 'saved', 'status_code': 201}]
+    assert response_details["bad_type."]["outcomes"] == [{'detail': [[415, "File extension not allowed"],
+                                                                     [415, "File mimetype not allowed"]],
+                                                          'status_code': 415}
+                                                         ]

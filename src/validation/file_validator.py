@@ -17,6 +17,11 @@ class InvalidValidatorArgumentsError(Exception):
 
 
 class FileValidator(abc.ABC):
+    # Boolean below used to specify expected run behaviour when validator has "fail" result,
+    # i.e. if there is a sequence of validators, whether to proceed to the next validator
+    # or to end the sequence.
+    continue_to_next_validator_on_fail = False
+
     def validate(self, file_object: UploadFile, **kwargs) -> Tuple[int, str]:
         """
         Runs the validator on the file object and returns a status code and a message.
@@ -30,6 +35,8 @@ class FileValidator(abc.ABC):
 
 
 class MaxFileSize(FileValidator):
+    continue_to_next_validator_on_fail = True
+
     def validate(self, file_object, size: int = 1, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file is at most a certain size.
@@ -51,6 +58,8 @@ class MaxFileSize(FileValidator):
 
 
 class MinFileSize(FileValidator):
+    continue_to_next_validator_on_fail = True
+
     def validate(self, file_object, size: int = 1, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file is at least a certain size.
@@ -72,6 +81,8 @@ class MinFileSize(FileValidator):
 
 
 class AllowedFileExtensions(FileValidator):
+    continue_to_next_validator_on_fail = True
+
     def validate(self, file_object, extensions: List[str] = list, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file extension is in the list of allowed extensions.
@@ -94,6 +105,8 @@ class AllowedFileExtensions(FileValidator):
 
 
 class DisallowedFileExtensions(FileValidator):
+    continue_to_next_validator_on_fail = True
+
     def validate(self, file_object, extensions: List[str] = list, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file extension is not in the list of disallowed extensions.
@@ -113,6 +126,8 @@ class DisallowedFileExtensions(FileValidator):
 
 
 class DisallowedMimetypes(FileValidator):
+    continue_to_next_validator_on_fail = True
+
     def validate(self, file_object, content_types: List[str] = list, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file mimetype is not in the list of disallowed mimetypes.
@@ -137,6 +152,8 @@ class DisallowedMimetypes(FileValidator):
 
 
 class AllowedMimetypes(FileValidator):
+    continue_to_next_validator_on_fail = True
+
     def validate(self, file_object, content_types: List[str] = list, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file mimetype is in the list of allowed mimetypes.
