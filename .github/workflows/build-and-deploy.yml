@@ -15,7 +15,7 @@ jobs:
       contents: read  # This is required for actions/checkout
     steps:
     - name: Checkout code
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Obtain Octo STS Token
       uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
@@ -25,7 +25,7 @@ jobs:
         identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
     - name: Checkout client configs
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: 'false'
         token: '${{ steps.octo_sts.outputs.token }}'
