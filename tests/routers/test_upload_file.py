@@ -60,11 +60,8 @@ def test_save_file_no_file(handler_mock, test_client):
     data = {
         "body": '{"bucketName": "test_bucket"}'
     }
-    files = {
-        "file": ("", BytesIO(), "text/plain")
-    }
 
-    response = test_client.post("/save_file", data=data, files=files)
+    response = test_client.post("/save_file", data=data)
 
     assert response.status_code == 400
     assert response.json() == {'detail': 'File is required'}
