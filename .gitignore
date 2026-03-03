@@ -70,3 +70,6 @@ instance/
 
 # SDS specific
 clientconfigs
+
+# Block .env
+.env
