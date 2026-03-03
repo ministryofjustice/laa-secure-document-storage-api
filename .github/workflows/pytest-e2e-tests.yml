@@ -70,7 +70,7 @@ jobs:
 
       - name: Wait 60 seconds for ClamAV
         run: sleep 60
-      
+
       - name: Set up Python 3.13
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
@@ -84,6 +84,9 @@ jobs:
       - name: Install test dependencies
         run: |
           pipenv run pipenv install --dev
+
+      - name: Set .env file
+        run: cp .env.sample .env
 
       - name: Run Pytest e2e Tests
         run: |
