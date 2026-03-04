@@ -21,6 +21,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Set .env file                                             # Used to be part of code, so create immediately after checkout for consistency
+        run: cp .env.sample .env
+
       - name: Obtain Octo STS Token
         uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
         id: octo_sts
@@ -84,9 +87,6 @@ jobs:
       - name: Install test dependencies
         run: |
           pipenv run pipenv install --dev
-
-      - name: Set .env file
-        run: cp .env.sample .env
 
       - name: Run Pytest e2e Tests
         run: |
