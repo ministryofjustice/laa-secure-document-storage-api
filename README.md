@@ -33,8 +33,9 @@ export AWS_SECRET_ACCESS_KEY=dummy
 If you don't set these environment variables, LocalStack will default to the credentials defined
 in `~/.aws/credentials`. Although it might seem convenient, this method requires manually updating the variables in
 the `.env` file to ensure correct values when running locally.
-Remember, don't include your real AWS keys in the code base or commit them to version control. When using IDE tools,
-make sure your Docker-compose variables are setup correctly if you choose to use non-dummy keys.
+Remember, don't include your real AWS keys in the code base or commit them to version control. Note `.env` has been
+added to `.gitignore` to reduce the risk of this happening. When using IDE tools, make sure your Docker-compose variables
+are setup correctly if you choose to use non-dummy keys.
 
 #### SDS configuration values
 
@@ -47,8 +48,8 @@ validate the token. Internal services teams can contact the SDS team to obtain t
 environment.
 
 For each client to be authorised to use any of the SDS routes, you will also need a client configuration. See the
-documentation for [generating client configs](docs/client_configurations.md). For internal services, you will need to 
-follow the 
+documentation for [generating client configs](docs/client_configurations.md). For internal services, you will need to
+follow the
 [SDS integration guide](https://dsdmoj.atlassian.net/wiki/spaces/SDS/pages/5390237878/LAA+SDS+Integration+Documentation).
 
 For SDS developers, another team member will provide access to local development client credentials and config. They
@@ -57,7 +58,7 @@ directory and called `sds-client-configs`
 
 #### Try without credentials
 
-For users looking to try the API locally without using authentication, you can do so by creating a new config for the 
+For users looking to try the API locally without using authentication, you can do so by creating a new config for the
 unauthenticated user `anonymous` and granting that user access to the required routes. See the docs on client configs
 for more details on [generating client configs](docs/client_configurations.md).
 
@@ -147,7 +148,7 @@ $ pipenv run pytest
 
 Separate from the pytest API tests, we have a number of Postman tests against this API which can run locally, in the pipeline or against any of our non-production
 environments. We have pre-request scripts configured to obtain authentication tokens. A valid token is obtained before
-all tests via a pre-request script on the collection. An invalid token is obtained via a pre-request script associated 
+all tests via a pre-request script on the collection. An invalid token is obtained via a pre-request script associated
 with the invalid token test.
 
 #### Setup
@@ -156,7 +157,7 @@ with the invalid token test.
   - You will require an account, create one with your `@digital.justice.gov.uk` email address
 - If it doesn't exist already, create the following directory: `~/Postman` (note capital P at start)
 - On Mac and other devices, Microsoft Defender may quarantine the test virus file
-  - Open Micosoft Defender 
+  - Open Micosoft Defender
   - Open manage Virus & Threat detection settings
   - Add/Remove exclusion
   - Add folder type exclusion for this repos `/Postman` folder, and your `~/Postman` folder
@@ -190,8 +191,8 @@ with the invalid token test.
 ### AWS resources
 Aws resources need to be configured in cloud platform repository see below.  The resources get created on the namespace
 using terraform.
-When adding a resource you should export a kubernetes secret so that the secret can then be injected into the 
-application as a environment variable at runtime. 
+When adding a resource you should export a kubernetes secret so that the secret can then be injected into the
+application as a environment variable at runtime.
 
 You can then use the secret directly in k8s deployment.yml
 
