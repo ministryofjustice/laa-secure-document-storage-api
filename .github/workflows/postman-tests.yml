@@ -19,21 +19,21 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set .env file
         run: |
           cp .env.sample .env
 
       - name: Obtain Octo STS Token
-        uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
         id: octo_sts
         with:
           scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
           identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
       - name: Checkout client configs
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: 'false'
           token: '${{ steps.octo_sts.outputs.token }}'
@@ -47,7 +47,7 @@ jobs:
           ls ./clientconfigs/
 
       - name: Set up Node.js
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: '18'
 

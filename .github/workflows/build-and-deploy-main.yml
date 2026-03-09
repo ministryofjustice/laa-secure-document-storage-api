@@ -20,17 +20,17 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Obtain Octo STS Token
-      uses: octo-sts/action@6177b4481c00308b3839969c3eca88c96a91775f # v1.0.0
+      uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
       id: octo_sts
       with:
         scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
         identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
     - name: Checkout client configs
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: 'false'
         token: '${{ steps.octo_sts.outputs.token }}'
@@ -44,7 +44,7 @@ jobs:
         docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ secrets.TEST_ECR_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.TEST_ECR_REGION }}
@@ -91,17 +91,17 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Obtain Octo STS Token
-      uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+      uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
       id: octo_sts
       with:
         scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
         identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
     - name: Checkout client configs
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: 'false'
         token: '${{ steps.octo_sts.outputs.token }}'
@@ -115,7 +115,7 @@ jobs:
         docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: ${{ secrets.STAGING_ECR_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.STAGING_ECR_REGION }}
@@ -162,17 +162,17 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Obtain Octo STS Token
-        uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
         id: octo_sts
         with:
           scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
           identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
       - name: Checkout client configs
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: 'false'
           token: '${{ steps.octo_sts.outputs.token }}'
@@ -186,7 +186,7 @@ jobs:
           docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
       - name: Assume AWS Role
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.PROD_ECR_REGION }}
