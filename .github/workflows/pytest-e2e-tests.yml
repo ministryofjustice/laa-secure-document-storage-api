@@ -19,21 +19,21 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set .env file                                             # Used to be part of code, so create immediately after checkout for consistency
         run: |
           cp .env.sample .env
 
       - name: Obtain Octo STS Token
-        uses: octo-sts/action@d6c70ad3b9ac85df6da6b9749014d7283987cfec # v1.0.3
+        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
         id: octo_sts
         with:
           scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
           identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
       - name: Checkout client configs
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: 'false'
           token: '${{ steps.octo_sts.outputs.token }}'
@@ -76,7 +76,7 @@ jobs:
         run: sleep 60
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.13"
 
