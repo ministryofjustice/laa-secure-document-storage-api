@@ -25,7 +25,7 @@ typing_extensions = "==4.15.0"
 casbin = "==1.43.0"
 fastapi-authz = "==1.0.0"
 h11 = ">=0.16.0"
-requests = "==2.32.5"
+requests = "==2.33.0"
 python-jose = {extras = ["cryptography"], version = "==3.5.0"}
 python-dateutil = "*"
 
