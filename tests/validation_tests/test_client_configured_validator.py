@@ -223,7 +223,7 @@ async def test_validate_or_error_with_pass():
     # This test concerns the format of result rather than the validation itself
     file = ""
     validators = []
-    with patch("src.validation.client_configured_validator.validate", return_value=[(200, "")]):
+    with patch("src.validation.client_configured_validator.validate_file", return_value=[(200, "")]):
         result = await validate_or_error(file, validators)
     assert result == (200, "")
 
@@ -252,7 +252,7 @@ async def test_validate_or_error_with_fail(validate_result, expected_result):
     # than validation itself
     fileobject = ""
     validators = []
-    with patch("src.validation.client_configured_validator.validate", return_value=validate_result):
+    with patch("src.validation.client_configured_validator.validate_file", return_value=validate_result):
         with pytest.raises(HTTPException) as excinfo:
             _ = await validate_or_error(fileobject, validators)
     assert str(excinfo.value) == expected_result

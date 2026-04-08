@@ -2,9 +2,9 @@ import inspect
 from typing import Any, Dict, List
 
 import structlog
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 
-from src.models.file_validator_spec import FileValidatorSpec
+from src.models.file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
 from src.validation.file_validator import FileValidator, ValidatorNotFoundError
 
 logger = structlog.get_logger()
@@ -78,7 +78,7 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
     return validator_kwargs
 
 
-async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> list[tuple[int, str]]:
+async def validate_file(file_object: UploadFile, validator_specs: List[FileValidatorSpec]) -> list[tuple[int, str]]:
     """
     Validates the file object against a list of validators, returning [(200, "") if all validators pass.
 
@@ -95,16 +95,25 @@ async def validate(file_object, validator_specs: List[FileValidatorSpec]) -> lis
     """
     if file_object is None or not file_object.filename:
         return [400, [(400, "File is required")]]
+    result = await validate(file_object, validator_specs)
+    return result
 
+
+async def validate(validation_target: UploadFile | list[UploadFile],
+                   validator_specs: List[FileValidatorSpec | FileCollectionValidatorSpec]) -> list[tuple[int, str]]:
+    """
+    Run list of client-configured validators which can include either file validators or file-collection validators
+    (Also potentially a combination of both but that is not intended behaviour)
+    """
     errors_found = []
     for validator_spec in validator_specs:
         validator = get_validator(validator_spec.name)
         validator_kwargs = validator_spec.validator_kwargs
         try:
             if inspect.iscoroutinefunction(validator.validate):
-                status, detail = await validator.validate(file_object, **validator_kwargs)
+                status, detail = await validator.validate(validation_target, **validator_kwargs)
             else:
-                status, detail = validator.validate(file_object, **validator_kwargs)
+                status, detail = validator.validate(validation_target, **validator_kwargs)
             if status != 200:
                 errors_found.append((status, detail))
                 if not validator.continue_to_next_validator_on_fail:
@@ -151,7 +160,7 @@ async def validate_or_error(file_object, validators: list[FileValidatorSpec]) ->
     :param file_object:
     :return: status_code: int, detail: str
     """
-    results = await validate(file_object, validators)
+    results = await validate_file(file_object, validators)
     if results != [(200, "")]:
         status_code = get_status_code_for_response(results)
         raise HTTPException(status_code=status_code, detail=results)
