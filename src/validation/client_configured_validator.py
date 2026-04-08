@@ -1,24 +1,23 @@
 import inspect
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import structlog
 from fastapi import HTTPException, UploadFile
 
 from src.models.file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
 from src.validation.file_validator import FileValidator, ValidatorNotFoundError
+from src.validation.file_collection_validator import FileCollectionValidator
 
 logger = structlog.get_logger()
 
 
-def get_validator(validator_name: str) -> FileValidator:
+def get_validator(validator_name: str) -> FileValidator | FileCollectionValidator:
     """
     Returns a validator instance by name, raising a ValidatorNotFoundError if the validator is not found.
-
-    :param validator_name:
-    :return: FileValidator
     """
     validators = {}
-    for validator in FileValidator.__subclasses__():
+    # Change things so list is only created once? (Possibly create global list with all validators)
+    for validator in FileValidator.__subclasses__() + FileCollectionValidator.__subclasses__():
         validators[validator.__name__] = validator
 
     if validator_name not in validators:
@@ -42,7 +41,7 @@ def get_validator_validate_docstring(validator: FileValidator) -> tuple[str, str
     return headline, full_text
 
 
-def generate_all_filevalidatorspecs() -> List[FileValidatorSpec]:
+def generate_all_filevalidatorspecs() -> list[FileValidatorSpec]:
     # The validators are defined src/validation/file_validator.py
     return [FileValidatorSpec(name=v.__name__,
                               description=get_validator_validate_docstring(v)[0],
@@ -78,7 +77,7 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
     return validator_kwargs
 
 
-async def validate_file(file_object: UploadFile, validator_specs: List[FileValidatorSpec]) -> list[tuple[int, str]]:
+async def validate_file(file_object: UploadFile, validator_specs: list[FileValidatorSpec]) -> list[tuple[int, str]]:
     """
     Validates the file object against a list of validators, returning [(200, "") if all validators pass.
 
@@ -88,10 +87,6 @@ async def validate_file(file_object: UploadFile, validator_specs: List[FileValid
     Behaviour upon validator failure depends on the validator's continue_to_next_validator_on_fail attribute.
     When True, validation will proceed to the next validator in sequence. When False, the validation
     sequence ends and currently accumulated results returned.
-
-    :param validator_specs:
-    :param file_object:
-    :return:[(status_code: int, detail: str)]
     """
     if file_object is None or not file_object.filename:
         return [400, [(400, "File is required")]]
@@ -99,11 +94,31 @@ async def validate_file(file_object: UploadFile, validator_specs: List[FileValid
     return result
 
 
+async def validate_file_collection(files: list[UploadFile],
+                                   validator_specs: list[FileCollectionValidatorSpec]) -> list[tuple[int, str]]:
+    """
+    Validates the list of file objects against a list of validators, returning [(200, "") if all validators pass.
+
+    Validators are executed in the provided order, any exception raised during execution of a validator
+    will be logged and returned as an internal error (500, "Internal error handling file").
+
+    Behaviour upon validator failure depends on the validator's continue_to_next_validator_on_fail attribute.
+    When True, validation will proceed to the next validator in sequence. When False, the validation
+    sequence ends and currently accumulated results returned.
+    """
+    if not files:
+        return [400, [(400, "List of files is required")]]
+    result = await validate(files, validator_specs)
+    return result
+
+
 async def validate(validation_target: UploadFile | list[UploadFile],
-                   validator_specs: List[FileValidatorSpec | FileCollectionValidatorSpec]) -> list[tuple[int, str]]:
+                   validator_specs: list[FileValidatorSpec | FileCollectionValidatorSpec]) -> list[tuple[int, str]]:
     """
     Run list of client-configured validators which can include either file validators or file-collection validators
-    (Also potentially a combination of both but that is not intended behaviour)
+    but not a compbination of both. Need to be approprate for the type of validation_target:
+       When target is UploadFile, validators must be FileValidatorSpec
+       When target is list[UploadFile], validators must be FileCollectionValidatorSpec
     """
     errors_found = []
     for validator_spec in validator_specs:
@@ -161,6 +176,19 @@ async def validate_or_error(file_object, validators: list[FileValidatorSpec]) ->
     :return: status_code: int, detail: str
     """
     results = await validate_file(file_object, validators)
+    if results != [(200, "")]:
+        status_code = get_status_code_for_response(results)
+        raise HTTPException(status_code=status_code, detail=results)
+    return 200, ""
+
+
+async def validate_or_error_file_collection(files: list[UploadFile],
+                                            validators: list[FileCollectionValidatorSpec]) -> tuple[int, str]:
+    """
+    Validates a list of file objects against a list of validators, returning (200, "") if all validators pass,
+    or raise an HTTPException with relevant status_code and detail if one or more validators failed.
+    """
+    results = await validate_file_collection(files, validators)
     if results != [(200, "")]:
         status_code = get_status_code_for_response(results)
         raise HTTPException(status_code=status_code, detail=results)

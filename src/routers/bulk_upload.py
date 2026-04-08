@@ -7,6 +7,7 @@ from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload, BulkUploadFileResponse
 from src.utils.request_types import RequestType
 from src.handlers.file_upload_handler import handle_file_upload_logic
+from src.validation.client_configured_validator import validate_or_error_file_collection
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -63,6 +64,9 @@ async def bulk_upload(
     * 500 unexpected error
     """
     # Not included validation for empty files list because Fast API gives 422 error automatically
+
+    # File-collection validation - raises HTTP Exception if validation fails
+    _ = await validate_or_error_file_collection(files, client_config.file_collection_validators)
 
     # Create dictionary for storing results for each filename supplied
     results = {f.filename: BulkUploadFileResponse(filename=f.filename, positions=[], outcomes=[], ) for f in files}
