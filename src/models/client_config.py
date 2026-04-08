@@ -1,5 +1,5 @@
 from pydantic import Field, AliasChoices, BaseModel
-from .file_validator_spec import FileValidatorSpec
+from .file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
 
 
 class ClientConfig(BaseModel):
@@ -18,3 +18,5 @@ class ClientConfig(BaseModel):
     file_validators: list[FileValidatorSpec] = Field(
         default_factory=list, validation_alias=AliasChoices('file_validators', 'validators')
     )
+    # No validation_alias specified as we don't seem to be using them
+    file_collection_validators: list[FileCollectionValidatorSpec] = Field(default_factory=list)
