@@ -6,7 +6,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import UploadFile
 
-from src.models.client_config import ClientConfig, FileValidatorSpec
+from src.models.client_config import ClientConfig
+from src.models.file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
 from src.validation.client_configured_validator import get_validator, validate
 from src.validation.file_validator import InvalidValidatorArgumentsError
 
@@ -48,12 +49,37 @@ def make_validatorspec(validator_name: str, **kwargs) -> FileValidatorSpec:
     return FileValidatorSpec(name=validator_name, validator_kwargs=kwargs)
 
 
-def make_config(validator_specs: List[FileValidatorSpec]) -> ClientConfig:
+def make_file_collection_validatorspec(validator_name: str, **kwargs) -> FileCollectionValidatorSpec:
+    return FileCollectionValidatorSpec(name=validator_name, validator_kwargs=kwargs)
+
+
+def make_config_old(validator_specs: List[FileValidatorSpec]) -> ClientConfig:
     return ClientConfig(
         azure_client_id="test_user",
         bucket_name="test_bucket",
         azure_display_name="test",
         file_validators=validator_specs
+    )
+
+
+def make_config(file_validator_specs: List[FileValidatorSpec] | None = None,
+                file_collection_validator_specs: List[FileCollectionValidatorSpec] | None = None,
+                ) -> ClientConfig:
+    """
+    Original version had just one paramerter which was used for file_validator_specs.
+    For backwards compatibility this needs to remain the first parameter, otherwise
+    various existing calls would need to be updated.
+    """
+    if file_validator_specs is None:
+        file_validator_specs = []
+    if file_collection_validator_specs is None:
+        file_collection_validator_specs = []
+    return ClientConfig(
+        azure_client_id="test_user",
+        bucket_name="test_bucket",
+        azure_display_name="test",
+        file_validators=file_validator_specs,
+        file_collection_validators=file_collection_validator_specs
     )
 
 
@@ -172,7 +198,7 @@ def test_file_collection_validator(
     assert detail == expected_detail, assert_msg
 
 
-# Tests of validate function
+# Tests of validate function with file validators
 
 
 # No more than one validator failure per-test - single result, no check of "continue on fail" behaviour
@@ -362,6 +388,57 @@ async def test_validate_gives_expected_result_with_continue_flag_true_and_false(
     assert result_with_stop == [(413, 'File size is too large')]
     # Check result from "continue on fail" - two errors reported
     assert result_with_continue == [(413, 'File size is too large'), (415, "File extension not allowed")]
+
+
+# Tests of validate function with file-collection validators
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("validator_config, files, expected_status, expected_detail, assert_msg", [
+    (
+        make_config(None, [make_file_collection_validatorspec("MaxFileCount", max_count=2),]),
+        [make_uploadfile(b"A"), make_uploadfile(b"B")],
+        200, "",
+        "File count not greater than maximum"
+    ),
+    (
+        make_config(None, [make_file_collection_validatorspec("MaxFileCount", max_count=2),]),
+        [make_uploadfile(b"A"), make_uploadfile(b"B"), make_uploadfile(b"C")],
+        422, "Too many files. 3 submitted but maximum is 2.",
+        "File count above maximum"
+    ),
+    (
+        make_config(None, [make_file_collection_validatorspec("MinFileCount", min_count=3),]),
+        [make_uploadfile(b"A"), make_uploadfile(b"B"), make_uploadfile(b"C")],
+        200, "",
+        "File count at least minimum"
+    ),
+    (
+        make_config(None, [make_file_collection_validatorspec("MinFileCount", min_count=3),]),
+        [make_uploadfile(b"A"), make_uploadfile(b"B")],
+        422, "Too few files. 2 submitted but minimum is 3.",
+        "File count below minimum"
+    ),
+    (
+        make_config(None, [make_file_collection_validatorspec("MaxCombinedFileSize", max_combined_size=4),]),
+        [make_uploadfile(b"A"), make_uploadfile(b"B"), make_uploadfile(b"C"), make_uploadfile(b"D")],
+        200, "",
+        "File combined size not greater than maximum"
+    ),
+    (
+        make_config(None, [make_file_collection_validatorspec("MaxCombinedFileSize", max_combined_size=4),]),
+        [make_uploadfile(b"Z")] * 5,
+        422, "Combined file size 5 B exceeds limit of 4 B.",
+        "File combined size above maximum"
+    ),
+])
+async def test_file_collection_validator_from_config(
+        validator_config: ClientConfig,
+        files: list[UploadFile],
+        expected_status: int, expected_detail: str | None,
+        assert_msg: str
+        ):
+    results = await validate(files, validator_config.file_collection_validators)
+    assert results == [(expected_status, expected_detail)]
 
 
 # get_validator tests
