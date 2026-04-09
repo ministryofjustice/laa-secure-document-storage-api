@@ -22,7 +22,7 @@ def make_file_list(count: int) -> list[UploadFile]:
     return [test_file] * count
 
 
-# Maximum File Count
+# Individual Validator - Maximum File Count
 
 def test_max_file_count_with_too_many_files():
     five_files = make_file_list(5)
@@ -61,7 +61,7 @@ def test_max_file_count_fixed_file_count_with_different_limits(max_file_count, e
     assert status_code == expected_status_code and message == expected_message
 
 
-# Minimum File Count
+# Individual Validator - Minimum File Count
 
 @pytest.mark.parametrize("file_list,min_file_count,expected_status_code,expected_message", [
     (make_file_list(0), 0, 200, ""),
@@ -81,7 +81,7 @@ def test_minimum_file_count(file_list, min_file_count, expected_status_code, exp
     assert status_code == expected_status_code and message == expected_message
 
 
-# Maximum combined file size
+# Individual Validator - Maximum combined file size
 
 def test_total_file_size_within_limit_4_files():
     "Four 1-byte files and limit of 4 bytes - pass"

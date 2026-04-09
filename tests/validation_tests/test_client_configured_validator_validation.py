@@ -10,6 +10,20 @@ from src.models.client_config import ClientConfig, FileValidatorSpec
 from src.validation.client_configured_validator import get_validator, validate
 from src.validation.file_validator import InvalidValidatorArgumentsError
 
+"""
+This file was originally called test_file_validator.py and contained tests for
+get_validate and validate functions from src.validation.client_configured_validator
+that all use mocked files.
+
+At that time the only client-configured validators were file validators. However,
+we now also have client-configured validators that are applied to collection of files,
+and the tests here now also cover these. To reflect this, file has been renamed to
+test_client_configured_validator_validation.py
+
+Note there's also test_client_configured_validator.py which holds client-configured
+validator tests that don't use mocked files.
+"""
+
 
 def make_uploadfile(content: bytes | None = None, name: str = 'test.txt') -> UploadFile:
     """

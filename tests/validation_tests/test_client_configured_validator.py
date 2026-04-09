@@ -13,10 +13,13 @@ from src.validation.file_validator import AllowedMimetypes, DisallowedMimetypes
 """
 Location of test for functions: validate and get_validator
 
-Tests for the two above functions are in test_file_validator.py rather than here.
-Likely for convenience of using functions that create test data there.
+Tests for the two above functions are in test_client_configured_validator_validation.py rather
+than here. Likely for convenience of using functions that create test data there.
 
-Potentially could move them to this file but we have plans to change the way validators
+Tests in present file mainly concern validator admin and message formatting rather than
+validation itself.
+
+Potentially could be combined into same file but we have plans to change the way validators
 work which might require a larger reorganisation, so leaving as-is for now.
 """
 
