@@ -57,7 +57,7 @@ def make_config(validator_specs: List[FileValidatorSpec]) -> ClientConfig:
     )
 
 
-# Tests of individual validators
+# Tests of individual file validators
 
 
 @pytest.mark.parametrize("validator, validator_kwargs, file_object, expected_status, expected_detail, assert_msg", [
@@ -121,6 +121,53 @@ def test_file_validator(
         ):
     validator = get_validator(validator)
     status, detail = validator.validate(file_object, **validator_kwargs)
+    assert status == expected_status, assert_msg
+    assert detail == expected_detail, assert_msg
+
+
+# Tests of individual file-collection validators
+
+@pytest.mark.parametrize("validator, validator_kwargs, files, expected_status, expected_detail, assert_msg", [
+    (
+        "MaxFileCount", {"max_count": 3},
+        [make_uploadfile(b"A"), make_uploadfile(b"B"), make_uploadfile(b"C")],
+        200, "", "Three files allowed when limit is 3"
+    ),
+    (
+        "MaxFileCount", {"max_count": 3},
+        [make_uploadfile(b"A"), make_uploadfile(b"B"), make_uploadfile(b"C"), make_uploadfile(b"D")],
+        422, "Too many files. 4 submitted but maximum is 3.", "Too many files"
+    ),
+    (
+        "MinFileCount", {"min_count": 2},
+        [make_uploadfile(b"A"), make_uploadfile(b"B")],
+        200, "", "Two files allowed when minimum is 2"
+    ),
+    (
+        "MinFileCount", {"min_count": 2},
+        [make_uploadfile(b"A")],
+        422, "Too few files. 1 submitted but minimum is 2.", "Too few files"
+    ),
+    (
+        "MaxCombinedFileSize", {"max_combined_size": 4},
+        [make_uploadfile(b"A"), make_uploadfile(b"B"), make_uploadfile(b"C"), make_uploadfile(b"D")],
+        200, "", "Combined file size within limit"
+    ),
+    (
+        "MaxCombinedFileSize", {"max_combined_size": 3},
+        [make_uploadfile(b"A"), make_uploadfile(b"B"), make_uploadfile(b"C"), make_uploadfile(b"D")],
+        422, "Combined file size 4 B exceeds limit of 3 B.", "Combined file size over limit"
+    ),
+])
+def test_file_collection_validator(
+        validator: str,
+        validator_kwargs: Dict,
+        files: list[UploadFile],
+        expected_status: int,
+        expected_detail: str | None,
+        assert_msg: str):
+    validator = get_validator(validator)
+    status, detail = validator.validate(files, **validator_kwargs)
     assert status == expected_status, assert_msg
     assert detail == expected_detail, assert_msg
 

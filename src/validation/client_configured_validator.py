@@ -116,7 +116,7 @@ async def validate(validation_target: UploadFile | list[UploadFile],
                    validator_specs: list[FileValidatorSpec | FileCollectionValidatorSpec]) -> list[tuple[int, str]]:
     """
     Run list of client-configured validators which can include either file validators or file-collection validators
-    but not a compbination of both. Need to be approprate for the type of validation_target:
+    but not a combination of both. Need to be approprate for the type of validation_target:
        When target is UploadFile, validators must be FileValidatorSpec
        When target is list[UploadFile], validators must be FileCollectionValidatorSpec
     """
