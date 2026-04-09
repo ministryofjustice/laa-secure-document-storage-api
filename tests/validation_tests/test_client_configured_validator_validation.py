@@ -8,7 +8,7 @@ from fastapi import UploadFile
 
 from src.models.client_config import ClientConfig
 from src.models.file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
-from src.validation.client_configured_validator import get_validator, validate
+from src.validation.client_configured_validator import get_validator, validate, validate_file, validate_file_collection
 from src.validation.file_validator import InvalidValidatorArgumentsError
 
 """
@@ -51,15 +51,6 @@ def make_validatorspec(validator_name: str, **kwargs) -> FileValidatorSpec:
 
 def make_file_collection_validatorspec(validator_name: str, **kwargs) -> FileCollectionValidatorSpec:
     return FileCollectionValidatorSpec(name=validator_name, validator_kwargs=kwargs)
-
-
-def make_config_old(validator_specs: List[FileValidatorSpec]) -> ClientConfig:
-    return ClientConfig(
-        azure_client_id="test_user",
-        bucket_name="test_bucket",
-        azure_display_name="test",
-        file_validators=validator_specs
-    )
 
 
 def make_config(file_validator_specs: List[FileValidatorSpec] | None = None,
@@ -437,8 +428,43 @@ async def test_file_collection_validator_from_config(
         expected_status: int, expected_detail: str | None,
         assert_msg: str
         ):
+    # Could simplify as we're creating validator config in the "parametrize" but only
+    # usuing the config's .file_collection_validators attribute in the test. Could just
+    # create this value directly instead.
     results = await validate(files, validator_config.file_collection_validators)
     assert results == [(expected_status, expected_detail)]
+
+
+# validate_file tests
+@pytest.mark.asyncio
+async def test_validate_file_returns_validation_result_when_file_supplied():
+    """
+    This test concerns the missing/invalid file object handling of validate_file rather than
+    actual validation, which is covered in more detail in other tests, e.g. those of validate.
+    """
+    myfile = make_uploadfile(b"abcd")
+    mock_return = [(200, "Mock Success")]
+    # Because we're patching validate function, file_validator_specs value does not affect outcome
+    file_validator_specs = [make_validatorspec("MaxFileSize", size=5), ]
+    with patch("src.validation.client_configured_validator.validate", return_value=mock_return):
+        result = await validate_file(myfile, file_validator_specs)
+    assert result == mock_return
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("badfile", [None, make_uploadfile(b"A", name="")])
+async def test_validate_file_returns_error_when_no_file_supplied(badfile):
+    """
+    This test concerns the missing/invalid file object handling of validate_file rather than
+    actual validation, which is covered in more detail in other tests, e.g. those of validate.
+    Two types of invalid file here - (1) None, (2) File has empty filename
+    """
+    mock_return = [(200, "Mock Success")]
+    # Because we're patching validate function, file_validator_specs value does not affect outcome
+    file_validator_specs = [make_validatorspec("MaxFileSize", size=5), ]
+    with patch("src.validation.client_configured_validator.validate", return_value=mock_return):
+        result = await validate_file(badfile, file_validator_specs)
+    assert result == [400, [(400, "File is required")]]
 
 
 # get_validator tests
