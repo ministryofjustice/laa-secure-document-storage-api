@@ -57,7 +57,7 @@ def make_config(file_validator_specs: List[FileValidatorSpec] | None = None,
                 file_collection_validator_specs: List[FileCollectionValidatorSpec] | None = None,
                 ) -> ClientConfig:
     """
-    Original version had just one paramerter which was used for file_validator_specs.
+    Original version had just one parameter which was used for file_validator_specs.
     For backwards compatibility this needs to remain the first parameter, otherwise
     various existing calls would need to be updated.
     """
@@ -436,6 +436,8 @@ async def test_file_collection_validator_from_config(
 
 
 # validate_file tests
+
+
 @pytest.mark.asyncio
 async def test_validate_file_returns_validation_result_when_file_supplied():
     """
@@ -461,10 +463,43 @@ async def test_validate_file_returns_error_when_no_file_supplied(badfile):
     """
     mock_return = [(200, "Mock Success")]
     # Because we're patching validate function, file_validator_specs value does not affect outcome
-    file_validator_specs = [make_validatorspec("MaxFileSize", size=5), ]
+    file_validator_specs = [make_validatorspec("MaxFileSize", size=5),]
     with patch("src.validation.client_configured_validator.validate", return_value=mock_return):
         result = await validate_file(badfile, file_validator_specs)
     assert result == [400, [(400, "File is required")]]
+
+
+# validate_file_collection tests
+
+
+@pytest.mark.asyncio
+async def test_validate_file_collection_returns_validation_result_when_collection_supplied():
+    """
+    This test concerns the missing files list handling of validate_file_collection rather than
+    actual validation, which is covered in more detail in other tests, e.g. those of validate.
+    """
+    myfiles = [make_uploadfile(b"A"), make_uploadfile(b"B")]
+    mock_return = [(200, "Mock Success")]
+    # Because we're patching validate function, file_validator_specs value does not affect outcome
+    file_collection_validator_specs = [make_file_collection_validatorspec("MaxFileCount", max_count=5),]
+    with patch("src.validation.client_configured_validator.validate", return_value=mock_return):
+        result = await validate_file_collection(myfiles, file_collection_validator_specs)
+    assert result == mock_return
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("badcollection", [None, []])
+async def test_validate_file_collection_returns_error_result_when_no_collection_supplied(badcollection):
+    """
+    This test concerns the missing files list handling of validate_file_collection rather than
+    actual validation, which is covered in more detail in other tests, e.g. those of validate.
+    """
+    mock_return = [(200, "Mock Success")]
+    # Because we're patching validate function, file_validator_specs value does not affect outcome
+    file_collection_validator_specs = [make_file_collection_validatorspec("MaxFileCount", max_count=5),]
+    with patch("src.validation.client_configured_validator.validate", return_value=mock_return):
+        result = await validate_file_collection(badcollection, file_collection_validator_specs)
+    assert result == [400, [(400, "List of files is required")]]
 
 
 # get_validator tests
