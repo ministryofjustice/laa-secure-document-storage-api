@@ -435,6 +435,33 @@ async def test_file_collection_validator_from_config(
     assert results == [(expected_status, expected_detail)]
 
 
+# "end on first fail" test for file collection validators
+@pytest.mark.asyncio
+@pytest.mark.parametrize("validator_config,expected_result", [
+    (   # MaxCombinedFileSize first
+        make_config(None,
+                    [make_file_collection_validatorspec("MaxCombinedFileSize", max_combined_size=5),
+                     make_file_collection_validatorspec("MaxFileCount", max_count=2)]),
+        [(422, 'Combined file size 6 B exceeds limit of 5 B.')]
+    ),
+    (   # MaxFileCount first
+        make_config(None,
+                    [make_file_collection_validatorspec("MaxFileCount", max_count=2),
+                     make_file_collection_validatorspec("MaxCombinedFileSize", max_combined_size=5),]),
+        [(422, 'Too many files. 3 submitted but maximum is 2.')]
+    )
+    ])
+async def test_file_collection_validator_end_on_first_failure(validator_config, expected_result):
+    """
+    List of files contains two validator failures and test runs both the related validators.
+    The expected result has response from whichever validator ran first. Parametrized data has
+    both validator orders.
+    """
+    files = [make_uploadfile(b"AB"), make_uploadfile(b"CD"), make_uploadfile(b"EF")]
+    results = await validate(files, validator_config.file_collection_validators)
+    assert results == expected_result
+
+
 # validate_file tests
 
 
