@@ -23,6 +23,6 @@ class FileCollectionValidatorSpec(ValidatorSpec):
     """
     New spec for FileCollection validator.
     Happens to be same as FileValidatorSpec currently but defined as separate class
-    to enable independent changes if needed.
+    to enable independent changes if needed, plus enables clearer type-hinting.
     """
     pass
