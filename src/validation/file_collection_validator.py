@@ -30,6 +30,18 @@ class FileCollectionValidator(abc.ABC):
 
 class MaxFileCount(FileCollectionValidator):
     def validate(self, files: Iterable[UploadFile], max_count: int, **kwargs) -> tuple[int, str]:
+        """
+        Validates that the number of files submitted does not exceed the specified max_count
+        value. On success returns status code 200 and empty message. On failure returns
+        status code 422 and message with details.
+
+        Parameters:
+            files (Iterable[UploadFile]): collection of files
+            max_count (int): maximum number of files allowed
+
+        Returns:
+            status code (int), message (str)
+        """
         # Convert to list because some iterables don't have length (e.g. generators)
         count = len(list(files))
         if count > max_count:
@@ -39,6 +51,18 @@ class MaxFileCount(FileCollectionValidator):
 
 class MinFileCount(FileCollectionValidator):
     def validate(self, files: Iterable[UploadFile], min_count: int, **kwargs) -> tuple[int, str]:
+        """
+        Validates that the number of files submitted is at least the specified min_count
+        value. On success returns status code 200 and empty message. On failure returns
+        status code 422 and message with details.
+
+        Parameters:
+            files (Iterable[UploadFile]): collection of files
+            min_count (int): maximum number of files allowed
+
+        Returns:
+            status code (int), message (str)
+        """
         # Convert to list because some iterables don't have length (e.g. generators)
         count = len(list(files))
         if count < min_count:
@@ -48,6 +72,18 @@ class MinFileCount(FileCollectionValidator):
 
 class MaxCombinedFileSize(FileCollectionValidator):
     def validate(self, files: Iterable[UploadFile], max_combined_size: int, **kwargs) -> tuple[int, str]:
+        """
+        Validates that the total combined file size does not exceed the specified max_combined_size value
+        (bytes). On success returns status code 200 and empty message. On failure returns
+        status code 422 and message with details.
+
+        Parameters:
+            files (Iterable[UploadFile]): collection of files
+            max_combined_size (int): maximum combined file size in bytes
+
+        Returns:
+            status code (int), message (str)
+        """
         total_size = sum(f.size for f in files)
         if total_size > max_combined_size:
             return 422, f"Combined file size {total_size} B exceeds limit of {max_combined_size} B."
