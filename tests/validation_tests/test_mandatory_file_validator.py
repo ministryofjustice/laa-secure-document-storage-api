@@ -12,7 +12,7 @@ from src.validation.mandatory_file_validator import (
     run_mandatory_validators,
     run_virus_check
 )
-from .test_file_validator import make_uploadfile
+from .test_client_configured_validator_validation import make_uploadfile
 
 
 filename_validator_test_data = [

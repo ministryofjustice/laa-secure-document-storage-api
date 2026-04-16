@@ -13,10 +13,13 @@ from src.validation.file_validator import AllowedMimetypes, DisallowedMimetypes
 """
 Location of test for functions: validate and get_validator
 
-Tests for the two above functions are in test_file_validator.py rather than here.
-Likely for convenience of using functions that create test data there.
+Tests for the two above functions are in test_client_configured_validator_validation.py rather
+than here. Likely for convenience of using functions that create test data there.
 
-Potentially could move them to this file but we have plans to change the way validators
+Tests in present file mainly concern validator admin and message formatting rather than
+validation itself.
+
+Potentially could be combined into same file but we have plans to change the way validators
 work which might require a larger reorganisation, so leaving as-is for now.
 """
 
@@ -223,7 +226,7 @@ async def test_validate_or_error_with_pass():
     # This test concerns the format of result rather than the validation itself
     file = ""
     validators = []
-    with patch("src.validation.client_configured_validator.validate", return_value=[(200, "")]):
+    with patch("src.validation.client_configured_validator.validate_file", return_value=[(200, "")]):
         result = await validate_or_error(file, validators)
     assert result == (200, "")
 
@@ -252,7 +255,7 @@ async def test_validate_or_error_with_fail(validate_result, expected_result):
     # than validation itself
     fileobject = ""
     validators = []
-    with patch("src.validation.client_configured_validator.validate", return_value=validate_result):
+    with patch("src.validation.client_configured_validator.validate_file", return_value=validate_result):
         with pytest.raises(HTTPException) as excinfo:
             _ = await validate_or_error(fileobject, validators)
     assert str(excinfo.value) == expected_result

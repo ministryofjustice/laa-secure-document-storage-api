@@ -7,6 +7,7 @@ from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload, BulkUploadFileResponse
 from src.utils.request_types import RequestType
 from src.handlers.file_upload_handler import handle_file_upload_logic
+from src.validation.client_configured_validator import validate_or_error_file_collection
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -25,8 +26,15 @@ async def bulk_upload(
     updated when subsequent instances are reached.
 
     The response status code just indicates success/failure in the ability to process the supplied
-    files, not the sucess of each file operation, and should always be 200 unless invalid file
-    details or unexpected error.
+    files, not the sucess of each file operation, and should always be 200 unless the submitted
+    file details are invalid , or optional client-configured file collection validator failure,
+    or unexpected error.
+
+    Two different types of client-configured validator can be applied:
+    1. At the level of the collection of files, e.g. maximum number of files, minimum number
+    of files, maximum combined file size.
+    2. At the level of individual files, e.g. allowed file extension, allowed mimetype, maximum
+    individual file size.
 
     Results for individual files are recorded in the response json which caters for
     multiple files and also having the same filename included more than once in the load.
@@ -59,10 +67,13 @@ async def bulk_upload(
     Status code summary for outcomes:
     * 201 file created
     * 200 file updated
-    * 4xx various validation failures
+    * 4xx various other validation failures
     * 500 unexpected error
     """
     # Not included validation for empty files list because Fast API gives 422 error automatically
+
+    # File-collection validation - raises HTTP Exception if validation fails
+    _ = await validate_or_error_file_collection(files, client_config.file_collection_validators)
 
     # Create dictionary for storing results for each filename supplied
     results = {f.filename: BulkUploadFileResponse(filename=f.filename, positions=[], outcomes=[], ) for f in files}
