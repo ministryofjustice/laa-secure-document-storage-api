@@ -37,7 +37,7 @@ class FileValidator(abc.ABC):
 class MaxFileSize(FileValidator):
     continue_to_next_validator_on_fail = True
 
-    def validate(self, file_object, size: int = 1, **kwargs) -> Tuple[int, str]:
+    def validate(self, file_object, size: int, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file is at most a certain size.
 
@@ -60,7 +60,7 @@ class MaxFileSize(FileValidator):
 class MinFileSize(FileValidator):
     continue_to_next_validator_on_fail = True
 
-    def validate(self, file_object, size: int = 1, **kwargs) -> Tuple[int, str]:
+    def validate(self, file_object, size: int, **kwargs) -> Tuple[int, str]:
         """
         Validates that the file is at least a certain size.
 

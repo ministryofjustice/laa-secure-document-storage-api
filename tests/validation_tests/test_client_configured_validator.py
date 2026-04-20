@@ -44,8 +44,8 @@ def test_generate_all_filevalidatorspecs_returns_kwargs():
                                                             ("AllowedMimetypes", {'content_types': []}),
                                                             ("DisallowedFileExtensions", {'extensions': []}),
                                                             ("DisallowedMimetypes", {'content_types': []}),
-                                                            ("MaxFileSize", {'size': 1}),
-                                                            ("MinFileSize", {'size': 1})
+                                                            ("MaxFileSize", {'size': None}),
+                                                            ("MinFileSize", {'size': None})
                                                             ])
 def test_get_kwargs_for_filevalidator_works_with_string_param(validator_name, expected_result):
     kwargs = get_kwargs_for_filevalidator(validator_name)
@@ -56,8 +56,8 @@ def test_get_kwargs_for_filevalidator_works_with_string_param(validator_name, ex
                                                        (AllowedMimetypes, {'content_types': []}),
                                                        (DisallowedFileExtensions, {'extensions': []}),
                                                        (DisallowedMimetypes, {'content_types': []}),
-                                                       (MaxFileSize, {'size': 1}),
-                                                       (MinFileSize, {'size': 1})
+                                                       (MaxFileSize, {'size': None}),
+                                                       (MinFileSize, {'size': None})
                                                        ])
 def test_get_kwargs_for_filevalidator_works_with_validator_param(validator, expected_result):
     kwargs = get_kwargs_for_filevalidator(validator)
