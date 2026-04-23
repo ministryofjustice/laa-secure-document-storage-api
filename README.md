@@ -126,13 +126,13 @@ $ pipenv install --dev
 And then run:
 
 ```shell
-$ pipenv run pytest -m "not e2e"
+$ pipenv run pytest --ignore tests/end_to_end -m "not e2e"
 ```
 ### API testing with pytest
 In additionl to pytest unit testing, we also have end-to-end tests that run via pytest. These run in the pipeline and can be run locally. These use the same requirements as above, and are run locally using:
 
 ```
-$ pipenv run pytest -m e2e
+$ pipenv run pytest tests/end_to_end -m e2e
 ```
 
 To run all the pytest tests, regardless of type, run:
@@ -140,6 +140,19 @@ To run all the pytest tests, regardless of type, run:
 ```
 $ pipenv run pytest
 ```
+
+### pytest test-type separation
+As mentioned above, we have both unit tests and end-to-end tests that are run using `pytest`. These two types of test need to be distinguished so they can be run separately. This is acheived as follows:
+
+#### end-to-end
+- Must be within folder `tests/end_to_end`
+- Each test function marked with decorator `@pytest.mark.e2e`
+
+#### unit tests
+- Within `tests` folder but NOT in `tests/end_to_end`
+- NOT marked with decorator `@pytest.mark.e2e`
+
+This provides two ways of separating the tests: one by file location and another by `e2e` tag.
 
 ### API testing with Postman
 

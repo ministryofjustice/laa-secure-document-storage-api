@@ -91,7 +91,7 @@ jobs:
 
       - name: Run Pytest e2e Tests
         run: |
-          pipenv run pytest -v -m e2e
+          pipenv run pytest tests/end_to_end -v -m e2e
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
