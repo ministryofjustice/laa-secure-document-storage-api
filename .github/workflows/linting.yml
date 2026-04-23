@@ -40,4 +40,4 @@ jobs:
 
     - name: Unit test with pytest
       run: |
-        pipenv run pytest -v -m "not e2e"
+        pipenv run pytest --ignore tests/end_to_end -v -m "not e2e"
