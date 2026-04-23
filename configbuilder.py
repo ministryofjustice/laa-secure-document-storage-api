@@ -62,7 +62,9 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
             value = validator_defaults[i]
             if value is list:
                 value = []
-        except ValueError:
+        # TypeError added as quick fix because validator args no longer have defaults, except sometimes list,
+        # so `value = validator_defaults[i]` can get TypeError: 'NoneType' object is not subscriptable.
+        except (ValueError, TypeError):
             value = None
         validator_kwargs[arg] = value
     return validator_kwargs
