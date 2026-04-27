@@ -33,7 +33,7 @@ async def get_file_details(
     if not error_status:
         file_versions = list_file_versions(client_config, file_key)
         if file_versions == []:
-            error_status = (410, f"No details found for file: {file_key}")
+            error_status = (404, f"No details found for file: {file_key}")
 
     if error_status:
         raise HTTPException(status_code=error_status[0], detail=error_status[1])

@@ -9,6 +9,7 @@ p, test_user, /available_validators, GET
 
 p, test_user, /retrieve_file, GET
 p, test_user, /retrieve_file/, GET
+p, test_user, /get_file_details, GET
 p, test_user, /save_or_update_file, PUT
 p, test_user, /save_file, POST
 p, test_user, /bulk_upload, PUT
