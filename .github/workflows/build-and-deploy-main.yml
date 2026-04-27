@@ -51,7 +51,7 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr-dev
-      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+      uses: aws-actions/amazon-ecr-login@19d944daaa35f0fa1d3f7f8af1d3f2e5de25c5b7 # v2.1.4
 
     - name: Store ECR endpoint as output
       id: ecr-url-output
@@ -122,7 +122,7 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr-dev
-      uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+      uses: aws-actions/amazon-ecr-login@19d944daaa35f0fa1d3f7f8af1d3f2e5de25c5b7 # v2.1.4
 
     - name: Store ECR endpoint as output
       id: ecr-url-output
@@ -193,7 +193,7 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr-dev
-        uses: aws-actions/amazon-ecr-login@f2e9fc6c2b355c1890b65e6f6f0e2ac3e6e22f78 # v2.1.2
+        uses: aws-actions/amazon-ecr-login@19d944daaa35f0fa1d3f7f8af1d3f2e5de25c5b7 # v2.1.4
 
       - name: Store ECR endpoint as output
         id: ecr-url-output
