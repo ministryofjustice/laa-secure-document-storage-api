@@ -297,3 +297,27 @@ def test_put_file_with_more_than_one_error():
     assert len(details) == 2
     assert [415, 'File extension not allowed'] in details
     assert [415, 'File mimetype not allowed'] in details
+
+
+@pytest.mark.e2e
+def test_get_file_details_returns_expected_details():
+    headers = token_getter.get_headers()
+    # Upload file with unique filename twice, so we have two versions
+    filename = make_unique_name("save_path_file.txt")
+    upload_file = test_md_file.get_data(filename)
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=upload_file)
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=upload_file)
+    # Get the file's details
+    response = client.get(f"{HOST_URL}/get_file_details",
+                          headers=headers,
+                          params={"file_key": filename})
+    json_details = response.json()
+
+    assert response.status_code == 200
+    assert "version_history" in json_details
+    version_history = json_details.get("version_history")
+    assert len(version_history) == 2  # We have two versions
+    assert version_history[0]["Key"] == version_history[1]["Key"] == filename  # Both versions have same filename/key
+    assert version_history[0]["VersionId"] != version_history[1]["VersionId"]  # Both versions have different VersionID
+    assert version_history[0]["IsLatest"] is True  # First version returned is the "latest"
+    assert version_history[1]["IsLatest"] is False  # Second version returned is not the "latest"
