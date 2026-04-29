@@ -472,12 +472,12 @@ async def test_validate_file_returns_validation_result_when_file_supplied():
     actual validation, which is covered in more detail in other tests, e.g. those of validate.
     """
     myfile = make_uploadfile(b"abcd")
-    mock_return = [(200, "Mock Success")]
+    mock_validate_return = [(200, "")]
     # Because we're patching validate function, file_validator_specs value does not affect outcome
     file_validator_specs = [make_validatorspec("MaxFileSize", size=5), ]
-    with patch("src.validation.client_configured_validator.validate", return_value=mock_return):
+    with patch("src.validation.client_configured_validator.validate", return_value=mock_validate_return):
         result = await validate_file(myfile, file_validator_specs)
-    assert result == mock_return
+    assert result == (200, "")
 
 
 @pytest.mark.asyncio
@@ -493,7 +493,7 @@ async def test_validate_file_returns_error_when_no_file_supplied(badfile):
     file_validator_specs = [make_validatorspec("MaxFileSize", size=5),]
     with patch("src.validation.client_configured_validator.validate", return_value=mock_return):
         result = await validate_file(badfile, file_validator_specs)
-    assert result == [400, [(400, "File is required")]]
+    assert result == (400, "File is required")
 
 
 # validate_file_collection tests

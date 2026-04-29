@@ -77,9 +77,9 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
     return validator_kwargs
 
 
-async def validate_file(file_object: UploadFile, validator_specs: list[FileValidatorSpec]) -> list[tuple[int, str]]:
+async def validate_file(file_object: UploadFile, validator_specs: list[FileValidatorSpec]) -> tuple[int, str | list]:
     """
-    Validates the file object against a list of validators, returning [(200, "") if all validators pass.
+    Validates the file object against a list of validators, returning (200, "") if all validators pass.
 
     Validators are executed in the provided order, any exception raised during execution of a validator
     will be logged and returned as an internal error (500, "Internal error handling file").
@@ -89,9 +89,15 @@ async def validate_file(file_object: UploadFile, validator_specs: list[FileValid
     sequence ends and currently accumulated results returned.
     """
     if file_object is None or not file_object.filename:
-        return [400, [(400, "File is required")]]
+        return 400, "File is required"
+
     result = await validate(file_object, validator_specs)
-    return result
+
+    if result == [(200, "")]:
+        return (200, "")
+    else:
+        status_code = get_status_code_for_response(result)
+        return status_code, result
 
 
 async def validate_file_collection(files: list[UploadFile],
@@ -164,22 +170,6 @@ def get_status_code_for_response(validation_results: list[tuple[int, str]]) -> i
         if 500 in unique_codes:
             status_code = 500
     return status_code
-
-
-async def validate_or_error(file_object, validators: list[FileValidatorSpec]) -> tuple[int, str]:
-    """
-    Validates the file object against a list of validators, returning (200, "") if all validators pass,
-    or raise an HTTPException with relevant status_code and detail if one or more validators failed.
-
-    :param validators:
-    :param file_object:
-    :return: status_code: int, detail: str
-    """
-    results = await validate_file(file_object, validators)
-    if results != [(200, "")]:
-        status_code = get_status_code_for_response(results)
-        raise HTTPException(status_code=status_code, detail=results)
-    return 200, ""
 
 
 async def validate_or_error_file_collection(files: list[UploadFile],
