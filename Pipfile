@@ -26,7 +26,7 @@ casbin = "==1.43.0"
 fastapi-authz = "==1.0.0"
 h11 = ">=0.16.0"
 requests = "==2.33.1"
-python-jose = {extras = ["cryptography"], version = "==3.5.0"}
+pyjwt = {version = "*", extras = ["crypto"]}
 python-dateutil = "*"
 
 [dev-packages]
