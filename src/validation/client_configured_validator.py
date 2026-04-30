@@ -2,7 +2,7 @@ import inspect
 from typing import Any, Dict
 
 import structlog
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
 from src.models.file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
 from src.validation.file_validator import FileValidator, ValidatorNotFoundError
@@ -123,8 +123,14 @@ async def validate_file_collection(files: list[UploadFile],
     """
     if not files:
         return [400, [(400, "List of files is required")]]
+
     result = await validate(files, validator_specs)
-    return result
+
+    if result == [(200, "")]:
+        return (200, "")
+    else:
+        status_code = get_status_code_for_response(result)
+        return status_code, result
 
 
 async def validate(validation_target: UploadFile | list[UploadFile],
@@ -179,16 +185,3 @@ def get_status_code_for_response(validation_results: list[tuple[int, str]]) -> i
         if 500 in unique_codes:
             status_code = 500
     return status_code
-
-
-async def validate_or_error_file_collection(files: list[UploadFile],
-                                            validators: list[FileCollectionValidatorSpec]) -> tuple[int, str]:
-    """
-    Validates a list of file objects against a list of validators, returning (200, "") if all validators pass,
-    or raise an HTTPException with relevant status_code and detail if one or more validators failed.
-    """
-    results = await validate_file_collection(files, validators)
-    if results != [(200, "")]:
-        status_code = get_status_code_for_response(results)
-        raise HTTPException(status_code=status_code, detail=results)
-    return 200, ""
