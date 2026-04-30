@@ -79,14 +79,23 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
 
 async def validate_file(file_object: UploadFile, validator_specs: list[FileValidatorSpec]) -> tuple[int, str | list]:
     """
-    Validates the file object against a list of validators, returning (200, "") if all validators pass.
+    Validates the file object against a list of validators,
 
-    Validators are executed in the provided order, any exception raised during execution of a validator
-    will be logged and returned as an internal error (500, "Internal error handling file").
+    Missing File
+    File object is required. When missing returns: (400, "File is required)
 
-    Behaviour upon validator failure depends on the validator's continue_to_next_validator_on_fail attribute.
-    When True, validation will proceed to the next validator in sequence. When False, the validation
-    sequence ends and currently accumulated results returned.
+    When All Validators Pass
+    If all validators pass, returns: (200, "")
+
+    Validator Fail and/or Unexpected Exception
+    Validators are executed in the provided order. Behaviour upon validator failure (or unexpected exception)
+    depends on the validator's continue_to_next_validator_on_fail attribute. When True, validation will proceed
+    to the next validator in sequence. When False, the validation sequence ends and currently accumulated results
+    are returned.
+
+    Fail results are returned as a tuple of "headline" status code and list of individual status codes and
+    error details, e.g. (500, [(415, "File extension not allowed"), (415, "File mimetype not allowed"),
+                               (500, "Infernal Server Error")])
     """
     if file_object is None or not file_object.filename:
         return 400, "File is required"
