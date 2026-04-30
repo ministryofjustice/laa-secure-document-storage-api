@@ -110,16 +110,24 @@ async def validate_file(file_object: UploadFile, validator_specs: list[FileValid
 
 
 async def validate_file_collection(files: list[UploadFile],
-                                   validator_specs: list[FileCollectionValidatorSpec]) -> list[tuple[int, str]]:
+                                   validator_specs: list[FileCollectionValidatorSpec]) -> list[tuple[int, str | list]]:
     """
-    Validates the list of file objects against a list of validators, returning [(200, "") if all validators pass.
+    Validates the list of file objects against a list of validators.
 
-    Validators are executed in the provided order, any exception raised during execution of a validator
-    will be logged and returned as an internal error (500, "Internal error handling file").
+    Missing file list
+    List of files is required. When missing returns: (400, "List of files is required")
 
-    Behaviour upon validator failure depends on the validator's continue_to_next_validator_on_fail attribute.
-    When True, validation will proceed to the next validator in sequence. When False, the validation
-    sequence ends and currently accumulated results returned.
+    When All Validators Pass
+    If all validators pass, returns: (200, "")
+
+    Validator Fail and/or Unexpected Exception
+    Validators are executed in the provided order. Behaviour upon validator failure (or unexpected exception)
+    depends on the validator's continue_to_next_validator_on_fail attribute. When True, validation will proceed
+    to the next validator in sequence. When False, the validation sequence ends and currently accumulated results
+    are returned.
+
+    Fail results are returned as a tuple of "headline" status code and list of individual status codes and
+    error details, e.g. (422, [(422, "Too many files"), (422, "Combined file size exceeds limit")])
     """
     if not files:
         return [400, [(400, "List of files is required")]]
