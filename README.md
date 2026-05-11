@@ -39,13 +39,17 @@ are setup correctly if you choose to use non-dummy keys.
 
 #### SDS configuration values
 
-SDS uses tokens issued by the MoJ tenant, and there is currently no provision for entirely local authentication: All
-authentication occurs with the single auth services, even when running a local SDS instance. This may be something we
-change in the future.
+##### Local Authentication Without Token
 
-To use any *authenticated* routes locally, you will need the `tenant_id` and `audience_id` values for the SDS API to
-validate the token. Internal services teams can contact the SDS team to obtain these, and set them in your local
+In normal operation SDS uses tokens issued by the MoJ tenant. However, when running SDS locally it is possible to bypass the need for a token by setting environment variable `LOCAL_CONFIG_SKIP_AUTH="True"`, which can be set in the `.env` file. When running in this mode:
+- Requests do not need a bearer token
+- User `default-local-test-user` is used by default, but it is possible to specify a particular user by including a `test-username` value in the request headers, e.g. `{"test-username": "virus-check-local-test-user"}`. Note the specified user must have related client configuration.
+
+##### Local Authentication With Token
+If tokens are being used locally, you will need the `tenant_id` and `audience_id` values for the SDS API to be able to validate the token. Internal services teams can contact the SDS team to obtain these, and set them in your local
 environment.
+
+##### Client Configuration
 
 For each client to be authorised to use any of the SDS routes, you will also need a client configuration. See the
 documentation for [generating client configs](docs/client_configurations.md). For internal services, you will need to
