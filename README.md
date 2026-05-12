@@ -41,9 +41,12 @@ are setup correctly if you choose to use non-dummy keys.
 
 ##### Local Authentication Without Token
 
-In normal operation SDS uses tokens issued by the MoJ tenant. However, when running SDS locally it is possible to bypass the need for a token by setting environment variable `LOCAL_CONFIG_SKIP_AUTH="True"`, which can be set in the `.env` file. When running in this mode:
-- Requests do not need a bearer token
-- User `default-local-test-user` is used by default, but it is possible to specify a particular user by including a `test-username` value in the request headers, e.g. `{"test-username": "virus-check-local-test-user"}`. Note the specified user must have related client configuration.
+In normal operation SDS uses tokens issued by the MoJ tenant. However, when running SDS locally it is possible to bypass the need for a token. For this to work all the following must be true:
+1. SDS must be running locally.
+2. Environment variable `LOCAL_CONFIG_SKIP_AUTH="True"`. This can be set in the `.env` file.
+3. Request headers must include a `test-username` e.g. `{"test-username": "virus-check-local-test-user"}`. Like all SDS users, the specified username must have related client-configuration `csv` and `json` files.
+
+If none of the above are true, usual token-based authentication applies.
 
 ##### Local Authentication With Token
 If tokens are being used locally, you will need the `tenant_id` and `audience_id` values for the SDS API to be able to validate the token. Internal services teams can contact the SDS team to obtain these, and set them in your local
