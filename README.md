@@ -46,7 +46,7 @@ In normal operation SDS uses tokens issued by the MoJ tenant. However, when runn
 2. Environment variable `LOCAL_CONFIG_SKIP_AUTH="True"`. This can be set in the `.env` file.
 3. Request headers must include a `test-username` e.g. `{"test-username": "virus-check-local-test-user"}`. Like all SDS users, the specified username must have related client-configuration `csv` and `json` files.
 
-If none of the above are true, usual token-based authentication applies.
+If any of the above are false, usual token-based authentication applies.
 
 ##### Local Authentication With Token
 If tokens are being used locally, you will need the `tenant_id` and `audience_id` values for the SDS API to be able to validate the token. Internal services teams can contact the SDS team to obtain these, and set them in your local

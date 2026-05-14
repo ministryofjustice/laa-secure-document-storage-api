@@ -47,7 +47,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
             and os.getenv("LOCAL_CONFIG_SKIP_AUTH", "false").lower() == "true"
                 and conn.headers.get("test-username")):
             username = conn.headers.get('test-username')
-            logger.info(f"Bypassing authentication with username {username}")
+            logger.warning(f"Bypassing authentication with username {username}")
             return AuthCredentials(scopes=[]), SimpleUser(username)
 
         if "Authorization" not in conn.headers:
