@@ -38,14 +38,12 @@ class BearerTokenMiddleware(AuthenticationMiddleware):
 
 class BearerTokenAuthBackend(AuthenticationBackend):
     async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, BaseUser] | None:
-        logger.info(f"*** {conn.client.host} {type(conn.client.host)}")
-        logger.info(f">>> {os.getenv('LOCAL_CONFIG_SKIP_AUTH')}")
 
         # Bypass external authentication when running SDS locally if environment variable
         # LOCAL_CONFIG_SKIP_AUTH has value "true" (case insensitive) and the request has
         # 'test-username' value in its headers.
         # Note environment variables have to be strings, so using "true", "false"
-        if (conn.client.host in ("127.0.0.1", "0.0.0.0")
+        if (conn.client.host in ("127.0.0.1", "172.18.0.1")
             and os.getenv("LOCAL_CONFIG_SKIP_AUTH", "false").lower() == "true"
                 and conn.headers.get("test-username")):
             username = conn.headers.get('test-username')
