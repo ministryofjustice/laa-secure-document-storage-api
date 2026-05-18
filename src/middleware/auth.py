@@ -40,15 +40,17 @@ class BearerTokenMiddleware(AuthenticationMiddleware):
 class BearerTokenAuthBackend(AuthenticationBackend):
     async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, BaseUser] | None:
         """
-        Carries out bearer token authentication but this can be bypassed for local running if
-        the following are all true:
+        Carries out bearer token authentication.
+
+        For dev/test convenience this can be bypassed for local running if the following are all true:
         1. Environment variable LOCAL_CONFIG_SKIP_AUTH has value "true" (case insensitive).
            Note environment variables have to be strings, so using "true", "false".
         2. The request has "test-username" value in its headers (which should match client config user),
            e.g. {"test-username": "all-endpoint-local-test-user"}
         3. SDS is running locally with either host being 127.0.0.1 from direct local run,
-           or in network range 172.16.0.0 - 172.31.255.255 (172.16.0.0/12) to allow for dockerised SDS.
+           or in network range 172.16.0.0 - 172.31.255.255 (172.16.0.0/12) to allow for dockerised local SDS.
         """
+        # Bypass athentication
         if os.getenv("LOCAL_CONFIG_SKIP_AUTH", "false").lower() == "true" and conn.headers.get("test-username"):
             try:
                 host_ip = ip_address(conn.client.host)
