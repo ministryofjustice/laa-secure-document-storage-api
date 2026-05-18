@@ -43,7 +43,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
         # LOCAL_CONFIG_SKIP_AUTH has value "true" (case insensitive) and the request has
         # 'test-username' value in its headers.
         # Note environment variables have to be strings, so using "true", "false"
-        if (conn.client.host == "127.0.0.1"
+        if (conn.client.host in ("127.0.0.1", "0.0.0.0")
             and os.getenv("LOCAL_CONFIG_SKIP_AUTH", "false").lower() == "true"
                 and conn.headers.get("test-username")):
             username = conn.headers.get('test-username')
