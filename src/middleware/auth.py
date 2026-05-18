@@ -1,4 +1,5 @@
 import os
+from ipaddress import ip_address, ip_network
 
 import requests
 import structlog
@@ -38,12 +39,18 @@ class BearerTokenMiddleware(AuthenticationMiddleware):
 
 class BearerTokenAuthBackend(AuthenticationBackend):
     async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, BaseUser] | None:
-
-        # Bypass external authentication when running SDS locally if environment variable
-        # LOCAL_CONFIG_SKIP_AUTH has value "true" (case insensitive) and the request has
-        # 'test-username' value in its headers.
-        # Note environment variables have to be strings, so using "true", "false"
-        if (conn.client.host in ("127.0.0.1", "172.18.0.1")
+        """
+        Carries out bearer token authentication but this can be bypassed for local running if
+        the following are all true:
+        1. SDS is running locally with either host being "127.0.0.1" from direct local run,
+           or in network range 172.16.0.0 - 172.31.255.255 (172.16.0.0/12) to allow for dockerised SDS.
+        2. Environment variable LOCAL_CONFIG_SKIP_AUTH has value "true" (case insensitive).
+           Note environment variables have to be strings, so using "true", "false".
+        3. The request has "test-username" value in its headers (which should match client config user),
+           e.g. {"test-username": "all-endpoint-local-test-user"}
+        """
+        if (
+            (conn.client.host == "127.0.0.1" or ip_address(conn.client.host) in ip_network("172.16.0.0/12"))
             and os.getenv("LOCAL_CONFIG_SKIP_AUTH", "false").lower() == "true"
                 and conn.headers.get("test-username")):
             username = conn.headers.get('test-username')
