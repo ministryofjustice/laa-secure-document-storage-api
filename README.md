@@ -135,8 +135,10 @@ And then run:
 ```shell
 $ pipenv run pytest --ignore tests/end_to_end -m "not e2e"
 ```
+The unit tests will run without a local instance of the SDS API running.
+
 ### API testing with pytest
-In additionl to pytest unit testing, we also have end-to-end tests that run via pytest. These run in the pipeline and can be run locally. These use the same requirements as above, and are run locally using:
+In addition to pytest unit testing, we also have end-to-end tests that run via pytest. These run in the pipeline and can be run locally, but do require a local instance of the SDS API to be running (for example via `docker compose up -d`). These use the same requirements as above, and are run locally using:
 
 ```
 $ pipenv run pytest tests/end_to_end -m e2e
