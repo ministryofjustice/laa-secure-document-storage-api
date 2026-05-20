@@ -61,6 +61,17 @@ def extract_bulk_load_success_count(response_status_code: int, response_json: st
     return success_count
 
 
+# Username safeguard
+
+@pytest.mark.e2e
+def test_bypass_auth_raises_error_when_invalid_username_provided():
+    params = {"file_key": "README.md"}
+    headers = {"test-username": "super-user"}
+    response = client.get(f"{HOST_URL}/get_file", headers=headers, params=params)
+    assert response.status_code == 403
+    assert response.text == '{"detail":"Invalid test username super-user"}'
+
+
 # Get File
 
 @pytest.mark.e2e

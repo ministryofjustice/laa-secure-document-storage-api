@@ -45,8 +45,8 @@ class BearerTokenAuthBackend(AuthenticationBackend):
         For dev/test convenience this can be bypassed for local running if the following are all true:
         1. Environment variable LOCAL_CONFIG_SKIP_AUTH has value "true" (case insensitive).
            Note environment variables have to be strings, so using "true", "false".
-        2. The request has "test-username" value in its headers (which should match client config user),
-           e.g. {"test-username": "all-endpoint-local-test-user"}
+        2. The request has "test-username" value in its headers that ends "-test-user" and should
+           match a client config user e.g. {"test-username": "all-endpoint-local-test-user"}
         3. SDS is running locally with either host being 127.0.0.1 from direct local run,
            or in network range 172.16.0.0 - 172.31.255.255 (172.16.0.0/12) to allow for dockerised local SDS.
         """
@@ -58,6 +58,10 @@ class BearerTokenAuthBackend(AuthenticationBackend):
                 host_ip = None
             if host_ip and (host_ip in ip_network("172.16.0.0/12") or host_ip in ip_network("127.0.0.1")):
                 username = conn.headers.get('test-username')
+                # Safeguard that only test users can be used
+                if not isinstance(username, str) or not username.endswith("-test-user"):
+                    logger.warning(f"Invalid test username {username}")
+                    raise _AuthenticationError(status_code=403, detail=f"Invalid test username {username}")
                 logger.warning(f"Bypassing authentication with username {username}")
                 return AuthCredentials(scopes=[]), SimpleUser(username)
 
