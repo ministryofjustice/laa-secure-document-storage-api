@@ -5,7 +5,6 @@ import structlog
 from cachetools import cached, TTLCache
 from fastapi.security import HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
-import jwt
 from jwt import PyJWKClient, PyJWKClientError, decode as jwt_decode
 from jwt import InvalidTokenError, ExpiredSignatureError, InvalidAudienceError, InvalidIssuerError
 import ssl
@@ -80,7 +79,7 @@ def fetch_oidc_config(tenant_id):
 def get_signing_key(token: str, jwks_uri: str, bad_token_exception):
     try:
         client = PyJWKClient(jwks_uri, ssl_context=SSL_CONTEXT)
-        
+
         key = client.get_signing_key_from_jwt(token)
         return key.key
     except PyJWKClientError:
