@@ -39,13 +39,20 @@ are setup correctly if you choose to use non-dummy keys.
 
 #### SDS configuration values
 
-SDS uses tokens issued by the MoJ tenant, and there is currently no provision for entirely local authentication: All
-authentication occurs with the single auth services, even when running a local SDS instance. This may be something we
-change in the future.
+##### Local Authentication Without Token
 
-To use any *authenticated* routes locally, you will need the `tenant_id` and `audience_id` values for the SDS API to
-validate the token. Internal services teams can contact the SDS team to obtain these, and set them in your local
+In normal operation SDS uses tokens issued by the MoJ tenant. However, when running SDS locally it is possible to bypass the need for a token. For this to work all the following must be true:
+1. SDS must be running locally.
+2. Environment variable `LOCAL_CONFIG_SKIP_AUTH="True"`. This can be set in the `.env` file.
+3. Request headers must include a `test-username` e.g. `{"test-username": "virus-check-local-test-user"}`. Like all SDS users, the specified username must have related client-configuration `csv` and `json` files.
+
+If any of the above are false, usual token-based authentication applies.
+
+##### Local Authentication With Token
+If tokens are being used locally, you will need the `tenant_id` and `audience_id` values for the SDS API to be able to validate the token. Internal services teams can contact the SDS team to obtain these, and set them in your local
 environment.
+
+##### Client Configuration
 
 For each client to be authorised to use any of the SDS routes, you will also need a client configuration. See the
 documentation for [generating client configs](docs/client_configurations.md). For internal services, you will need to
@@ -128,8 +135,10 @@ And then run:
 ```shell
 $ pipenv run pytest --ignore tests/end_to_end -m "not e2e"
 ```
+The unit tests will run without a local instance of the SDS API running.
+
 ### API testing with pytest
-In additionl to pytest unit testing, we also have end-to-end tests that run via pytest. These run in the pipeline and can be run locally. These use the same requirements as above, and are run locally using:
+In addition to pytest unit testing, we also have end-to-end tests that run via pytest. These run in the pipeline and can be run locally, but do require a local instance of the SDS API to be running (for example via `docker compose up -d`). These use the same requirements as above, and are run locally using:
 
 ```
 $ pipenv run pytest tests/end_to_end -m e2e

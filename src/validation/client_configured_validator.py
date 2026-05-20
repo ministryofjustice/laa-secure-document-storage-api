@@ -2,7 +2,7 @@ import inspect
 from typing import Any, Dict
 
 import structlog
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
 from src.models.file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
 from src.validation.file_validator import FileValidator, ValidatorNotFoundError
@@ -77,39 +77,68 @@ def get_kwargs_for_filevalidator(validator: str | FileValidator) -> Dict[str, An
     return validator_kwargs
 
 
-async def validate_file(file_object: UploadFile, validator_specs: list[FileValidatorSpec]) -> list[tuple[int, str]]:
+async def validate_file(file_object: UploadFile, validator_specs: list[FileValidatorSpec]) -> tuple[int, str | list]:
     """
-    Validates the file object against a list of validators, returning [(200, "") if all validators pass.
+    Validates the file object against a list of validators,
 
-    Validators are executed in the provided order, any exception raised during execution of a validator
-    will be logged and returned as an internal error (500, "Internal error handling file").
+    Missing File
+    File object is required. When missing returns: (400, "File is required)
 
-    Behaviour upon validator failure depends on the validator's continue_to_next_validator_on_fail attribute.
-    When True, validation will proceed to the next validator in sequence. When False, the validation
-    sequence ends and currently accumulated results returned.
+    When All Validators Pass
+    If all validators pass, returns: (200, "")
+
+    Validator Fail and/or Unexpected Exception
+    Validators are executed in the provided order. Behaviour upon validator failure (or unexpected exception)
+    depends on the validator's continue_to_next_validator_on_fail attribute. When True, validation will proceed
+    to the next validator in sequence. When False, the validation sequence ends and currently accumulated results
+    are returned.
+
+    Fail results are returned as a tuple of "headline" status code and list of individual status codes and
+    error details, e.g. (500, [(415, "File extension not allowed"), (415, "File mimetype not allowed"),
+                               (500, "Infernal Server Error")])
     """
     if file_object is None or not file_object.filename:
-        return [400, [(400, "File is required")]]
+        return 400, "File is required"
+
     result = await validate(file_object, validator_specs)
-    return result
+
+    if result == [(200, "")]:
+        return (200, "")
+    else:
+        status_code = get_status_code_for_response(result)
+        return status_code, result
 
 
 async def validate_file_collection(files: list[UploadFile],
-                                   validator_specs: list[FileCollectionValidatorSpec]) -> list[tuple[int, str]]:
+                                   validator_specs: list[FileCollectionValidatorSpec]) -> list[tuple[int, str | list]]:
     """
-    Validates the list of file objects against a list of validators, returning [(200, "") if all validators pass.
+    Validates the list of file objects against a list of validators.
 
-    Validators are executed in the provided order, any exception raised during execution of a validator
-    will be logged and returned as an internal error (500, "Internal error handling file").
+    Missing file list
+    List of files is required. When missing returns: (400, "List of files is required")
 
-    Behaviour upon validator failure depends on the validator's continue_to_next_validator_on_fail attribute.
-    When True, validation will proceed to the next validator in sequence. When False, the validation
-    sequence ends and currently accumulated results returned.
+    When All Validators Pass
+    If all validators pass, returns: (200, "")
+
+    Validator Fail and/or Unexpected Exception
+    Validators are executed in the provided order. Behaviour upon validator failure (or unexpected exception)
+    depends on the validator's continue_to_next_validator_on_fail attribute. When True, validation will proceed
+    to the next validator in sequence. When False, the validation sequence ends and currently accumulated results
+    are returned.
+
+    Fail results are returned as a tuple of "headline" status code and list of individual status codes and
+    error details, e.g. (422, [(422, "Too many files"), (422, "Combined file size exceeds limit")])
     """
     if not files:
         return [400, [(400, "List of files is required")]]
+
     result = await validate(files, validator_specs)
-    return result
+
+    if result == [(200, "")]:
+        return (200, "")
+    else:
+        status_code = get_status_code_for_response(result)
+        return status_code, result
 
 
 async def validate(validation_target: UploadFile | list[UploadFile],
@@ -164,32 +193,3 @@ def get_status_code_for_response(validation_results: list[tuple[int, str]]) -> i
         if 500 in unique_codes:
             status_code = 500
     return status_code
-
-
-async def validate_or_error(file_object, validators: list[FileValidatorSpec]) -> tuple[int, str]:
-    """
-    Validates the file object against a list of validators, returning (200, "") if all validators pass,
-    or raise an HTTPException with relevant status_code and detail if one or more validators failed.
-
-    :param validators:
-    :param file_object:
-    :return: status_code: int, detail: str
-    """
-    results = await validate_file(file_object, validators)
-    if results != [(200, "")]:
-        status_code = get_status_code_for_response(results)
-        raise HTTPException(status_code=status_code, detail=results)
-    return 200, ""
-
-
-async def validate_or_error_file_collection(files: list[UploadFile],
-                                            validators: list[FileCollectionValidatorSpec]) -> tuple[int, str]:
-    """
-    Validates a list of file objects against a list of validators, returning (200, "") if all validators pass,
-    or raise an HTTPException with relevant status_code and detail if one or more validators failed.
-    """
-    results = await validate_file_collection(files, validators)
-    if results != [(200, "")]:
-        status_code = get_status_code_for_response(results)
-        raise HTTPException(status_code=status_code, detail=results)
-    return 200, ""

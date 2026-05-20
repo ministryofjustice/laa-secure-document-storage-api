@@ -106,10 +106,9 @@ async def run_initial_file_checks(request: Request,
 
     # Client-specific validation
     if not error_status:
-        try:
-            await client_configured_validator.validate_or_error(file, client_config.file_validators)
-        except HTTPException as e:
-            error_status = (e.status_code, e.detail)
+        status_code, detail = await client_configured_validator.validate_file(file, client_config.file_validators)
+        if status_code != 200:
+            error_status = (status_code, detail)
 
     # Get checksum from file
     checksum = ""
