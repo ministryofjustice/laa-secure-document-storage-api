@@ -6,8 +6,10 @@ import structlog
 from cachetools import cached, TTLCache
 from fastapi.security import HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
-from jose import jwt, jwk
-from jose.exceptions import JWTClaimsError, JWTError, ExpiredSignatureError
+from jwt import PyJWKClient, PyJWKClientError, decode as jwt_decode
+from jwt import InvalidTokenError, ExpiredSignatureError, InvalidAudienceError, InvalidIssuerError
+import ssl
+import certifi
 from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCredentials, BaseUser, AuthenticationError
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
@@ -18,6 +20,7 @@ from src.utils.status_reporter import StatusReporter
 
 security = HTTPBearer()
 logger = structlog.get_logger()
+SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
 
 
 class _AuthenticationError(AuthenticationError):
@@ -88,9 +91,18 @@ def fetch_oidc_config(tenant_id):
     return requests.get(url).json()
 
 
-@cached(TTLCache(maxsize=100, ttl=3600))
-def fetch_jwks(jwks_uri):
-    return requests.get(jwks_uri).json()
+def get_signing_key(token: str, jwks_uri: str, bad_token_exception):
+    try:
+        client = PyJWKClient(jwks_uri, ssl_context=SSL_CONTEXT)
+
+        key = client.get_signing_key_from_jwt(token)
+        return key.key
+    except PyJWKClientError:
+        logger.error("JWK client error")
+        raise bad_token_exception
+    except Exception as error:
+        logger.error(f"Unexpected key error: {error.__class__.__name__}")
+        raise bad_token_exception
 
 
 def validate_token(token: str, aud: str, tenant_id: str) -> dict:
@@ -106,27 +118,16 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
         oidc_config = fetch_oidc_config(tenant_id)
         jwks_uri = oidc_config['jwks_uri']
 
-        jwks = fetch_jwks(jwks_uri)
-        unverified_header = jwt.get_unverified_header(token)
+        signing_key = get_signing_key(token, jwks_uri, bad_token_exception)
+
     except Exception as error:
-        logger.error(f"Error processing token: {error.__class__.__name__} {error}")
-        raise bad_token_exception
-
-    rsa_key_data = None
-    for key in jwks['keys']:
-        if key['kid'] == unverified_header['kid']:
-            rsa_key_data = key
-            break
-
-    if not rsa_key_data:
-        logger.error("No rsa key found")
+        logger.error(f"Error processing token: {error.__class__.__name__}")
         raise bad_token_exception
 
     try:
-        rsa_key = jwk.construct(rsa_key_data, 'RS256')
-        payload = jwt.decode(
+        payload = jwt_decode(
             token,
-            rsa_key.to_dict(),
+            signing_key,
             algorithms=['RS256'],
             audience=aud,
             issuer=f"https://login.microsoftonline.com/{tenant_id}/v2.0"
@@ -134,10 +135,10 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
     except ExpiredSignatureError as signature_error:
         logger.error(f"Error processing token: Signature invalid {signature_error}")
         raise bad_token_exception
-    except JWTClaimsError as claims_error:
+    except (InvalidAudienceError, InvalidIssuerError) as claims_error:
         logger.error(f"Error processing token: Claims error {claims_error}")
         raise _AuthenticationError(status_code=403, detail="Forbidden")
-    except JWTError as error:
+    except InvalidTokenError as error:
         logger.error(f"Unexpected error processing token: {error.__class__.__name__} {error}")
         raise bad_token_exception
 
