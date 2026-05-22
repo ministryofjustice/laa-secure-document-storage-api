@@ -85,18 +85,42 @@ app.add_middleware(CasbinMiddleware, enforcer=AuthzService().enforcer)
 app.add_middleware(BearerTokenMiddleware, backend=BearerTokenAuthBackend())
 app.add_middleware(CorrelationIdMiddleware)
 
+
 app.include_router(retrieve_file.router)
+app.include_router(retrieve_file.router, prefix="/api/v1")
+
 app.include_router(save_or_update_file.router)
+app.include_router(save_or_update_file.router, prefix="/api/v1")
+
 app.include_router(save_file.router)
+app.include_router(save_file.router, prefix="/api/v1")
+
 app.include_router(bulk_upload.router)
+app.include_router(bulk_upload.router, prefix="/api/v1")
+
 app.include_router(delete_files.router)
+app.include_router(delete_files.router, prefix="/api/v1")
+
 app.include_router(virus_check_file.router)
+app.include_router(virus_check_file.router, prefix="/api/v1")
+
 app.include_router(scan_for_suspicious_content.router)
+app.include_router(scan_for_suspicious_content.router, prefix="/api/v1")
 
 app.include_router(status.router)
+app.include_router(status.router, prefix="/api/v1")
+
 app.include_router(ping.router)
+app.include_router(ping.router, prefix="/api/v1")
+
 app.include_router(health.router)
+app.include_router(health.router, prefix="/api/v1")
+
 app.include_router(root.router)
+app.include_router(root.router, prefix="/api/v1")
 
 app.include_router(available_validators.router)
+app.include_router(available_validators.router, prefix="/api/v1")
+
 app.include_router(file_details.router)
+app.include_router(file_details.router, prefix="/api/v1")
