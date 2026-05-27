@@ -1,8 +1,9 @@
 import structlog
+from typing import Optional
+
 from fastapi import APIRouter, Depends, UploadFile, Request, HTTPException
 
 from src.middleware.client_config_middleware import client_config_middleware
-from src.validation.json_validator import validate_json
 from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload, BulkUploadFileResponse
 from src.utils.request_types import RequestType
@@ -17,7 +18,7 @@ logger = structlog.get_logger()
 async def bulk_upload(
     request: Request,
     files: list[UploadFile],
-    body: FileUpload = Depends(validate_json(FileUpload)),
+    body: Optional[FileUpload] = None,
     client_config: ClientConfig = Depends(client_config_middleware)
     # Ugly formating of line below is to keep flake8 happy
 ) -> dict[str, BulkUploadFileResponse]:
