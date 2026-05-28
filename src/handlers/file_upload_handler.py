@@ -27,12 +27,14 @@ async def handle_file_upload_logic(
 ) -> Tuple[Dict, bool]:
     if body is None:
         body = FileUpload()
-    # Bucket check
+    # Check for obsolete bucket name value in body
+    # We used to accept a bucket name value from request body but now only use bucket name from
+    # client_config. Record warning message when bucket name found in body.
     metadata = body.model_dump() or {}
-    bucket_name = metadata.pop("bucketName", None)
-    if bucket_name:
+    redundant_bucket_name = metadata.pop("bucketName", None)
+    if redundant_bucket_name:
         logger.warning(
-            f"{client_config.azure_client_id} specified bucked name: {bucket_name}, "
+            f"{client_config.azure_client_id} specified bucked name: {redundant_bucket_name}, "
             f"but we no longer expect this to be included in requests."
         )
 
