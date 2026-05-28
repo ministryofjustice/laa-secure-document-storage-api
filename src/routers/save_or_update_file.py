@@ -42,8 +42,6 @@ async def save_or_update_file(
     if file is None:
         file = UploadFile(file=None, filename="")
 
-    logger.info(f"####### {body}")
-
     response, file_existed = await handle_file_upload_logic(
         request=request,
         file=file,
