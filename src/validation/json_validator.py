@@ -1,9 +1,6 @@
 from pydantic import BaseModel, ValidationError
 from fastapi import HTTPException, Form
 from typing import Type
-import structlog
-
-logger = structlog.get_logger()
 
 
 def validate_json(model: Type[BaseModel]):
