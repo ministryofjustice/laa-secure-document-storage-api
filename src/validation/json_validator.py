@@ -19,6 +19,11 @@ def validate_json(model: Type[BaseModel]):
 
 
 def validate_optional_body_json(model: Type[BaseModel]):
+    """
+    This function is intended to process optional body data received by file upload
+    routers. The wrapped function returned includes default body parameter that's
+    used when no body included in client's request.
+    """
     # Care with quotation marks for default value - need " within the string to avoid `Invalid JSON`
     def wrapper(body: str = Form(default='{"body": "{}"}')):
         try:
