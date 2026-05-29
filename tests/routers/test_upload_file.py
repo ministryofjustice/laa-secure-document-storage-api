@@ -28,6 +28,68 @@ def test_save_file_success(handler_mock, test_client):
     handler_mock.assert_called_once()
 
 
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_with_empty_body_processed_successfully(handler_mock, test_client):
+    handler_mock.return_value = (
+        {"success": "File saved successfully in test_bucket with key test_file.txt"},
+        False
+    )
+
+    data = {
+        "body": "{}"
+    }
+
+    files = {
+        "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
+    }
+
+    response = test_client.post("/save_file", data=data, files=files)
+
+    assert response.status_code == 201
+    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
+
+
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_with_with_irrelevant_body_processed_successfully(handler_mock, test_client):
+    handler_mock.return_value = (
+        {"success": "File saved successfully in test_bucket with key test_file.txt"},
+        False
+    )
+
+    # Details below are not relevant as they do not correspond with FileUpload model
+    data = {"body": '{"bucketName": "test_bucket", "speed": "extra medium"}'}
+
+    files = {
+        "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
+    }
+
+    response = test_client.post("/save_file", data=data, files=files)
+
+    assert response.status_code == 201
+    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
+
+
+@patch("src.routers.save_file.handle_file_upload_logic")
+def test_save_file_with_with_body_folder_value_processed_successfully(handler_mock, test_client):
+    handler_mock.return_value = (
+        {"success": "File saved successfully in test_bucket with key test_file.txt"},
+        False
+    )
+
+    data = {"body": '{"folder": "yet_another_test_folder"}'}
+
+    files = {
+        "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
+    }
+
+    response = test_client.post("/save_file", data=data, files=files)
+
+    assert response.status_code == 201
+    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
+    # Check that the folder specified in request body has been forwarded to file handler in FileUpload object
+    # Note will likley need updating if FileUpload model has new attributes
+    assert "FileUpload(folder='yet_another_test_folder')" in str(handler_mock.call_args)
+
 # =========================== FAILURE =========================== #
 
 
@@ -83,23 +145,6 @@ def test_save_file_invalid_data(handler_mock, test_client):
     assert response.status_code == 400
 
     handler_mock.assert_not_called()  # bad JSON fails before calling handler
-
-
-@patch("src.routers.save_file.handle_file_upload_logic")
-def test_save_file_missing_bucket_name(handler_mock, test_client):
-    data = {
-        "body": "{}"
-    }
-    files = {
-        "file": ("test_file.txt", BytesIO(b"Test content"), "text/plain")
-    }
-
-    response = test_client.post("/save_file", data=data, files=files)
-
-    assert response.status_code == 400
-    assert response.content == b'{"detail":{"bucketName":"Field required"}}'
-
-    handler_mock.assert_not_called()  # validation error
 
 
 @patch("src.routers.save_file.handle_file_upload_logic")
