@@ -3,16 +3,11 @@ p, *, /docs, GET
 p, *, /docs/*, GET
 p, *, /openapi.json, GET
 
-# Allow any user to access the health check
-p, *, /, GET
-p, *, /api/v1/, GET
-p, *, /health, GET
-p, *, /api/v1/health, GET
-p, *, /ping, GET
-p, *, /api/v1/ping, GET
-p, *, /status, GET
-p, *, /api/v1/status, GET
+# Allow any user to access the health checks via any version
+p, *, ^/(api/v1/)?$, GET
+p, *, ^/(api/v1/)?health, GET
+p, *, ^/(api/v1/)?ping, GET
+p, *, ^/(api/v1/)?status, GET
 
-# Allow any user to access config
-p, *, /available_validators, GET
-p, *, /api/v1/available_validators, GET
+# Allow any user to access config via any version
+p, *, ^/(api/v1/)?available_validators, GET
