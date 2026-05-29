@@ -26,9 +26,8 @@ def test_bulk_upload_with_one_file(mock_handler, test_client):
         False
         )
 
-    data = {"body": '{"bucketName": "test_bucket"}'}
     files = [("files", ("test_file.txt", BytesIO(b"Test content"), "text/plain"))]
-    response = test_client.put("/bulk_upload",  data=data, files=files)
+    response = test_client.put("/bulk_upload", files=files)
 
     assert response.status_code == 200
     assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
@@ -40,7 +39,6 @@ def test_bulk_upload_with_one_file(mock_handler, test_client):
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_with_same_filename_thrice(mock_handler, test_client):
     # Upload details
-    data = {"body": '{"bucketName": "test_bucket"}'}
     files = [make_file_tuple("test.txt", b"file1"),
              make_file_tuple("test.txt", b"file2"),
              make_file_tuple("test.txt", b"file3")]
@@ -61,7 +59,7 @@ def test_bulk_upload_with_same_filename_thrice(mock_handler, test_client):
                                     "checksum": "fakechecksum3"  # Expect value from last file
                                     }}
     # Make request
-    response = test_client.put("/bulk_upload",  data=data, files=files)
+    response = test_client.put("/bulk_upload", files=files)
 
     assert response.status_code == 200
     assert response.json() == expected_result
@@ -71,8 +69,6 @@ def test_bulk_upload_with_same_filename_thrice(mock_handler, test_client):
 @pytest.mark.parametrize("file_count", [1, 10, 100, 1000])
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_with_multiple_files(mock_handler, file_count, test_client):
-    data = {"body": '{"bucketName": "test_bucket"}'}
-
     # Make files payload
     filenames = [f"file{n}.txt" for n in range(file_count)]
     # f.encode() is simple way of making unique bytes content for each file
@@ -94,7 +90,7 @@ def test_bulk_upload_with_multiple_files(mock_handler, file_count, test_client):
     mock_handler.side_effect = side_effect
 
     # Make request
-    response = test_client.put("/bulk_upload",  data=data, files=files)
+    response = test_client.put("/bulk_upload", files=files)
 
     assert response.status_code == 200
     assert response.json() == expected_result
@@ -104,7 +100,6 @@ def test_bulk_upload_with_multiple_files(mock_handler, file_count, test_client):
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_with_both_repeated_and_different_filenames(mock_handler, test_client):
     # Upload details - unique filenames start "u", repeated start "r"
-    data = {"body": '{"bucketName": "test_bucket"}'}
     files = [make_file_tuple("ufile1.txt", b"file1"),
              make_file_tuple("ufile2.txt", b"file2"),
              make_file_tuple("ufile3.txt", b"file3"),
@@ -139,30 +134,86 @@ def test_bulk_upload_with_both_repeated_and_different_filenames(mock_handler, te
     expected_result["ufile4.txt"] = make_file_result("ufile4.txt", [4], [saved_outcome], "fakechecksum5")
 
     # Make request
-    response = test_client.put("/bulk_upload",  data=data, files=files)
+    response = test_client.put("/bulk_upload", files=files)
 
     assert response.status_code == 200
     assert response.json() == expected_result
 
 
-# ====================== FAILURE (general) ====================== #
+# ================== Request Body (data param) ================== #
+"""
+In earlier version of API it was necessary to specify a `bucketName` value
+in the request body but his is no longer the case. Body is now optional and
+only used to specify optional folder value.
+(When making request body is specified using data parameter)
+"""
 
-# "three body problem!" - the 3 tests below have similar data param issues but distinct responses
+
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
-def test_bulk_upload_gives_expected_error_when_data_empty(mock_handler, test_client):
-    data = {}
+def test_bulk_upload_with_no_body_processed_successfully(mock_handler, test_client):
+    mock_handler.return_value = (
+        {"success": "File saved successfully in test_bucket with key test_file.txt",
+         "checksum": "fakechecksum123"},
+        False
+        )
+
     files = [("files", ("test_file.txt", BytesIO(b"Test content"), "text/plain"))]
+    response = test_client.put("/bulk_upload", files=files)
 
-    response = test_client.post("/save_file", data=data, files=files)
-
-    assert response.status_code == 422
-    assert response.json() == {'detail': [{'input': None,
-                                           'loc': ['body', 'body'],
-                                           'msg': 'Field required',
-                                           'type': 'missing'}]}
-    mock_handler.assert_not_called()
+    assert response.status_code == 200
+    assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
+                                                 'positions': [0],
+                                                 'outcomes': [{'status_code': 201, 'detail': 'saved'}],
+                                                 'checksum': 'fakechecksum123'}}
 
 
+@patch("src.routers.bulk_upload.handle_file_upload_logic")
+def test_bulk_upload_with_body_folder_value_processed_successfully(mock_handler, test_client):
+    # Due to mocked return value we can't see if specified folder has been used from response
+    # but can assert if folder included in FileUpload object passed to  mock handler.
+    mock_handler.return_value = (
+        {"success": "File saved successfully in test_bucket with key test_file.txt",
+         "checksum": "fakechecksum123"},
+        False
+        )
+
+    data = {"body": '{"folder": "test_folder"}'}
+
+    files = [("files", ("test_file.txt", BytesIO(b"Test content"), "text/plain"))]
+    response = test_client.put("/bulk_upload", data=data, files=files)
+
+    assert response.status_code == 200
+    assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
+                                                 'positions': [0],
+                                                 'outcomes': [{'status_code': 201, 'detail': 'saved'}],
+                                                 'checksum': 'fakechecksum123'}}
+    # Check that the folder specified in request body has been forwarded to file handler in FileUpload object
+    # Note will likley need updating if FileUpload model has new attributes
+    assert "FileUpload(folder='test_folder')" in str(mock_handler.call_args)
+
+
+# Body has syntactically correct json but data is irrelevant - success result
+@patch("src.routers.bulk_upload.handle_file_upload_logic")
+def test_bulk_upload_with_body_with_irrelevant_body_content_processed_successfully(mock_handler, test_client):
+    mock_handler.return_value = (
+        {"success": "File saved successfully in test_bucket with key test_file.txt",
+         "checksum": "fakechecksum123"},
+        False
+        )
+    # Details below are not relevant as they do not correspond with FileUpload model
+    data = {"body": '{"bucketName": "test_bucket", "speed": "extra fast"}'}
+
+    files = [("files", ("test_file.txt", BytesIO(b"Test content"), "text/plain"))]
+    response = test_client.put("/bulk_upload", data=data, files=files)
+
+    assert response.status_code == 200
+    assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
+                                                 'positions': [0],
+                                                 'outcomes': [{'status_code': 201, 'detail': 'saved'}],
+                                                 'checksum': 'fakechecksum123'}}
+
+
+# Body contains invalid json - fail result
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_gives_expected_error_when_body_not_valid(mock_handler, test_client):
     data = {"body": "bad body"}
@@ -175,24 +226,13 @@ def test_bulk_upload_gives_expected_error_when_body_not_valid(mock_handler, test
     mock_handler.assert_not_called()
 
 
-@patch("src.routers.bulk_upload.handle_file_upload_logic")
-def test_bulk_upload_gives_expected_error_when_body_lacks_bucket(mock_handler, test_client):
-    data = {"body": "{}"}
-    files = [("files", ("test_file.txt", BytesIO(b"Test content"), "text/plain"))]
-
-    response = test_client.put("/bulk_upload",  data=data, files=files)
-
-    assert response.status_code == 400
-    assert response.json() == {"detail": {"bucketName": "Field required"}}
-    mock_handler.assert_not_called()
-
+# ====================== FAILURE (general) ====================== #
 
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_gives_expected_error_when_no_files(mock_handler, test_client):
-    data = {"body": '{"bucketName": "test_bucket"}'}
     files = []
 
-    response = test_client.put("/bulk_upload",  data=data, files=files)
+    response = test_client.put("/bulk_upload", files=files)
 
     assert response.status_code == 422
     assert response.json() == {"detail": [{"type": "missing",
@@ -206,7 +246,6 @@ def test_bulk_upload_gives_expected_error_when_no_files(mock_handler, test_clien
 
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_gives_expected_errors_when_invalid_files_present(mock_handler, test_client):
-    data = {"body": '{"bucketName": "test_bucket"}'}
     # Make files payload
     files = [make_file_tuple("goodfile1.txt", b"file1"),  # Good file
              make_file_tuple("virusfile.txt", b"file2"),  # Bad file
@@ -236,6 +275,6 @@ def test_bulk_upload_gives_expected_errors_when_invalid_files_present(mock_handl
                                                         [{"status_code": 201, "detail": "saved"}],
                                                         "fakechecksum2")
 
-    response = test_client.put("/bulk_upload",  data=data, files=files)
+    response = test_client.put("/bulk_upload", files=files)
     assert response.status_code == 200
     assert response.json() == expected_result
