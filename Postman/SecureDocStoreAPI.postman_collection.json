@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "459c2be1-5fd2-4e42-940f-f6f3f6c90231",
+    "_postman_id": "4ffad726-44ee-4f24-8002-b4b7c6925f2c",
     "name": "SecureDocStoreAPI",
     "description": "This suite contains integration tests for the Secure Document Storage API. A Pre-request script is configured to ensure all tests resolve a valid auth token should they need it",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
@@ -946,85 +946,6 @@
           "response": []
         },
         {
-          "name": "Save Or Update File With Missing Bucket",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    var responseBody = pm.response.json();",
-                  "    pm.expect(responseBody).to.have.property('detail');",
-                  "    pm.expect(responseBody.detail).to.have.property('bucketName');",
-                  "    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {}
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "bearer {{bearerToken}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": "test_file.md"
-                },
-                {
-                  "key": "body",
-                  "value": "{\"folder\":\"testmult\"} ",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{SDSBaseUrl}}/save_or_update_file",
-              "host": [
-                "{{SDSBaseUrl}}"
-              ],
-              "path": [
-                "save_or_update_file"
-              ]
-            },
-            "description": "Expect a 400 BAD REQUEST when no bucket is defined in the save-or-update request"
-          },
-          "response": []
-        },
-        {
           "name": "Save Or Update File Without File",
           "event": [
             {
@@ -1791,85 +1712,6 @@
               ]
             },
             "description": "Expect a 415 UNSUPPORTED MEDIA TYPE when uploading a mock executable file as disallowed by client config."
-          },
-          "response": []
-        },
-        {
-          "name": "Save File With Missing Bucket",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    var responseBody = pm.response.json();",
-                  "    pm.expect(responseBody).to.have.property('detail');",
-                  "    pm.expect(responseBody.detail).to.have.property('bucketName');",
-                  "    pm.expect(responseBody.detail.bucketName).to.eql('Field required');",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {}
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "bearer {{bearerToken}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": "test_file.md"
-                },
-                {
-                  "key": "body",
-                  "value": "{\"folder\":\"testmult\"} ",
-                  "type": "text"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{SDSBaseUrl}}/save_file",
-              "host": [
-                "{{SDSBaseUrl}}"
-              ],
-              "path": [
-                "save_file"
-              ]
-            },
-            "description": "Expect a 400 BAD REQUEST when no bucket is defined in the save request"
           },
           "response": []
         },
