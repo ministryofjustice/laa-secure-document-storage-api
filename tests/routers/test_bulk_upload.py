@@ -143,7 +143,7 @@ def test_bulk_upload_with_both_repeated_and_different_filenames(mock_handler, te
 # ================== Request Body (data param) ================== #
 """
 In earlier version of API it was necessary to specify a `bucketName` value
-in the request body but his is no longer the case. Body is now optional and
+in the request body but this is no longer the case. Body is now optional and
 only used to specify optional folder value.
 (When making request body is specified using data parameter)
 """
