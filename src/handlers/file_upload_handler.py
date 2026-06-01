@@ -20,25 +20,18 @@ logger = structlog.get_logger()
 async def handle_file_upload_logic(
     request: Request,
     file: Optional[UploadFile],
-    body: FileUpload,
     client_config: ClientConfig,
     request_type: RequestType,
+    body: Optional[FileUpload] = None,
     filename_position: int = 0
 ) -> Tuple[Dict, bool]:
-    # Bucket check
-    metadata = body.model_dump() or {}
-    bucket_name = metadata.pop("bucketName", None)
-    if bucket_name != client_config.bucket_name:
-        # For compatibility we allow the bucket name to be specified in the request,
-        # but log a warning to help prevent confusion
-        logger.warning(
-            f"{client_config.azure_client_id} specified {bucket_name}, "
-            f"not configured name {client_config.bucket_name}"
-        )
+    if body is None:
+        body = FileUpload()
 
     # Initial file checks - virus scan, mandatory validators, client config validators ...
     checksum, error_status = await run_initial_file_checks(request, file, client_config)
 
+    metadata = body.model_dump() or {}
     folder_prefix = metadata.pop("folder", "")
     full_filename = os.path.join(folder_prefix, file.filename) if folder_prefix else file.filename
 

@@ -5,9 +5,9 @@ from fastapi import APIRouter, UploadFile, Depends, Request
 from fastapi.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
+from src.validation.json_validator import validate_optional_body_json
 from src.models.client_config import ClientConfig
 from src.models.file_upload import FileUpload
-from src.validation.json_validator import validate_json
 from src.utils.request_types import RequestType
 from src.handlers.file_upload_handler import handle_file_upload_logic
 
@@ -20,7 +20,7 @@ logger = structlog.get_logger()
 async def save_file(
     request: Request,
     file: Optional[UploadFile] = None,
-    body: FileUpload = Depends(validate_json(FileUpload)),
+    body: FileUpload = Depends(validate_optional_body_json(FileUpload)),
     client_config: ClientConfig = Depends(client_config_middleware),
 ):
     """

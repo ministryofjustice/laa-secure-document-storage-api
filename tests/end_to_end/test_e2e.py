@@ -6,7 +6,6 @@ import httpx as client
 from tests.end_to_end.e2e_helpers import UploadFileData
 from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
-from tests.end_to_end.e2e_helpers import get_upload_body
 from tests.end_to_end.e2e_helpers import make_unique_name
 from tests.end_to_end.e2e_helpers import AuditDynamoDBClient
 
@@ -29,7 +28,6 @@ Environment Variables
 """
 
 HOST_URL = get_host_url()
-UPLOAD_BODY = get_upload_body()
 token_getter = get_token_manager()
 
 
@@ -186,8 +184,7 @@ def test_put_new_file_once():
 
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
-                          files=upload_file,
-                          data=UPLOAD_BODY)
+                          files=upload_file)
 
     details = response.json()
     assert response.status_code == 201
@@ -197,22 +194,36 @@ def test_put_new_file_once():
 
 
 @pytest.mark.e2e
+def test_put_file_with_folder_specified_in_body_saves_to_that_folder():
+    new_filename = make_unique_name("put_new_file_test.txt")
+    upload_file = test_md_file.get_data(new_filename)
+    # Care with formatting the below - value needs to be str, with " inside
+    data = {"body": '{"folder": "my_test_folder"}'}
+    response = client.put(f"{HOST_URL}/save_or_update_file",
+                          headers=token_getter.get_headers(),
+                          files=upload_file,
+                          data=data)
+
+    assert response.status_code == 201
+    # Folder "my_test_folder" from request body is included in success message
+    assert f"File saved successfully in sds-local with key my_test_folder/{new_filename}" in response.text
+
+
+@pytest.mark.e2e
 def test_put_new_file_twice_gives_expected_code_and_message():
     new_filename = make_unique_name("loaded_twice.txt")
     upload_file = test_md_file.get_data(new_filename)
 
     response1 = client.put(f"{HOST_URL}/save_or_update_file",
                            headers=token_getter.get_headers(),
-                           files=upload_file,
-                           data=UPLOAD_BODY)
+                           files=upload_file)
 
     # This resets the "seek" position to start of file, to prevent 0-byte upload
     upload_file = test_md_file.get_data(new_filename)
 
     response2 = client.put(f"{HOST_URL}/save_or_update_file",
                            headers=token_getter.get_headers(),
-                           files=upload_file,
-                           data=UPLOAD_BODY)
+                           files=upload_file)
 
     assert response1.status_code == 201 and str(response1.text).startswith('{"success":"File saved successfully')
     assert response2.status_code == 200 and str(response2.text).startswith('{"success":"File updated successfully')
@@ -233,8 +244,7 @@ def test_put_file_with_virus_is_blocked():
     upload_virus_file = virus_file.get_data()
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
-                          files=upload_virus_file,
-                          data=UPLOAD_BODY)
+                          files=upload_virus_file)
     assert response.status_code == 400
     assert response.json()["detail"] == "Virus Found"
 
@@ -244,32 +254,16 @@ def test_put_file_with_disallowed_file_type_is_blocked():
     upload_disallowed_file = disallowed_file.get_data()
     response = client.put(f"{HOST_URL}/save_or_update_file",
                           headers=token_getter.get_headers(),
-                          files=upload_disallowed_file,
-                          data=UPLOAD_BODY)
+                          files=upload_disallowed_file)
     assert response.status_code == 415
     assert response.json()["detail"] == [[415, "File mimetype not allowed"]]
 
 
 @pytest.mark.e2e
-def test_put_file_with_missing_bucket_is_blocked():
-    new_filename = make_unique_name("put_new_file_test.txt")
-    upload_file = test_md_file.get_data(new_filename)
-    # Care with formatting the below - value needs to be str, delimted with '
-    # (Although this is just creating a body that lacks bucketName)
-    data = {"body": '{"folder": "testmult"}'}
-    response = client.put(f"{HOST_URL}/save_or_update_file",
-                          headers=token_getter.get_headers(),
-                          files=upload_file,
-                          data=data)
-    assert response.status_code == 400
-    assert response.json()["detail"]["bucketName"] == "Field required"
-
-
-@pytest.mark.e2e
 def test_put_file_without_file_fails_as_expected():
     response = client.put(f"{HOST_URL}/save_or_update_file",
-                          headers=token_getter.get_headers(),
-                          data=UPLOAD_BODY)
+                          headers=token_getter.get_headers()
+                          )
     assert response.status_code == 400
     assert response.json()["detail"] == "File is required"
 
@@ -335,8 +329,7 @@ def test_post_new_file_once_is_successful():
 
     response = client.post(f"{HOST_URL}/save_file",
                            headers=token_getter.get_headers(),
-                           files=upload_file,
-                           data=UPLOAD_BODY)
+                           files=upload_file)
 
     details = response.json()
     assert response.status_code == 201
@@ -346,19 +339,28 @@ def test_post_new_file_once_is_successful():
 
 
 @pytest.mark.e2e
+def test_post_file_with_folder_specified_in_body_saves_to_that_folder():
+    new_filename = make_unique_name("post_new_file_test.txt")
+    upload_file = test_md_file.get_data(new_filename)
+    # Care with formatting the below - value needs to be str, with " inside
+    data = {"body": '{"folder": "my_other_test_folder"}'}
+    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), files=upload_file, data=data)
+    assert response.status_code == 201
+    assert f"File saved successfully in sds-local with key my_other_test_folder/{new_filename}" in response.text
+
+
+@pytest.mark.e2e
 def test_post_new_file_second_time_fails():
     new_filename = make_unique_name("post_new_file_test.txt")
     upload_file = test_md_file.get_data(new_filename)
 
     response1 = client.post(f"{HOST_URL}/save_file",
                             headers=token_getter.get_headers(),
-                            files=upload_file,
-                            data=UPLOAD_BODY)
+                            files=upload_file)
 
     response2 = client.post(f"{HOST_URL}/save_file",
                             headers=token_getter.get_headers(),
-                            files=upload_file,
-                            data=UPLOAD_BODY)
+                            files=upload_file)
 
     assert response1.status_code == 201
     assert str(response1.text).startswith('{"success":"File saved successfully')
@@ -371,8 +373,7 @@ def test_post_file_with_virus_is_blocked():
     upload_virus_file = virus_file.get_data()
     response = client.post(f"{HOST_URL}/save_file",
                            headers=token_getter.get_headers(),
-                           files=upload_virus_file,
-                           data=UPLOAD_BODY)
+                           files=upload_virus_file)
     assert response.status_code == 400
     assert response.json()["detail"] == "Virus Found"
 
@@ -382,27 +383,14 @@ def test_post_file_with_disallowed_file_type_is_blocked():
     upload_disallowed_file = disallowed_file.get_data()
     response = client.post(f"{HOST_URL}/save_file",
                            headers=token_getter.get_headers(),
-                           files=upload_disallowed_file,
-                           data=UPLOAD_BODY)
+                           files=upload_disallowed_file)
     assert response.status_code == 415
     assert response.json()["detail"] == [[415, "File mimetype not allowed"]]
 
 
 @pytest.mark.e2e
-def test_post_file_with_missing_bucket_is_blocked():
-    new_filename = make_unique_name("post_new_file_test.txt")
-    upload_file = test_md_file.get_data(new_filename)
-    # Care with formatting the below - value needs to be str, delimted with '
-    # (Although this is just creating a body that lacks bucketName)
-    data = {"body": '{"folder": "testmult"}'}
-    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), files=upload_file, data=data)
-    assert response.status_code == 400
-    assert response.json()["detail"]["bucketName"] == "Field required"
-
-
-@pytest.mark.e2e
 def test_post_file_without_file_fails_as_expected():
-    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers(), data=UPLOAD_BODY)
+    response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers())
     assert response.status_code == 400
     assert response.json()["detail"] == "File is required"
 

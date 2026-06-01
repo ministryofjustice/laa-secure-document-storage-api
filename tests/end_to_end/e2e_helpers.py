@@ -196,6 +196,7 @@ def get_host_url() -> str:
 
 
 def get_upload_body() -> dict[str, dict[str, str]]:
+    "This is now obsolete as bucketName is no longer required when uploading a file"
     return {"body": '{"bucketName": "sds-local"}'}
 
 
