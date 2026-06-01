@@ -44,7 +44,7 @@ jobs:
         docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+      uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
       with:
         role-to-assume: ${{ secrets.TEST_ECR_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.TEST_ECR_REGION }}
@@ -115,7 +115,7 @@ jobs:
         docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+      uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
       with:
         role-to-assume: ${{ secrets.STAGING_ECR_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.STAGING_ECR_REGION }}
@@ -186,7 +186,7 @@ jobs:
           docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
       - name: Assume AWS Role
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
         with:
           role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.PROD_ECR_REGION }}
