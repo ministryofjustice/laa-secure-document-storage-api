@@ -3,7 +3,7 @@ p, *, /docs, GET
 p, *, /docs/*, GET
 p, *, /openapi.json, GET
 
-# Allow any user to access the health check
+# Allow any user to access the health checks
 p, *, /, GET
 p, *, /health, GET
 p, *, /ping, GET
