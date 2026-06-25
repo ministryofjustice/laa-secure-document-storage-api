@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
     - name: Obtain Octo STS Token
       uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
@@ -30,7 +30,7 @@ jobs:
         identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
     - name: Checkout client configs
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         persist-credentials: 'false'
         token: '${{ steps.octo_sts.outputs.token }}'
@@ -44,14 +44,14 @@ jobs:
         docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+      uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
       with:
         role-to-assume: ${{ secrets.TEST_ECR_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.TEST_ECR_REGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr-dev
-      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
 
     - name: Store ECR endpoint as output
       id: ecr-url-output
@@ -91,7 +91,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
     - name: Obtain Octo STS Token
       uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
@@ -101,7 +101,7 @@ jobs:
         identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
     - name: Checkout client configs
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         persist-credentials: 'false'
         token: '${{ steps.octo_sts.outputs.token }}'
@@ -115,14 +115,14 @@ jobs:
         docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+      uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
       with:
         role-to-assume: ${{ secrets.STAGING_ECR_ROLE_TO_ASSUME }}
         aws-region: ${{ vars.STAGING_ECR_REGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr-dev
-      uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+      uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
 
     - name: Store ECR endpoint as output
       id: ecr-url-output
@@ -162,7 +162,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Obtain Octo STS Token
         uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
@@ -172,7 +172,7 @@ jobs:
           identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
 
       - name: Checkout client configs
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: 'false'
           token: '${{ steps.octo_sts.outputs.token }}'
@@ -186,14 +186,14 @@ jobs:
           docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
       - name: Assume AWS Role
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.PROD_ECR_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr-dev
-        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
 
       - name: Store ECR endpoint as output
         id: ecr-url-output
