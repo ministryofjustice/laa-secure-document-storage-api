@@ -8,6 +8,7 @@ from src.models.client_config import ClientConfig
 from src.services.s3_service import list_file_versions
 from src.services import audit_service
 from src.utils.operation_types import OperationType
+from src.services.opa_service import opa_evaluate
 
 
 router = APIRouter()
@@ -31,6 +32,13 @@ async def get_file_details(
     error_status = ()
     if not file_key:
         error_status = (400, "File key is missing")
+
+    # Experimental OPA integration. Placed early so we get an outcome even if file does not exist!
+    # Possibly could change opa_evaluate to return Boolean but richer OPA responses could be useful.
+    file_is_unrestricted: dict = opa_evaluate(input_data={"filename": file_key},
+                                              package_path="detect_thoughtcrime",
+                                              rule_name="allow")
+    logger.info(f">>>>> Filename: {file_key}, OPA 'file is unrestricted' result: {file_is_unrestricted}")
 
     if not error_status:
         file_versions = list_file_versions(client_config, file_key)

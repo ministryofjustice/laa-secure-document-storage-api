@@ -28,6 +28,7 @@ h11 = ">=0.16.0"
 requests = "==2.34.2"
 python-jose = {extras = ["cryptography"], version = "==3.5.0"}
 python-dateutil = "*"
+opa-python-client = "*"
 
 [dev-packages]
 flake8 = "==7.3.0"
