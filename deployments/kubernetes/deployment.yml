@@ -33,6 +33,8 @@ spec:
                   key: table_arn
             - name: ENV
               value: "cloud"
+            - name: DEPLOYMENT_ENV
+              value: ${ENVIRONMENT}
             - name: AWS_REGION
               value: "eu-west-2"
             - name: TENANT_ID

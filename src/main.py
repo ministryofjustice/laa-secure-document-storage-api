@@ -41,12 +41,14 @@ def add_correlation(
     return event_dict
 
 
+api_version = '0.9.0'
 sentry_dsn = os.environ.get('SENTRY_DSN')
 
 if sentry_dsn:
     sentry_sdk.init(
         dsn=sentry_dsn,
-
+        environment=os.environ.get('DEPLOYMENT_ENV', 'unspecified'),
+        release=api_version,
         integrations=[
             StarletteIntegration(
                 transaction_style="endpoint",
@@ -61,7 +63,7 @@ if sentry_dsn:
 
 app = FastAPI(
     title='LAA Secure Document Storage API',
-    version='0.8.0'
+    version=api_version,
 )
 
 structlog.configure(
