@@ -41,3 +41,23 @@ services:
       - ./tests/testFiles:/test_files
     environment:
       - FRESHCLAM_CHECKS=24
+  opa:
+    image: openpolicyagent/opa
+    # Dir on container with the rego files - want this as working dir to avoid OPA prefixing
+    # loaded policies with the directory name. e.g. we want example.rego not
+    # policies.example.rego or ./policies.example.rego
+    working_dir: /policies
+    command:
+      - "run"
+      - "--server"
+      # Below seems necessary to be able to access opa from outside the container
+      # at least when running locally.
+      - "--addr=0.0.0.0:8181"
+      # Can't do "*.rego" to import all rego files
+      - "detect_thoughtcrime.rego"
+    ports:
+      - '8181:8181'
+    volumes:
+    # Can't map to `/opa` directory on container - might already exist for particular purpose
+    # /policies works and might be a better name anyway!
+      - ./opa:/policies
