@@ -6,9 +6,9 @@ from tests.end_to_end.e2e_helpers import make_unique_name
 
 """
 This file contains end-to-end tests that bypass usual authentication, so must have:
-- Environment variable LOCAL_CONFIG_SKIP_AUTH="True"
+- Environment variable ENABLE_LOCAL_AUTH_FROM_IP_RANGE must have specified IP range
 - Request headers must include test-username value
-- Only work with SDS application running locally (on 127.0.0.1)
+- Only work with SDS application running locally matching specified IP range
 
 Tests will be automatically skipped if the above environment variable is not set.
 The skipping relies on pytestmark defined below.
@@ -20,7 +20,7 @@ it's just used to identify all pytest e2e tests regardless of authentication han
 
 # Module-level pytest global variable for test skipping. Tests in this file will be skipped
 # when LOCAL_CONFIG_SKIP_AUTH environment variable != "True".
-pytestmark = pytest.mark.skipif(os.getenv("LOCAL_CONFIG_SKIP_AUTH", "false").lower() != "true",
+pytestmark = pytest.mark.skipif(os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "") == "",
                                 reason="bypass-auth not enabled")
 
 # These tests are only expected to work when run locally
