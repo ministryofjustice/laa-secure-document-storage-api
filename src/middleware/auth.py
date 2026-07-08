@@ -44,7 +44,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
         Carries out bearer token authentication.
 
         For dev/test convenience this can be bypassed for local running if the following both are true:
-        1. Environment variable ENABLE_LOCAL_AUTH_FROM_IP_RANGE has IP address range that matches the SDS env.
+        1. Environment variable ENABLE_LOCAL_AUTH_FROM_IP_RANGE has IP address range that matches the SDS environment.
            e.g. network range 172.16.0.0 - 172.31.255.255 (172.16.0.0/12) to allow for dockerised local SDS
         2. The request has "test-username" value in its headers that ends "-test-user" and should
            match a client config user e.g. {"test-username": "all-endpoint-local-test-user"}
