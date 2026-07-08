@@ -54,6 +54,7 @@ class BearerTokenAuthBackend(AuthenticationBackend):
 
             try:
                 host_ip = ip_address(conn.client.host)
+                logger.info(f'!!!host {host_ip}')
             except ValueError:
                 host_ip = None
             if host_ip and host_ip in ip_network(enable_local_auth_ip_range):
