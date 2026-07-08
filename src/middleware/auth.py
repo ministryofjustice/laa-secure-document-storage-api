@@ -88,7 +88,9 @@ class BearerTokenAuthBackend(AuthenticationBackend):
 @cached(TTLCache(maxsize=100, ttl=3600))
 def fetch_oidc_config(tenant_id):
     url = f"https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration"
-    return requests.get(url).json()
+    response = requests.get(url, timeout=5)
+    response.raise_for_status()
+    return response.json()
 
 
 def get_signing_key(token: str, jwks_uri: str, bad_token_exception):
