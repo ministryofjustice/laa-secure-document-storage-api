@@ -95,6 +95,7 @@ jobs:
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          ENABLE_LOCAL_AUTH_FROM_IP_RANGE: "172.16.0.0/12"
 
       - name: SDS API logs
         if: always()
