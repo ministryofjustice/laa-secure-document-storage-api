@@ -50,11 +50,15 @@ class BearerTokenAuthBackend(AuthenticationBackend):
            match a client config user e.g. {"test-username": "all-endpoint-local-test-user"}
         """
         # Bypass athentication
+        logger.info(f"£££ ip_range {enable_local_auth_ip_range}")
+        logger.info(f">>> username {conn.headers.get("test-username")}")
+        logger.info(f"??? ENV VARIABLE: {os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")}")
+
         if enable_local_auth_ip_range and conn.headers.get("test-username"):
 
             try:
                 host_ip = ip_address(conn.client.host)
-                logger.info(f'!!!host {host_ip}')
+                logger.info(f'!!! host {host_ip}')
             except ValueError:
                 host_ip = None
             if host_ip and host_ip in ip_network(enable_local_auth_ip_range):
