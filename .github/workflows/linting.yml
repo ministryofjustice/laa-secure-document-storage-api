@@ -24,11 +24,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pipenv
-        pipenv run pipenv install
+        pipenv run pipenv sync
 
     - name: Install test dependencies
       run: |
-        pipenv run pipenv install --dev
+        pipenv run pipenv sync --dev
 
     - name: Set .env file
       run: |
