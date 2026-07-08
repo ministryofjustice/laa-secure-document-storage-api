@@ -15,11 +15,13 @@ The skipping relies on pytestmark defined below.
 
 Note the @pytest.mark.e2e decorator has a similar name but is is unrelated to the skipping,
 it's just used to identify all pytest e2e tests regardless of authentication handling.
+
+Variable ENABLE_LOCAL_AUTH_FROM_IP_RANGE is set in .env.sample for pytest end to end pipeline tests
 """
 
 
 # Module-level pytest global variable for test skipping. Tests in this file will be skipped
-# when LOCAL_CONFIG_SKIP_AUTH environment variable != "True".
+# when ENABLE_LOCAL_AUTH_FROM_IP_RANGE environment variable is not set.
 pytestmark = pytest.mark.skipif(os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "") == "",
                                 reason="bypass-auth not enabled")
 
