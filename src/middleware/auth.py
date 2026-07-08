@@ -18,7 +18,6 @@ from src.utils.status_reporter import StatusReporter
 
 security = HTTPBearer()
 logger = structlog.get_logger()
-enable_local_auth_ip_range: str = os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")
 
 
 class _AuthenticationError(AuthenticationError):
@@ -50,7 +49,8 @@ class BearerTokenAuthBackend(AuthenticationBackend):
            match a client config user e.g. {"test-username": "all-endpoint-local-test-user"}
         """
         # Bypass athentication
-        logger.info(f"£££ ip_range {enable_local_auth_ip_range}")
+        enable_local_auth_ip_range: str = os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")
+        logger.info(f"*** ip_range {enable_local_auth_ip_range}")
         logger.info(f">>> username {conn.headers.get("test-username")}")
         logger.info(f"??? ENV VARIABLE: {os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")}")
 
