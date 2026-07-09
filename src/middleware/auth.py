@@ -22,7 +22,6 @@ security = HTTPBearer()
 logger = structlog.get_logger()
 SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
 
-
 class _AuthenticationError(AuthenticationError):
     def __init__(self, status_code: int, detail: str) -> None:
         self.status_code = status_code
@@ -31,6 +30,11 @@ class _AuthenticationError(AuthenticationError):
     def __str__(self) -> str:
         return f"{self.status_code} {self.detail}"
 
+def invalid_token_error() -> _AuthenticationError:
+    return _AuthenticationError(
+        status_code=401,
+        detail="Invalid or expired token",
+    )
 
 class BearerTokenMiddleware(AuthenticationMiddleware):
     @staticmethod
@@ -93,7 +97,7 @@ def fetch_oidc_config(tenant_id):
     return response.json()
 
 
-def get_signing_key(token: str, jwks_uri: str, bad_token_exception):
+def get_signing_key(token: str, jwks_uri: str):
     try:
         client = PyJWKClient(jwks_uri, ssl_context=SSL_CONTEXT)
 
@@ -101,30 +105,28 @@ def get_signing_key(token: str, jwks_uri: str, bad_token_exception):
         return key.key
     except PyJWKClientError:
         logger.error("JWK client error")
-        raise bad_token_exception
+        raise invalid_token_error()
     except Exception as error:
         logger.error(f"Unexpected key error: {error.__class__.__name__}")
-        raise bad_token_exception
+        raise invalid_token_error()
 
 
 def validate_token(token: str, aud: str, tenant_id: str) -> dict:
-    # Raise any token processing errors as 401 to the client to avoid leaking information
-    bad_token_exception = _AuthenticationError(status_code=401, detail="Invalid or expired token")
     # Note None option included for completeness but unlikely for None to reach this point
     # when token originates from request headers.
     if token in ("", "None", None):
         logger.error(f"Empty or invalid token: '{token}'")
-        raise bad_token_exception
+        raise invalid_token_error()
     try:
         # Fetch the OpenID configuration to get the JWK URI
         oidc_config = fetch_oidc_config(tenant_id)
         jwks_uri = oidc_config['jwks_uri']
 
-        signing_key = get_signing_key(token, jwks_uri, bad_token_exception)
+        signing_key = get_signing_key(token, jwks_uri)
 
     except Exception as error:
         logger.error(f"Error processing token: {error.__class__.__name__}")
-        raise bad_token_exception
+        raise invalid_token_error()
 
     try:
         payload = jwt_decode(
@@ -136,13 +138,13 @@ def validate_token(token: str, aud: str, tenant_id: str) -> dict:
         )
     except ExpiredSignatureError as signature_error:
         logger.error(f"Error processing token: Signature invalid {signature_error}")
-        raise bad_token_exception
+        raise invalid_token_error()
     except (InvalidAudienceError, InvalidIssuerError) as claims_error:
         logger.error(f"Error processing token: Claims error {claims_error}")
         raise _AuthenticationError(status_code=403, detail="Forbidden")
     except InvalidTokenError as error:
         logger.error(f"Unexpected error processing token: {error.__class__.__name__} {error}")
-        raise bad_token_exception
+        raise invalid_token_error()
 
     # Ensure token has `azp` claim which is used to identify the client
     if payload.get('azp') is None:
