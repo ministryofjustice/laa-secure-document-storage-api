@@ -22,6 +22,7 @@ security = HTTPBearer()
 logger = structlog.get_logger()
 SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
 
+
 class _AuthenticationError(AuthenticationError):
     def __init__(self, status_code: int, detail: str) -> None:
         self.status_code = status_code
@@ -30,11 +31,13 @@ class _AuthenticationError(AuthenticationError):
     def __str__(self) -> str:
         return f"{self.status_code} {self.detail}"
 
+
 def invalid_token_error() -> _AuthenticationError:
     return _AuthenticationError(
         status_code=401,
         detail="Invalid or expired token",
     )
+
 
 class BearerTokenMiddleware(AuthenticationMiddleware):
     @staticmethod
