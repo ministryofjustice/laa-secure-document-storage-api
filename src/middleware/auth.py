@@ -15,7 +15,10 @@ from starlette.responses import Response, JSONResponse
 
 from src.models.status_report import ServiceObservations, Category
 from src.utils.status_reporter import StatusReporter
+from dotenv import load_dotenv
 
+load_dotenv()
+enable_local_auth_ip_range: str = os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")
 security = HTTPBearer()
 logger = structlog.get_logger()
 
@@ -49,10 +52,6 @@ class BearerTokenAuthBackend(AuthenticationBackend):
            match a client config user e.g. {"test-username": "all-endpoint-local-test-user"}
         """
         # Bypass athentication
-        enable_local_auth_ip_range: str = os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")
-        logger.info(f"*** ip_range {enable_local_auth_ip_range}")
-        logger.info(f">>> username {conn.headers.get("test-username")}")
-        logger.info(f"??? ENV VARIABLE: {os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")}")
 
         if enable_local_auth_ip_range and conn.headers.get("test-username"):
 
