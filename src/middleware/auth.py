@@ -14,10 +14,13 @@ from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCred
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import Response, JSONResponse
+from dotenv import load_dotenv
 
 from src.models.status_report import ServiceObservations, Category
 from src.utils.status_reporter import StatusReporter
 
+load_dotenv()
+enable_local_auth_ip_range: str = os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")
 security = HTTPBearer()
 logger = structlog.get_logger()
 SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
@@ -52,21 +55,21 @@ class BearerTokenAuthBackend(AuthenticationBackend):
         """
         Carries out bearer token authentication.
 
-        For dev/test convenience this can be bypassed for local running if the following are all true:
-        1. Environment variable LOCAL_CONFIG_SKIP_AUTH has value "true" (case insensitive).
-           Note environment variables have to be strings, so using "true", "false".
+        For dev/test convenience this can be bypassed for local running if the following both are true:
+        1. Environment variable ENABLE_LOCAL_AUTH_FROM_IP_RANGE has IP address range that matches the SDS environment.
+           e.g. network range 172.16.0.0 - 172.31.255.255 (172.16.0.0/12) to allow for dockerised local SDS
         2. The request has "test-username" value in its headers that ends "-test-user" and should
            match a client config user e.g. {"test-username": "all-endpoint-local-test-user"}
-        3. SDS is running locally with either host being 127.0.0.1 from direct local run,
-           or in network range 172.16.0.0 - 172.31.255.255 (172.16.0.0/12) to allow for dockerised local SDS.
         """
         # Bypass athentication
-        if os.getenv("LOCAL_CONFIG_SKIP_AUTH", "false").lower() == "true" and conn.headers.get("test-username"):
+
+        if enable_local_auth_ip_range and conn.headers.get("test-username"):
+
             try:
                 host_ip = ip_address(conn.client.host)
             except ValueError:
                 host_ip = None
-            if host_ip and (host_ip in ip_network("172.16.0.0/12") or host_ip in ip_network("127.0.0.1")):
+            if host_ip and host_ip in ip_network(enable_local_auth_ip_range):
                 username = conn.headers.get('test-username')
                 # Safeguard that only test users can be used
                 if not isinstance(username, str) or not username.endswith("-test-user"):

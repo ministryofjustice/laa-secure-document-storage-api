@@ -43,7 +43,7 @@ are setup correctly if you choose to use non-dummy keys.
 
 In normal operation SDS uses tokens issued by the MoJ tenant. However, when running SDS locally it is possible to bypass the need for a token. For this to work all the following must be true:
 1. SDS must be running locally, either directly or in Docker (including in GitHub workflows).
-2. Environment variable `LOCAL_CONFIG_SKIP_AUTH="True"`. This can be set in the `.env` file.
+2. Environment variable `ENABLE_LOCAL_AUTH_FROM_IP_RANGE` has IP range. This can be set in the `.env` file. 
 3. Request headers must include a `test-username` e.g. `{"test-username": "virus-check-local-test-user"}`. Like all SDS users, the specified username must have related client-configuration `csv` and `json` files.
 
 If any of the above are false, usual token-based authentication applies.
