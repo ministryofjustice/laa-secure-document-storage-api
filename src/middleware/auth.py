@@ -12,10 +12,10 @@ from starlette.authentication import AuthenticationBackend, SimpleUser, AuthCred
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection
 from starlette.responses import Response, JSONResponse
+from dotenv import load_dotenv
 
 from src.models.status_report import ServiceObservations, Category
 from src.utils.status_reporter import StatusReporter
-from dotenv import load_dotenv
 
 load_dotenv()
 enable_local_auth_ip_range: str = os.getenv("ENABLE_LOCAL_AUTH_FROM_IP_RANGE", "")
@@ -57,7 +57,6 @@ class BearerTokenAuthBackend(AuthenticationBackend):
 
             try:
                 host_ip = ip_address(conn.client.host)
-                logger.info(f'!!! host {host_ip}')
             except ValueError:
                 host_ip = None
             if host_ip and host_ip in ip_network(enable_local_auth_ip_range):
