@@ -73,9 +73,9 @@ class S3ClientConfigService:
         """
         if not self.last_refresh_time or datetime.datetime.now() - self.last_refresh_time > waitfor:
             self.populate_filenames()
-            logger.info(f"S3 client-config filenames refreshed")
+            logger.info("S3 client-config filenames refreshed")
         else:
-            logger.info(f"S3 client-config filenames not refreshed as last refresh was too recent: {self.last_refresh_time}")
+            logger.info(f"S3 client-config filenames not refreshed as last was too recent: {self.last_refresh_time}")
 
     def populate_filenames(self):
         self.filenames = []

@@ -10,6 +10,8 @@ import structlog
 
 from src.models.status_report import ServiceObservations, Category
 from src.utils.status_reporter import StatusReporter
+from src.services.s3_client_config_service import s3_client_config_source
+
 
 logger = structlog.get_logger()
 
@@ -144,6 +146,29 @@ class ClientConfigService:
                 logger.error(f"Found {len(candidates)} configs for {self.username} in {os.path.abspath(config_dir)}")
         except Exception as e:
             logger.error(f"Error {e.__class__.__name__} during load of config for '{self.username}': {e}")
+            loaded_config = None
+
+        return loaded_config
+
+    def load_from_s3(self) -> ClientConfig | None:
+        """
+        Attempts to load config from file ending /{username}.json from client-config S3 bucket
+        Created to work in a similar way to existing load_from_file method.
+        """
+        loaded_config = None
+        try:
+            s3_client_config_source.polulate_filenames_if_old()
+            # `/` included in endswith match to avoid picking up multiple users with matching "ends",
+            #  e.g. if we have users xyz and wxyz, we don't want xyz also getting wxyz
+            candidates: list[str] = [f for f in s3_client_config_source.json_filenames
+                                     if f.lower().endswith(f"/{self.username}.json")]
+            if len(candidates) == 1:
+                config_contents: str = s3_client_config_source.get_file(candidates[0])
+                loaded_config = ClientConfig.model_validate_json(config_contents)
+            else:
+                logger.error(f"Found {len(candidates)} configs for {self.username} in client-config S3 bucket")
+        except Exception as e:
+            logger.error(f"Error {e.__class__.__name__} during load of config from S3 for '{self.username}': {e}")
             loaded_config = None
 
         return loaded_config
