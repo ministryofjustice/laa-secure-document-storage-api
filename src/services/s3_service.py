@@ -4,7 +4,6 @@ from typing import Dict
 import boto3
 import os
 
-
 import structlog
 from botocore.exceptions import ClientError
 
