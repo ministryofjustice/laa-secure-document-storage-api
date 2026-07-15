@@ -19,18 +19,19 @@ logger = structlog.get_logger()
 
 class S3ClientConfigService:
     """
-    Gets client config filenames from client config S3 bucket.
+    Gets client config filenames and files from client config S3 bucket.
     Because these files only change from time-to-time, the details are held within the following
     attributes:
         self.filenames - all filenames
         self.csv_filenames - csv filenames only
         self.json_filenames - json filenames only
 
-    To refresh these details call the populate_filenames method. Note this will run automatically
-    when instance created as long as auto_populate parameter is True.
+    To refresh these details call the populate_filenames method. This will run automatically
+    when instance created if auto_populate parameter is True.
 
-    Also does not maintain a constant S3 connection. Only creates an S3 client while the
-    file details are being refreshed.  Likely will change once we start to read the files.
+    Note this only creates a temporary S3 client each time bucket accessed. Could change,
+    not sure what difference this makes - is there a constant connection otherwise? As
+    client is presumably sending requests behind the scenes, maybe not?
     """
     def __init__(self, auto_populate: bool = True):
         self.bucket = os.getenv("CLIENT_CONFIG_BUCKET_NAME", "sds-client-configs")
@@ -88,12 +89,30 @@ class S3ClientConfigService:
         self.csv_filenames = [f for f in self.filenames if f.lower().endswith(".csv")]
         self.json_filenames = [f for f in self.filenames if f.lower().endswith(".json")]
 
-    def get_file(self, key):
+    def get_file(self, key: str) -> str:
+        """
+        Return specified file content as string. Presumably should be
+        fine as we're only expecting to read csv and json, not binary.
+        """
         s3_client = self.get_s3_client()
-        file_object: dict = s3_client.get_object(Bucket=self.bucket, Key=key)
-        print(file_object)
-        s3_client.close()
-        # Update so we return something but need to understand what's in file_object
+        # Could change things so we check file is in self.filenames
+        # before atttempting to read it.
+        try:
+            file_object: dict = s3_client.get_object(Bucket=self.bucket, Key=key)
+            file_content = file_object.get("Body").read().decode("utf-8")
+        except Exception as exc:
+            logger.error(f"Failed to read config file {key}: {exc}")
+            file_content = ""
+        finally:
+            s3_client.close()
+        return file_content
+
+    def get_file_lines(self, key: str) -> list[str]:
+        """
+        Return specified file content as list of line-by-line strings.
+        """
+        content = self.get_file(key)
+        return content.splitlines()
 
 
 class S3Service:
