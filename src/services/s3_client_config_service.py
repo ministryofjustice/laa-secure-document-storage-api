@@ -22,7 +22,7 @@ class S3ClientConfigService:
     not sure what difference this makes - is there a constant connection otherwise? As
     client is presumably sending requests behind the scenes, maybe not?
     """
-    def __init__(self, auto_populate: bool = True):
+    def __init__(self, auto_populate: bool = False):
         self.bucket = os.getenv("CLIENT_CONFIG_BUCKET_NAME", "sds-client-configs")
         self.filenames = []
         self.csv_filenames = []
@@ -79,7 +79,16 @@ class S3ClientConfigService:
 
     def populate_filenames(self):
         self.filenames = []
-        file_details: list[dict] = self.get_details_of_files()
+
+        try:
+            file_details: list[dict] = self.get_details_of_files()
+        except Exception as exc:
+            logger.error(f"Failed to get file details from config file S3: {exc}")
+            # Using [{}] so attempt to get truncation_flag from dict can be made
+            # Alternatively, could just return from here instead which would also
+            # preserve any previously captured details
+            file_details = [{}]
+
         for file_collection in file_details:
             contents = file_collection.get("Contents", [])
             self.filenames.extend([c.get("Key") for c in contents])
