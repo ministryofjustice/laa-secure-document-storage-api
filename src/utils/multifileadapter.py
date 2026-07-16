@@ -47,9 +47,6 @@ class MultiFileAdapter(casbin.FileAdapter):
 
         # Load policy lines from each of the found file paths
         self.num_files_processed = 0
-        for pi, policy_path in enumerate(policy_file_paths):
-            logger.info(f"> {pi} {policy_path}")
-
         for policy_path in policy_file_paths:
             try:
                 with open(policy_path, "rb") as file:
