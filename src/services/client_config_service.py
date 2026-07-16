@@ -81,6 +81,11 @@ class ClientConfigService:
                 and loaded_config is None:
             logger.info(f"Looking for ClientConfig for '{self.username}' from file")
             loaded_config = self.load_from_file()
+            s3_loaded_config = self.load_from_s3()
+            if s3_loaded_config == loaded_config:
+                logger.info(f"Client: {self.username} - loaded config from S3 MATCHES loaded config from file")
+            else:
+                logger.info(f"Client: {self.username} - loaded config from S3 DOESN'T MATCH loaded config from file")
 
         # Only load from environment if other sources are also specified, bit of safety to avoid only trusting the env
         if 'env' in ClientConfigService._config_sources \
