@@ -162,7 +162,7 @@ class ClientConfigService:
         """
         loaded_config = None
         try:
-            s3_client_config_source.polulate_filenames_if_old()
+            s3_client_config_source.populate_filenames_if_old()
             # `/` included in endswith match to avoid picking up multiple users with matching "ends",
             #  e.g. if we have users xyz and wxyz, we don't want xyz also getting wxyz
             candidates: list[str] = [f for f in s3_client_config_source.json_filenames

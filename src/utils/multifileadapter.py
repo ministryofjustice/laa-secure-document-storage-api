@@ -4,6 +4,7 @@ import pathlib
 import casbin
 from casbin import load_policy_line
 import structlog
+from src.services.s3_client_config_service import s3_client_config_source
 
 logger = structlog.get_logger()
 
@@ -18,6 +19,8 @@ class MultiFileAdapter(casbin.FileAdapter):
         self.num_files_processed = 0
         # Do not check if path exists at this entry, because we may have been given a string with colon-separated paths
         self._load_policy_file(model)
+        # New client config load from S3 - in addition to original policy load!
+        self.load_policy_files_from_s3(model)
 
     def _load_policy_file(self, model):
         # List of policy files to be used for loading
@@ -44,6 +47,9 @@ class MultiFileAdapter(casbin.FileAdapter):
 
         # Load policy lines from each of the found file paths
         self.num_files_processed = 0
+        for pi, policy_path in enumerate(policy_file_paths):
+            logger.info(f"> {pi} {policy_path}")
+
         for policy_path in policy_file_paths:
             try:
                 with open(policy_path, "rb") as file:
@@ -55,3 +61,21 @@ class MultiFileAdapter(casbin.FileAdapter):
             except Exception as e:
                 logger.error(f"Failed to load policy file {policy_path}: {e.__class__.__name__} {e}")
         logger.info(f"Processed {self.num_files_processed} policy files")
+
+    def load_policy_files_from_s3(self, model):
+        # For consistency using self.num_files_processed but wonder if this could just be local
+        # variable instead?
+        self.num_files_processed = 0
+        s3_client_config_source.populate_filenames_if_old()
+        s3_policy_file_paths = s3_client_config_source.csv_filenames
+        for s3_policy_path in s3_policy_file_paths:
+            try:
+                lines = s3_client_config_source.get_file_lines(s3_policy_path)
+                # unlike _load_policy_file, (maybe recklessly) using for loop instead of while
+                for line in lines:
+                    # Unlike file load, no decode method call as data is already str
+                    load_policy_line(line.strip(), model)
+                self.num_files_processed += 1
+            except Exception as e:
+                logger.error(f"Failed to load policy file from S3 {s3_policy_path}: {e.__class__.__name__} {e}")
+        logger.info(f"Processed {self.num_files_processed} policy files from S3")

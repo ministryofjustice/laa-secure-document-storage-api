@@ -66,7 +66,7 @@ class S3ClientConfigService:
         s3_client.close()
         return all_file_details
 
-    def polulate_filenames_if_old(self, waitfor: datetime.timedelta = datetime.timedelta(hours=1)):
+    def populate_filenames_if_old(self, waitfor: datetime.timedelta = datetime.timedelta(hours=1)):
         """
         Refresh the filenames if either there's no last_refresh_time or the last_refresh_time was
         more than a specified interval in the past (defaults to 1 hour)
