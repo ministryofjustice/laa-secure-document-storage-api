@@ -15,6 +15,7 @@ async def health():
     """
     status_report = await status_service.get_status()
     if status_report.has_failures():
+        logger.error(f"Health report has failures: {status_report}")
         raise HTTPException(
             status_code=503,
             detail="Please try again later."

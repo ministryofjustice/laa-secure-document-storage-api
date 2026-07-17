@@ -31,8 +31,12 @@ services:
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
+      # Need the configs so .sh script can copy them to the configs S3
+      # Also actual repo name used here not sds-api-configs
+      - ../laa-secure-document-storage-configs/clientconfigs:/clientconfigs
       - ./localstack-script.sh:/etc/localstack/init/ready.d/script.sh
       - '/var/run/docker.sock:/var/run/docker.sock'
+
   laa-clamav:
     image: ghcr.io/ministryofjustice/clamav-docker/laa-clamav:latest
     ports:
