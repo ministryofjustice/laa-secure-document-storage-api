@@ -88,5 +88,4 @@ class StatusReport(BaseModel):
                 for co in so.observations:
                     if co.category == Category.failure:
                         details += f" Failed check: {co.phenomenon}"
-                 #   details = details + f'[SERVICE: {so} CAT FAILURES: {co}]\n'
         return details
