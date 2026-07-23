@@ -84,9 +84,9 @@ class StatusReport(BaseModel):
         details = ''
         for so in self.services:
             if so.has_failures():
-                details += (f" Service: {so.label}")
+                details += f" Service: {so.label}"
                 for co in so.observations:
                     if co.category == Category.failure:
-                        details += (f" Failed check: {co.phenomenon}")
+                        details += f" Failed check: {co.phenomenon}"
                  #   details = details + f'[SERVICE: {so} CAT FAILURES: {co}]\n'
         return details
