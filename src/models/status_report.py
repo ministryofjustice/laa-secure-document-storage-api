@@ -70,7 +70,7 @@ class ServiceObservations(BaseModel):
 
 class StatusReport(BaseModel):
     """
-    All the service checks combined into a single status report.
+    All the service checks combined into a single status report. return details
     """
     services: List[ServiceObservations] = Field(default_factory=list)
 
@@ -79,3 +79,13 @@ class StatusReport(BaseModel):
             if so.has_failures():
                 return True
         return False
+
+    def get_failure_details(self) -> str:
+        details = ''
+        for so in self.services:
+            if so.has_failures():
+                details += f". {so.label.capitalize()}"
+                for co in so.observations:
+                    if co.category == Category.failure:
+                        details += f" not {co.phenomenon}"
+        return details
