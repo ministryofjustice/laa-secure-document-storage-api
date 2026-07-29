@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="umFROlM8LX4AWasYGyTv">
-    <mxGraphModel dx="940" dy="611" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="843" dy="548" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -22,6 +22,11 @@
               <mxPoint x="405.62" y="215.05" />
             </Array>
             <mxPoint x="405" y="229.9999999999999" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bWBNuMsdrltdgDbUtCCw-6" connectable="0" parent="l8aaCkdEHGoXbfaHJkyN-45" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];whiteSpace=wrap;" value="Get Authentication Token" vertex="1">
+          <mxGeometry relative="1" x="-0.1277" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="IcNkZIDtjDiqjZ6SE20L-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="GitHub" vertex="1">
