@@ -21,11 +21,15 @@ base_config = {
                                                  (["csv"], ["csv"]),
                                                  ([".csv", ".xml"], ["csv", "xml"]),
                                                  ([".csv", ".xml", "zzz"], ["csv", "xml", "zzz"]),
-                                                 ([".csv", ".abcdefghijk"], ["csv", "abcdefghijk"])
+                                                 ([".csv", ".abcdefghijk"], ["csv", "abcdefghijk"]),
+                                                 ([".CSV", "CSV"], ["csv", "csv"])
                                                  ]
                          )
 def test_fix_extensions(extensions, expected):
-    """Just checking that leading `.` removed from file extensions that have them"""
+    """
+    Checking that leading `.` removed from file extensions that have them.
+    Also checks conversion to lower-case.
+    """
     result = fix_extensions(extensions)
     assert result == expected
 

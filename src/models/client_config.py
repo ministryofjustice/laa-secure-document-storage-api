@@ -27,7 +27,8 @@ class ClientConfig(BaseModel):
         This is special method that's called automatically after usual __init__ completed.
         Used here to remove any leading `.` from file extensions used in validation, as
         our validators don't expect the `.` but it may have been included in the source
-        config file.
+        config file. Also the converts extensions to lower-case as the validators expect
+        lower-case values.
         """
         target_validators = ("AllowedFileExtensions", "DisallowedFileExtensions")
         for validator in self.file_validators:
@@ -36,4 +37,4 @@ class ClientConfig(BaseModel):
 
 
 def fix_extensions(extensions: list[str]):
-    return [e.lstrip(".") for e in extensions]
+    return [e.lstrip(".").lower() for e in extensions]
