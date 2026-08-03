@@ -99,7 +99,8 @@ class AllowedFileExtensions(FileValidator):
             raise InvalidValidatorArgumentsError("AllowedFileExtensions validator requires a list of extensions")
         file_ext = os.path.splitext(file_object.filename)[1].strip('.').lower()
         if file_ext not in extensions:
-            logger.error(f"File extension {file_object.filename} not in allowed extensions {extensions}")
+            logger.error(f"File extension {file_ext} of file {file_object.filename} "
+                         f"not in allowed extensions {extensions}")
             return 415, "File extension not allowed"
         return 200, ""
 
@@ -120,7 +121,8 @@ class DisallowedFileExtensions(FileValidator):
             extensions = []
         file_ext = os.path.splitext(file_object.filename)[1].strip('.').lower()
         if file_ext in extensions:
-            logger.error(f"File extension {file_object.filename} in disallowed extensions {extensions}")
+            logger.error(f"File extension {file_ext} of file {file_object.filename} "
+                         f"in disallowed extensions {extensions}")
             return 415, "File extension not allowed"
         return 200, ""
 
@@ -145,8 +147,9 @@ class DisallowedMimetypes(FileValidator):
         if file_object.content_type is None or file_object.content_type == "":
             logger.error(f"File object did not have a content_type attribute {file_object}")
             return 400, 'File mimetype is required'
-        if file_object.content_type.lower() in content_types:
-            logger.error(f"File mimetype {file_object.content_type.lower()} in disallowed mimetypes {content_types}")
+        content_type = get_mimetype(file_object.content_type)
+        if content_type in content_types:
+            logger.error(f"File mimetype {content_type} in disallowed mimetypes {content_types}")
             return 415, "File mimetype not allowed"
         return 200, ""
 
@@ -172,7 +175,25 @@ class AllowedMimetypes(FileValidator):
         if file_object.content_type is None or file_object.content_type == "":
             logger.error(f"File object did not have a content_type attribute {file_object}")
             return 400, 'File mimetype is required'
-        if file_object.content_type.lower() not in content_types:
-            logger.error(f"File mimetype {file_object.content_type} not in allowed mimetypes {content_types}")
+        content_type = get_mimetype(file_object.content_type)
+        if content_type not in content_types:
+            logger.error(f"File mimetype {content_type} not in allowed mimetypes {content_types}")
             return 415, "File mimetype not allowed"
         return 200, ""
+
+
+def get_mimetype(content_type: str) -> str:
+    """
+    Extract and return mime type from content_type supplied by FastAPI file object.
+    When file uploaded using Bruno as client, and maybe other clients too, content_type starts with
+    mimetype (which we want) but can be followed by a `;` then character encoding info,
+    e.g. `text/csv; charset=utf-8`, which we don't want.
+    This function:
+        - Makes the content type lower-case and trims whitespace
+        - Strips out the superfluous part from the `;`
+        - Also trims whitespace after above
+    """
+    content_type = content_type.lower().strip()
+    if ";" in content_type:
+        content_type = content_type.split(";")[0].strip()
+    return content_type

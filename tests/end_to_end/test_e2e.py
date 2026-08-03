@@ -389,6 +389,29 @@ def test_post_file_with_disallowed_file_type_is_blocked():
 
 
 @pytest.mark.e2e
+def test_post_file_with_disallowed_file_type_with_superfluous_data_is_blocked():
+    "Check mime type validation still works when invalid mimetype has charset details appended"
+    file_data = make_file_details(b"Should be blocked", "badfile.txt", "application/x-sh; charset=utf8")
+    response = client.post(f"{HOST_URL}/save_file",
+                           headers=token_getter.get_headers(),
+                           files=file_data)
+    assert response.status_code == 415
+    assert response.json()["detail"] == [[415, "File mimetype not allowed"]]
+
+
+@pytest.mark.e2e
+def test_post_file_with_allowed_file_type_with_superfluous_data_is_allowed():
+    "Check mime type validation still works when valid mimetype has charset details appended"
+    new_filename = make_unique_name("goodfile.txt")
+    file_data = make_file_details(b"Should be allowed", new_filename, "text/xml; charset=utf8")
+    response = client.post(f"{HOST_URL}/save_file",
+                           headers=token_getter.get_headers(),
+                           files=file_data)
+    assert response.status_code == 201
+    assert f"File saved successfully in sds-local with key {new_filename}" in response.text
+
+
+@pytest.mark.e2e
 def test_post_file_without_file_fails_as_expected():
     response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers())
     assert response.status_code == 400

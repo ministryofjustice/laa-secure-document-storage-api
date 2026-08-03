@@ -1,3 +1,4 @@
+from typing import Any
 from pydantic import Field, AliasChoices, BaseModel
 from .file_validator_spec import FileValidatorSpec, FileCollectionValidatorSpec
 
@@ -20,3 +21,20 @@ class ClientConfig(BaseModel):
     )
     # No validation_alias specified as we don't seem to be using them
     file_collection_validators: list[FileCollectionValidatorSpec] = Field(default_factory=list)
+
+    def model_post_init(self, context: Any) -> None:
+        """
+        This is special method that's called automatically after usual __init__ completed.
+        Used here to remove any leading `.` from file extensions used in validation, as
+        our validators don't expect the `.` but it may have been included in the source
+        config file. Also the converts extensions to lower-case as the validators expect
+        lower-case values.
+        """
+        target_validators = ("AllowedFileExtensions", "DisallowedFileExtensions")
+        for validator in self.file_validators:
+            if validator.name in target_validators and "extensions" in validator.validator_kwargs:
+                validator.validator_kwargs["extensions"] = fix_extensions(validator.validator_kwargs["extensions"])
+
+
+def fix_extensions(extensions: list[str]):
+    return [e.lstrip(".").lower() for e in extensions]

@@ -159,6 +159,39 @@ def test_bulk_upload_with_different_user_permissions(username, expected_code, ex
     assert success_count == expected_success_count
 
 
+# Upload file - file extension validators with/without initial `.`
+def test_save_file_blocked_due_to_file_extension_specified_with_dot():
+    """
+    Using all-endpoint-local-dotty-test-user which has config file with
+    disallowed file extensions: .bad and .evil (with dots)
+    File should be blocked because it has .bad extension
+    """
+    newfilename = make_unique_name("oh_no_its.bad")
+    upload_file = make_file_details(b"borogoves", newfilename, "text/plain")
+    response = client.post(f"{HOST_URL}/save_file",
+                           headers={"test-username": "all-endpoint-local-dotty-test-user"},
+                           files=upload_file,
+                           data={"body": '{"bucketName": "sds-local"}'})
+    assert response.status_code == 415
+    assert "File extension not allowed" in response.text
+
+
+def test_save_file_blocked_due_to_file_extension_specified_without_dot():
+    """
+    Using all-endpoint-local-not-dotty-test-user which has config file with
+    disallowed file extensions: bad and evil (without dots)
+    File should be blocked because it has .bad extension
+    """
+    newfilename = make_unique_name("oh_no_its.bad")
+    upload_file = make_file_details(b"borogoves", newfilename, "text/plain")
+    response = client.post(f"{HOST_URL}/save_file",
+                           headers={"test-username": "all-endpoint-local-not-dotty-test-user"},
+                           files=upload_file,
+                           data={"body": '{"bucketName": "sds-local"}'})
+    assert response.status_code == 415
+    assert "File extension not allowed" in response.text
+
+
 # Delete Files
 
 @pytest.mark.e2e

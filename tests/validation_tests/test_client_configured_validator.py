@@ -6,6 +6,7 @@ from src.validation.client_configured_validator import get_status_code_for_respo
 from src.validation.file_validator import MaxFileSize, MinFileSize
 from src.validation.file_validator import AllowedFileExtensions, DisallowedFileExtensions
 from src.validation.file_validator import AllowedMimetypes, DisallowedMimetypes
+from src.validation.file_validator import get_mimetype
 
 """
 Location of test for functions: validate and get_validator
@@ -215,3 +216,15 @@ def test_get_validator_validate_docstring_with_actual_validator():
 def test_get_status_code_from_response(validator_results, expected_result):
     result = get_status_code_for_response(validator_results)
     assert result == expected_result
+
+
+@pytest.mark.parametrize("original_value,expected", [(";wooo", ""),  # Not expected but for completeness
+                                                     ("keep;begone", "keep"),  # Remove from ;
+                                                     ("  keep ; begone ", "keep"),  # Also whitespace removal
+                                                     ("ABCDE", "abcde"),  # Make lower-case
+                                                     ("text/csv; charset=utf-8", "text/csv"),  # GLAD eg
+                                                     (" Keep ; BEGONE I Say!", "keep")  # Mixture
+                                                     ])
+def test_get_mimetype(original_value, expected):
+    result = get_mimetype(original_value)
+    assert result == expected
