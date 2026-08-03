@@ -6,7 +6,7 @@ from src.validation.client_configured_validator import get_status_code_for_respo
 from src.validation.file_validator import MaxFileSize, MinFileSize
 from src.validation.file_validator import AllowedFileExtensions, DisallowedFileExtensions
 from src.validation.file_validator import AllowedMimetypes, DisallowedMimetypes
-from src.validation.file_validator import file_content_type_fix
+from src.validation.file_validator import get_mimetype
 
 """
 Location of test for functions: validate and get_validator
@@ -225,6 +225,6 @@ def test_get_status_code_from_response(validator_results, expected_result):
                                                      ("text/csv; charset=utf-8", "text/csv"),  # GLAD eg
                                                      (" Keep ; BEGONE I Say!", "keep")  # Mixture
                                                      ])
-def test_file_content_type_fix(original_value, expected):
-    result = file_content_type_fix(original_value)
+def test_get_mimetype(original_value, expected):
+    result = get_mimetype(original_value)
     assert result == expected
