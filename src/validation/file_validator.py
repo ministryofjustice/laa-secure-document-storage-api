@@ -99,7 +99,8 @@ class AllowedFileExtensions(FileValidator):
             raise InvalidValidatorArgumentsError("AllowedFileExtensions validator requires a list of extensions")
         file_ext = os.path.splitext(file_object.filename)[1].strip('.').lower()
         if file_ext not in extensions:
-            logger.error(f"File extension {file_object.filename} not in allowed extensions {extensions}")
+            logger.error(f"File extension {file_ext} of file {file_object.filename} "
+                         f"not in allowed extensions {extensions}")
             return 415, "File extension not allowed"
         return 200, ""
 
@@ -120,7 +121,8 @@ class DisallowedFileExtensions(FileValidator):
             extensions = []
         file_ext = os.path.splitext(file_object.filename)[1].strip('.').lower()
         if file_ext in extensions:
-            logger.error(f"File extension {file_object.filename} in disallowed extensions {extensions}")
+            logger.error(f"File extension {file_ext} of file {file_object.filename} "
+                         f"in disallowed extensions {extensions}")
             return 415, "File extension not allowed"
         return 200, ""
 
