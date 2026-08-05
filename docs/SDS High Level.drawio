@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram id="0344FKpptiP9s-4rOc_R" name="Page-1">
-    <mxGraphModel dx="1063" dy="690" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="741" dy="481" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -23,7 +23,7 @@
           <mxGeometry height="195.94" width="54" x="475" y="330" as="geometry" />
         </mxCell>
         <mxCell id="j1UHTAML1WSzWSN_vXvw-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="LAA Client Applications" vertex="1">
-          <mxGeometry height="195.94" width="120" x="242" y="330" as="geometry" />
+          <mxGeometry height="195.94" width="120" x="187" y="330" as="geometry" />
         </mxCell>
         <mxCell id="q-Tx_mrJUq0j_Zc8iABD-6" edge="1" parent="1" source="j1UHTAML1WSzWSN_vXvw-1" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;curved=1;" target="j1UHTAML1WSzWSN_vXvw-3" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
@@ -75,7 +75,7 @@
           <mxGeometry height="78" width="160" x="160" y="190" as="geometry" />
         </mxCell>
         <mxCell id="q-Tx_mrJUq0j_Zc8iABD-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="This API is used as a shared component by different LAA Services, e.g. Access eForms Records, Submit a Bulk Claim, and GLAD, with access to endpoints relevant to their needs." vertex="1">
-          <mxGeometry height="30" width="160" x="70" y="429.94000000000005" as="geometry" />
+          <mxGeometry height="146.94" width="160" x="24" y="351" as="geometry" />
         </mxCell>
         <mxCell id="q-Tx_mrJUq0j_Zc8iABD-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="There is one bucket per service and users can set up their own internal folder structure" vertex="1">
           <mxGeometry height="30" width="150" x="1000" y="480" as="geometry" />
@@ -103,7 +103,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FQ0MGAQX4ij6dsaxDJdl-3" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;exitX=0.994;exitY=0.048;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;" target="j1UHTAML1WSzWSN_vXvw-1" value="">
+        <mxCell id="FQ0MGAQX4ij6dsaxDJdl-3" edge="1" parent="1" source="j1UHTAML1WSzWSN_vXvw-7" style="endArrow=classic;html=1;rounded=0;exitX=0.989;exitY=0.024;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;" target="j1UHTAML1WSzWSN_vXvw-1" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
             <mxPoint x="361.28" y="332.40512" as="sourcePoint" />
             <mxPoint x="595" y="363.0000000000001" as="targetPoint" />
@@ -115,7 +115,8 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="FQ0MGAQX4ij6dsaxDJdl-5" edge="1" parent="1" source="j1UHTAML1WSzWSN_vXvw-7" style="endArrow=classic;html=1;rounded=0;align=right;exitX=1;exitY=0.63;exitDx=0;exitDy=0;exitPerimeter=0;startArrow=classic;startFill=1;" value="Virus check File">
-          <mxGeometry height="50" relative="1" width="50" as="geometry">
+          <mxGeometry height="50" relative="1" width="50" x="0.0014" as="geometry">
+            <mxPoint as="offset" />
             <mxPoint x="360" y="452.15" as="sourcePoint" />
             <mxPoint x="595" y="446.5409482758622" as="targetPoint" />
           </mxGeometry>
@@ -131,9 +132,9 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FQ0MGAQX4ij6dsaxDJdl-9" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;exitX=0.994;exitY=0.323;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;entryPerimeter=0;align=center;startArrow=classic;startFill=1;" value="">
+        <mxCell id="FQ0MGAQX4ij6dsaxDJdl-9" edge="1" parent="1" source="j1UHTAML1WSzWSN_vXvw-7" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;entryPerimeter=0;align=center;startArrow=classic;startFill=1;exitX=0.994;exitY=0.33;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
-            <mxPoint x="361.28" y="395.9900000000001" as="sourcePoint" />
+            <mxPoint x="320" y="395.99" as="sourcePoint" />
             <mxPoint x="595" y="400.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
