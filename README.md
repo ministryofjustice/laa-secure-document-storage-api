@@ -43,7 +43,7 @@ are setup correctly if you choose to use non-dummy keys.
 
 In normal operation SDS uses tokens issued by the MoJ tenant. However, when running SDS locally it is possible to bypass the need for a token. For this to work all the following must be true:
 1. SDS must be running locally, either directly or in Docker (including in GitHub workflows).
-2. Environment variable `ENABLE_LOCAL_AUTH_FROM_IP_RANGE` has IP range. This can be set in the `.env` file. 
+2. Environment variable `ENABLE_LOCAL_AUTH_FROM_IP_RANGE` has IP range. This can be set in the `.env` file.
 3. Request headers must include a `test-username` e.g. `{"test-username": "virus-check-local-test-user"}`. Like all SDS users, the specified username must have related client-configuration `csv` and `json` files.
 
 If any of the above are false, usual token-based authentication applies.
@@ -79,16 +79,16 @@ Note this is in non-daemon mode so will keep the terminal occupied, so all logs 
 the process is terminated:
 
 ```shell
-$ docker compose up
+docker compose up
 ```
 
 You can also start and detach the services using daemon mode:
 
 ```shell
-$ docker compose up -d
+docker compose up -d
 ...
 # And now to see the logs
-$ docker compose logs
+docker compose logs
 ...
 ```
 
@@ -96,7 +96,7 @@ This command will start the applications using the latest built image. If you wa
 current code, use:
 
 ```shell
-$ docker compose up --build
+docker compose up --build
 ```
 
 ### Running dependencies in docker, and the API separately
@@ -105,7 +105,7 @@ You can also start just the API dependencies and run the API itself in an IDE or
 To start the dependent services, run:
 
 ```shell
-$ docker compose up -d localstack laa-clamav
+docker compose up -d localstack laa-clamav
 ```
 
 To run the API instance from an IDE, see [IDE Setup](docs/ide_setup.md).
@@ -113,9 +113,9 @@ To run the API instance from an IDE, see [IDE Setup](docs/ide_setup.md).
 To run the API instance from a terminal, first install the requirements using `pipenv`, and then use that to run the
 API:
 ```shell
-$ pipenv install
+pipenv install
 ...
-$ pipenv run uvicorn src.main:app --reload
+pipenv run uvicorn src.main:app --reload
 ```
 
 Whichever way the SDS API is launched, you can now interact with the API using: http://127.0.0.1:8000/
@@ -128,12 +128,12 @@ To run the unit tests using an IDE, follow the [IDE Setup](docs/ide_setup.md) do
 
 To run from the terminal, first ensure the requirements are installed:
 ```shell
-$ pipenv install --dev
+pipenv install --dev
 ```
 And then run:
 
 ```shell
-$ pipenv run pytest --ignore tests/end_to_end -m "not e2e"
+pipenv run pytest --ignore tests/end_to_end -m "not e2e"
 ```
 The unit tests will run without a local instance of the SDS API running.
 
@@ -141,13 +141,13 @@ The unit tests will run without a local instance of the SDS API running.
 In addition to pytest unit testing, we also have end-to-end tests that run via pytest. These run in the pipeline and can be run locally, but do require a local instance of the SDS API to be running (for example via `docker compose up -d`). These use the same requirements as above, and are run locally using:
 
 ```
-$ pipenv run pytest tests/end_to_end -m e2e
+pipenv run pytest tests/end_to_end -m e2e
 ```
 
 To run all the pytest tests, regardless of type, run:
 
 ```
-$ pipenv run pytest
+pipenv run pytest
 ```
 
 ### pytest test-type separation
