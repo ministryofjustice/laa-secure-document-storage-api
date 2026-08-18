@@ -8,7 +8,7 @@ A repository containing the API for the LAA shared component for secure document
 
 ### Requires
 
-Python 3.13, pipenv and docker
+Python 3.13, pipenv and docker.
 
 ### Configuration
 
