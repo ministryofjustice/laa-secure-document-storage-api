@@ -1,6 +1,6 @@
 import os
 from io import BytesIO
-import httpx as client
+import httpx2 as client
 import pytest
 from tests.end_to_end.e2e_helpers import make_unique_name
 

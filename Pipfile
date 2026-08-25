@@ -33,9 +33,9 @@ certifi = "*"
 [dev-packages]
 flake8 = "==7.3.0"
 pytest = "==9.1.1"
-httpx = "==0.28.1"
 sniffio = "*"
 pytest-asyncio = "==1.4.0"
+httpx2 = "==2.12.0"
 
 [requires]
 python_version = "3.13"

@@ -51,7 +51,7 @@ def test_token_manager_has_expected_initial_attributes():
 def test_token_manager_gets_token():
     token_getter = TokenManager("test_id", "test_secret", "https://fake_url")
     # Note need to patch original name, not the "as client"
-    with patch("httpx.post", return_value=MockResponse(200, mock_token)):
+    with patch("httpx2.post", return_value=MockResponse(200, mock_token)):
         token = token_getter.get_access_token()
     assert token == "The significant owl hoots in the night"
 
@@ -60,7 +60,7 @@ def test_token_manager_gets_token():
 def test_token_manager_gets_headers():
     token_getter = TokenManager("test_id", "test_secret", "https://fake_url")
     # Note need to patch original name, not the "as client"
-    with patch("httpx.post", return_value=MockResponse(200, mock_token)):
+    with patch("httpx2.post", return_value=MockResponse(200, mock_token)):
         headers = token_getter.get_headers()
     assert headers == {'Authorization': 'Bearer The significant owl hoots in the night'}
 

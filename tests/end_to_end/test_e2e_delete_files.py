@@ -1,6 +1,6 @@
 import pytest
 # Using `as client`, so can easily switch between httpx and requests
-import httpx as client
+import httpx2 as client
 from tests.end_to_end.e2e_helpers import UploadFileData
 from tests.end_to_end.e2e_helpers import get_token_manager
 from tests.end_to_end.e2e_helpers import get_host_url
