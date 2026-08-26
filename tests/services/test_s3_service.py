@@ -9,7 +9,7 @@ from io import BytesIO
 import src.services.s3_service
 from src.models.execeptions.file_not_found import FileNotFoundException
 from src.models.client_config import ClientConfig
-from src.services.s3_service import S3Service, S3ServiceStatusReporter
+from src.services.s3_service import S3Service, S3ServiceStatusReporter, save
 import structlog
 
 logger = structlog.get_logger()
@@ -73,7 +73,11 @@ def test_generate_file_url_missing_file(s3_service, mocker):
 
 def test_upload_file_obj_success(s3_service, mocker):
     # Arrange
-    mock_put_object = mocker.patch.object(s3_service.s3_client, 'put_object')
+    # Below is response from the put_object call. Could be more realistic but the thing to check
+    # is the s3_service.upload_file_obj call receives whatever is specified here.
+    s3_response = {"VersionID": "ABC123", "Size": 123}
+
+    mock_put_object = mocker.patch.object(s3_service.s3_client, 'put_object', return_value=s3_response)
 
     file = BytesIO(b"Test data")
     bucket_name = 'test_bucket'
@@ -82,7 +86,7 @@ def test_upload_file_obj_success(s3_service, mocker):
     metadata = {'key1': 'value1'}
 
     # Act
-    s3_service.upload_file_obj(file, filename, checksum, metadata)
+    response = s3_service.upload_file_obj(file, filename, checksum, metadata)
 
     # Assert (Note ChecksumSHA256 is base 64 encoded version of checksum above)
     mock_put_object.assert_called_once_with(
@@ -93,6 +97,8 @@ def test_upload_file_obj_success(s3_service, mocker):
         Body=file.getvalue(),
         Metadata=metadata
     )
+    # Key thing here is s3_service.upload_file_object returns s3_response when file operation was successful
+    assert response == s3_response
 
 
 def test_upload_file_obj_bucket_non_existent(s3_service, mocker):
@@ -237,3 +243,38 @@ def test_status_reporter_failure(mock_client, mocker):
 
     mock_client.assert_called()
     assert so.has_failures()
+
+
+# save function
+
+# Represents situation with S3 bucket file-versioning enabled
+@pytest.mark.parametrize("version_id", ["ABCD1234", "WXYZ6789", "inaholeinthegroundtherelived"])
+def test_save_returns_version_id_when_version_id_returned_by_aws(version_id):
+
+    class DummyS3Service:
+        def upload_file_obj(*args, **kwargs):
+            return {"VersionID": version_id, "IrrelevantThing": "Turnip"}
+
+    with patch("src.services.s3_service.S3Service.get_instance") as mock_get_instance:
+        mock_get_instance.return_value = DummyS3Service()
+        file = BytesIO(b"Test file")
+        success, returned_version_id = save("dummy-client", file, "myfile.txt", checksum="789wxyz")
+
+    assert success is True
+    assert returned_version_id == version_id
+
+
+# Represents situation with S3 bucket file-versioning disabled
+def test_save_returns_expected_message_when_version_id_not_returned_by_aws():
+
+    class DummyS3Service:
+        def upload_file_obj(*args, **kwargs):
+            return {"IrrelevantThing": "Turnip"}
+
+    with patch("src.services.s3_service.S3Service.get_instance") as mock_get_instance:
+        mock_get_instance.return_value = DummyS3Service()
+        file = BytesIO(b"Test file")
+        success, returned_version_id = save("dummy-client", file, "myfile.txt", checksum="789wxyz")
+
+    assert success is True
+    assert returned_version_id == "Versioning not enabled"

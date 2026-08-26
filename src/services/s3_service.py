@@ -90,13 +90,14 @@ class S3Service:
         except Exception as e:
             logger.debug(f"{e.__class__.__name__} reading file from S3: {str(e)}")
 
-    def upload_file_obj(self, file: BytesIO, filename: str, checksum: str, metadata: dict | None = None):
+    def upload_file_obj(self, file: BytesIO, filename: str, checksum: str, metadata: dict | None = None) -> dict:
         if metadata is None:
             metadata = {}
         logger.debug(f"Uploading file with name {filename} to S3 bucket {self.client_config.bucket_name}")
         checksum_base64 = hex_string_to_base64_encoded(checksum)
+        s3_response = {}
         try:
-            self.s3_client.put_object(
+            s3_response = self.s3_client.put_object(
                 Bucket=self.client_config.bucket_name,
                 Key=filename,
                 Body=file.read(),
@@ -107,6 +108,7 @@ class S3Service:
         except Exception as e:
             logger.error(f"{e.__class__.__name__} uploading file to S3: {str(e)}")
             raise e
+        return s3_response
 
     def list_object_versions(self, file_key):
         try:
@@ -177,14 +179,15 @@ def retrieve_file_url(client: str | ClientConfig, file_name: str):
 
 
 def save(client: str | ClientConfig, file: BytesIO, file_name: str,
-         checksum: str, metadata: dict | None = None) -> bool:
+         checksum: str, metadata: dict | None = None) -> tuple[bool, str]:
     if metadata is None:
         metadata = {}
 
     s3_service = S3Service.get_instance(client)
-    s3_service.upload_file_obj(file, file_name, checksum, metadata)
+    s3_response = s3_service.upload_file_obj(file, file_name, checksum, metadata)
+    version_id = s3_response.get("VersionID", "Versioning not enabled")
 
-    return True
+    return True, version_id
 
 
 def list_file_versions(client: str | ClientConfig, file_name: str):
