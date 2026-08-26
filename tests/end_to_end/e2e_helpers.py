@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from typing import Any
 import boto3
-import httpx as client
+import httpx2 as client
 
 
 """
