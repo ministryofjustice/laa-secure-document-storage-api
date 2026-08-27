@@ -1,17 +1,21 @@
 from unittest.mock import patch
 from io import BytesIO
 from fastapi import HTTPException
-
+from src.models.file_upload import UploadFileResponse
 
 # =========================== SUCCESS =========================== #
+
+good_save_response = UploadFileResponse(success="File saved successfully in test_bucket with key test_file.txt",
+                                        checksum="ABC123", version_id="1000000", file_already_existed=False)
+
+good_folder_save_response = UploadFileResponse(success="File saved successfully in test_bucket with key "
+                                               "yet_another_test_folder/test_file.txt",
+                                               checksum="GHI789", version_id="3000000", file_already_existed=False)
 
 
 @patch("src.routers.save_file.handle_file_upload_logic")
 def test_save_file_success(handler_mock, test_client):
-    handler_mock.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt"},
-        False
-    )
+    handler_mock.return_value = good_save_response
 
     data = {
         "body": '{"bucketName": "test_bucket"}'
@@ -23,17 +27,15 @@ def test_save_file_success(handler_mock, test_client):
     response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 201
-    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
+    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt",
+                               "checksum": "ABC123", "version_id": "1000000", "file_already_existed": False}
 
     handler_mock.assert_called_once()
 
 
 @patch("src.routers.save_file.handle_file_upload_logic")
 def test_save_file_with_empty_body_processed_successfully(handler_mock, test_client):
-    handler_mock.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt"},
-        False
-    )
+    handler_mock.return_value = good_save_response
 
     data = {
         "body": "{}"
@@ -46,15 +48,13 @@ def test_save_file_with_empty_body_processed_successfully(handler_mock, test_cli
     response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 201
-    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
+    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt",
+                               "checksum": "ABC123", "version_id": "1000000", "file_already_existed": False}
 
 
 @patch("src.routers.save_file.handle_file_upload_logic")
 def test_save_file_with_with_irrelevant_body_processed_successfully(handler_mock, test_client):
-    handler_mock.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt"},
-        False
-    )
+    handler_mock.return_value = good_save_response
 
     # Details below are not relevant as they do not correspond with FileUpload model
     data = {"body": '{"bucketName": "test_bucket", "speed": "extra medium"}'}
@@ -66,15 +66,13 @@ def test_save_file_with_with_irrelevant_body_processed_successfully(handler_mock
     response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 201
-    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
+    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt",
+                               "checksum": "ABC123", "version_id": "1000000", "file_already_existed": False}
 
 
 @patch("src.routers.save_file.handle_file_upload_logic")
 def test_save_file_with_with_body_folder_value_processed_successfully(handler_mock, test_client):
-    handler_mock.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt"},
-        False
-    )
+    handler_mock.return_value = good_folder_save_response
 
     data = {"body": '{"folder": "yet_another_test_folder"}'}
 
@@ -85,7 +83,9 @@ def test_save_file_with_with_body_folder_value_processed_successfully(handler_mo
     response = test_client.post("/save_file", data=data, files=files)
 
     assert response.status_code == 201
-    assert response.json() == {"success": "File saved successfully in test_bucket with key test_file.txt"}
+    assert response.json() == {"success": "File saved successfully in test_bucket with key "
+                               "yet_another_test_folder/test_file.txt",
+                               "checksum": "GHI789", "version_id": "3000000", "file_already_existed": False}
     # Check that the folder specified in request body has been forwarded to file handler in FileUpload object
     # Note will likley need updating if FileUpload model has new attributes
     assert "FileUpload(folder='yet_another_test_folder')" in str(handler_mock.call_args)
