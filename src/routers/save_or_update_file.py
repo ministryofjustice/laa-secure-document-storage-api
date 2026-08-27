@@ -26,7 +26,13 @@ async def save_or_update_file(
     """
     Saves the specified file, allowing overwrites of existing files with the same name.
     Files are automatically scanned for viruses, and pre-configured validators are run.
-    Response json includes sha256 checksum as "checksum" value.
+
+   When file successfully saved, response json includes:
+
+    * `checksum` - sha256 checksum
+    * `version_id` - file's version ID if versioning enabled, otherwise get "Versioning not enabled" message
+    * `file_already_existed` - Boolean string indicating if this was an existing file.
+
     See also /save_file for saving a file without allowing overwrites.
 
     * 200 OK if file replaced an earlier version
@@ -42,14 +48,17 @@ async def save_or_update_file(
     if file is None:
         file = UploadFile(file=None, filename="")
 
-    response, file_existed = await handle_file_upload_logic(
+    response = await handle_file_upload_logic(
         request=request,
         file=file,
         body=body,
         client_config=client_config,
         request_type=RequestType.PUT,
     )
+    # Need to use response.model_dump() because JSONResponse is unable to directly serialise the
+    # Pydantic model (although would work if we simply returned the model but we'd lose the
+    # ability to directly set status code to 200 or 201)
     return JSONResponse(
-        status_code=200 if file_existed else 201,
-        content=response
+        status_code=200 if response.file_already_existed else 201,
+        content=response.model_dump()
     )
