@@ -1,10 +1,10 @@
 import os
 import structlog
-from typing import Optional, Tuple, Dict
+from typing import Optional
 from fastapi import HTTPException, UploadFile, Request
 
 from src.models.client_config import ClientConfig
-from src.models.file_upload import FileUpload
+from src.models.file_upload import FileUpload, UploadFileResponse
 from src.services import audit_service, s3_service
 from src.services.checksum_service import get_file_checksum
 from src.utils.operation_types import OperationType
@@ -24,7 +24,7 @@ async def handle_file_upload_logic(
     request_type: RequestType,
     body: Optional[FileUpload] = None,
     filename_position: int = 0
-) -> Tuple[Dict, bool]:
+) -> UploadFileResponse:
     if body is None:
         body = FileUpload()
 
@@ -47,7 +47,7 @@ async def handle_file_upload_logic(
     # Save file to bucket
     if not error_status:
         try:
-            success = s3_service.save(client_config, file.file, full_filename, checksum, metadata)
+            success, version_id = s3_service.save(client_config, file.file, full_filename, checksum, metadata)
             if not success:
                 # This is retained for consistency but might never happen, with Exception handling
                 # below actually reporting the error when save fails
@@ -75,10 +75,11 @@ async def handle_file_upload_logic(
         raise HTTPException(status_code=error_status[0], detail=error_status[1])
 
     actioned = "updated" if file_existed else "saved"
-    return {
-        "success": f"File {actioned} successfully in {client_config.bucket_name} with key {full_filename}",
-        "checksum": checksum
-    }, file_existed
+    return UploadFileResponse(success=f"File {actioned} successfully in "
+                              f"{client_config.bucket_name} with key {full_filename}",
+                              checksum=checksum,
+                              version_id=version_id,
+                              file_already_existed=file_existed)
 
 
 async def run_initial_file_checks(request: Request,

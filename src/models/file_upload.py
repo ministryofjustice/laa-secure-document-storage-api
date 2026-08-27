@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class FileUpload(BaseModel):
+    "File upload parameters from client request"
     folder: Optional[str] = None
 
 
@@ -22,3 +23,10 @@ class BulkUploadFileResponse(BaseModel):
     positions: list[int]
     outcomes: list[dict]
     checksum: Optional[str] = None
+
+
+class UploadFileResponse(BaseModel):
+    success: str
+    checksum: str
+    version_id: str
+    file_already_existed: bool
