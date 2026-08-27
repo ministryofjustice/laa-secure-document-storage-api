@@ -75,7 +75,7 @@ def test_upload_file_obj_success(s3_service, mocker):
     # Arrange
     # Below is response from the put_object call. Could be more realistic but the thing to check
     # is the s3_service.upload_file_obj call receives whatever is specified here.
-    s3_response = {"VersionID": "ABC123", "Size": 123}
+    s3_response = {"VersionId": "ABC123", "Size": 123}
 
     mock_put_object = mocker.patch.object(s3_service.s3_client, 'put_object', return_value=s3_response)
 
@@ -253,7 +253,7 @@ def test_save_returns_version_id_when_version_id_returned_by_aws(version_id):
 
     class DummyS3Service:
         def upload_file_obj(*args, **kwargs):
-            return {"VersionID": version_id, "IrrelevantThing": "Turnip"}
+            return {"VersionId": version_id, "IrrelevantThing": "Turnip"}
 
     with patch("src.services.s3_service.S3Service.get_instance") as mock_get_instance:
         mock_get_instance.return_value = DummyS3Service()

@@ -108,6 +108,7 @@ class S3Service:
         except Exception as e:
             logger.error(f"{e.__class__.__name__} uploading file to S3: {str(e)}")
             raise e
+        logger.debug(f"put_object response from {filename} and bucket {self.client_config.bucket_name}: {s3_response}")
         return s3_response
 
     def list_object_versions(self, file_key):
@@ -185,7 +186,7 @@ def save(client: str | ClientConfig, file: BytesIO, file_name: str,
 
     s3_service = S3Service.get_instance(client)
     s3_response = s3_service.upload_file_obj(file, file_name, checksum, metadata)
-    version_id = s3_response.get("VersionID", "Versioning not enabled")
+    version_id = s3_response.get("VersionId", "Versioning not enabled")
 
     return True, version_id
 
