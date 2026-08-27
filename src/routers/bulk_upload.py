@@ -45,12 +45,12 @@ async def bulk_upload(
     ```
     {'file1.txt': {'filename': 'file1.txt',
     'positions': [0],
-    'outcomes': [{'status_code': 201, 'detail': 'saved'}],
+    'outcomes': [{'status_code': 201, 'detail': 'saved', 'version_id': 'ABC123'}],
     'checksum': '2248209fd84772fec1e4ddb7dc1c7647751c98abffd85c26c35ca44398dec82f'},
     'file2.txt': {'filename': 'file2.txt',
     'positions': [1, 2],
-    'outcomes': [{'status_code': 201, 'detail': 'saved'},
-    {'status_code': 200, 'detail': 'updated'}],
+    'outcomes': [{'status_code': 201, 'detail': 'saved', 'version_id': 'ABC456'},
+    {'status_code': 200, 'detail': 'updated', 'version_id': 'ABC789'}],
     'checksum': '2248209fd84772fec1e4ddb7dc1c7647751c98abffd85c26c35ca44398dec82f'},
     '...': {'filename': '...',
     'positions': [3],
@@ -63,6 +63,9 @@ async def bulk_upload(
     - `file2.txt` was included twice, so was saved with 201 and then updated with a 200 outcomes.
         Checksum is from the second save.
     - `...` is invalid filename and so received 415 error response and null checksum.
+
+    For each successfull (200/201) save, the corresponding 'outcomes' include
+    the version_id of the file.
 
     Status code summary for outcomes:
     * 201 file created
@@ -91,7 +94,7 @@ async def bulk_upload(
 
         try:
             # Upload file
-            file_result, file_existed = await handle_file_upload_logic(
+            file_result = await handle_file_upload_logic(
                 request=request,
                 file=file,
                 body=body,
@@ -99,10 +102,12 @@ async def bulk_upload(
                 request_type=RequestType.PUT,
                 filename_position=fi)
 
-            outcome = {"status_code": 200, "detail": "updated"} if file_existed \
+            outcome = {"status_code": 200, "detail": "updated"} if file_result.file_already_existed \
                 else {"status_code": 201, "detail": "saved"}
 
-            results[file.filename].checksum = file_result.get("checksum")
+            outcome["version_id"] = file_result.version_id
+
+            results[file.filename].checksum = file_result.checksum
 
         except HTTPException as httpe:
             msg = f"HTTP error uploading {file.filename}: {httpe.__class__.__name__} - {httpe}"
