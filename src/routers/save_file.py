@@ -2,7 +2,7 @@ from typing import Optional
 
 import structlog
 from fastapi import APIRouter, UploadFile, Depends, Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.validation.json_validator import validate_optional_body_json
