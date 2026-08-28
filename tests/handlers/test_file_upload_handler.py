@@ -26,7 +26,7 @@ from src.utils.request_types import RequestType
     ]
 )
 @patch("src.handlers.file_upload_handler.get_file_checksum", return_value=("123456789abcdef", ""))
-@patch("src.handlers.file_upload_handler.s3_service.save", return_value=True)
+@patch("src.handlers.file_upload_handler.s3_service.save", return_value=(True, "123456"))
 @patch("src.handlers.file_upload_handler.s3_service.file_exists")
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_file", return_value=(200, ""))
@@ -56,7 +56,7 @@ async def test_handle_file_upload_success(
 
     file_exists_mock.return_value = file_existed
 
-    response, file_existed_return = await handle_file_upload_logic(
+    response = await handle_file_upload_logic(
         request=request,
         file=file,
         body=body,
@@ -64,9 +64,9 @@ async def test_handle_file_upload_success(
         request_type=request_type,
         )
 
-    assert response["success"] == expected_success_message
-    assert response["checksum"] == "123456789abcdef"
-    assert file_existed_return == file_existed
+    assert response.success == expected_success_message
+    assert response.checksum == "123456789abcdef"
+    assert response.file_already_existed == file_existed
     audit_put_item_mock.assert_called_once()
     save_mock.assert_called_once()
     mandatory_validators_mock.assert_called_once()
@@ -179,7 +179,7 @@ async def test_handle_file_upload_antivirus_unexpected_result(mandatory_validato
 
 
 @pytest.mark.asyncio
-@patch("src.handlers.file_upload_handler.s3_service.save", return_value=False)
+@patch("src.handlers.file_upload_handler.s3_service.save", return_value=(False, "Not real scenario!"))
 @patch("src.handlers.file_upload_handler.s3_service.file_exists", return_value=False)
 @patch("src.handlers.file_upload_handler.audit_service.put_item")
 @patch("src.handlers.file_upload_handler.client_configured_validator.validate_file", return_value=(200, ""))

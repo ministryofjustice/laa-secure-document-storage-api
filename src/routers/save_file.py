@@ -26,7 +26,14 @@ async def save_file(
     """
     Saves a new file, ensuring no existing files are overwritten.
     Files are automatically scanned for viruses, and pre-configured validators are run.
-    Response json includes sha256 checksum as "checksum" value.
+
+    When file successfully saved, response json includes:
+
+    * `checksum` - sha256 checksum
+    * `version_id` - file's version ID if versioning enabled, otherwise get "Versioning not enabled" message
+    * `file_already_existed` - Boolean string indicating if this was an existing file. Should always be "false"
+                               as this endpoint does not allow file updates.
+
     See also /save_or_update_file for saving a file and allowing overwrites.
 
     * 201 CREATED on successful save
@@ -42,7 +49,7 @@ async def save_file(
     if file is None:
         file = UploadFile(file=None, filename="")
 
-    response, _ = await handle_file_upload_logic(
+    response = await handle_file_upload_logic(
         request=request,
         file=file,
         body=body,
@@ -50,4 +57,4 @@ async def save_file(
         request_type=RequestType.POST
     )
 
-    return JSONResponse(status_code=201, content=response)
+    return JSONResponse(status_code=201, content=response.model_dump())

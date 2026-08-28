@@ -2,6 +2,7 @@ from unittest.mock import patch
 from io import BytesIO
 import pytest
 from fastapi import HTTPException
+from src.models.file_upload import UploadFileResponse
 # test_client is fixture auto-imported from tests/fixtures/auth.py
 
 
@@ -17,14 +18,19 @@ def make_file_result(filename: str, positions: list[int], outcomes: list[dict], 
 
 # =========================== SUCCESS =========================== #
 
+good_save_response = UploadFileResponse(success="File saved successfully in test_bucket with key test_file.txt",
+                                        checksum="ABC123", version_id="1000000", file_already_existed=False)
+
+good_update_response_1 = UploadFileResponse(success="File updated successfully in test_bucket with key test_file.txt",
+                                            checksum="DEF456", version_id="2000000", file_already_existed=True)
+
+good_update_response_2 = UploadFileResponse(success="File updated successfully in test_bucket with key test_file.txt",
+                                            checksum="GHI789", version_id="3000000", file_already_existed=True)
+
 
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_with_one_file(mock_handler, test_client):
-    mock_handler.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt",
-         "checksum": "fakechecksum123"},
-        False
-        )
+    mock_handler.return_value = good_save_response
 
     files = [("files", ("test_file.txt", BytesIO(b"Test content"), "text/plain"))]
     response = test_client.put("/bulk_upload", files=files)
@@ -32,8 +38,10 @@ def test_bulk_upload_with_one_file(mock_handler, test_client):
     assert response.status_code == 200
     assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
                                                  'positions': [0],
-                                                 'outcomes': [{'status_code': 201, 'detail': 'saved'}],
-                                                 'checksum': 'fakechecksum123'}}
+                                                 'outcomes': [{'status_code': 201,
+                                                               'detail': 'saved',
+                                                               'version_id': '1000000'}],
+                                                 'checksum': 'ABC123'}}
 
 
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
@@ -42,21 +50,15 @@ def test_bulk_upload_with_same_filename_thrice(mock_handler, test_client):
     files = [make_file_tuple("test.txt", b"file1"),
              make_file_tuple("test.txt", b"file2"),
              make_file_tuple("test.txt", b"file3")]
-    # Mock handler side effect
-    handle1 = {"success": "File saved successfully in test_bucket with key test.txt",
-               "checksum": "fakechecksum1"}
-    handle2 = {"success": "File updated successfully in test_bucket with key test.txt",
-               "checksum": "fakechecksum2"}
-    handle3 = {"success": "File updated successfully in test_bucket with key test.txt",
-               "checksum": "fakechecksum3"}
-    mock_handler.side_effect = [(handle1, False), (handle2, True), (handle3, True)]
+    # Mock handler side effect for the 3 files in sequence
+    mock_handler.side_effect = [good_save_response, good_update_response_1, good_update_response_2]
     # Expected result
     expected_result = {"test.txt": {"filename": "test.txt",
                                     "positions": [0, 1, 2],
-                                    "outcomes": [{"status_code": 201, "detail": "saved"},
-                                                 {"status_code": 200, "detail": "updated"},
-                                                 {"status_code": 200, "detail": "updated"}],
-                                    "checksum": "fakechecksum3"  # Expect value from last file
+                                    "outcomes": [{"status_code": 201, "detail": "saved", "version_id": "1000000"},
+                                                 {"status_code": 200, "detail": "updated", "version_id": "2000000"},
+                                                 {"status_code": 200, "detail": "updated",  "version_id": "3000000"}],
+                                    "checksum": "GHI789"  # Expect value from last file
                                     }}
     # Make request
     response = test_client.put("/bulk_upload", files=files)
@@ -65,6 +67,8 @@ def test_bulk_upload_with_same_filename_thrice(mock_handler, test_client):
     assert response.json() == expected_result
 
 
+# File load with different numbers of files and no repeat filenames within each load
+# Asumption each run is unique, so always 201 "saved" - "no updates"
 # Care with decorator ordering and param positions
 @pytest.mark.parametrize("file_count", [1, 10, 100, 1000])
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
@@ -75,16 +79,32 @@ def test_bulk_upload_with_multiple_files(mock_handler, file_count, test_client):
     files = [make_file_tuple(f, f.encode()) for f in filenames]
 
     # Make (i) related side-effect for mock handler and (ii) expected result
+    # for each file in the load
     side_effect = []
     expected_result = {}
     for fi, filename in enumerate(filenames):
         checksum = f"fakechecksum{fi}"
-        se_item = {"success": f"File saved successfully in test_bucket with key {filename}",
-                   "checksum": checksum}
-        side_effect.append((se_item, False))
+        version_id = f"version-{fi}"
+        # for mock handler response
+        message = f"File saved successfully in test_bucket with key {filename}"
+        updated = False
+        # For expected result
+        status_code = 201
+        detail = "saved"
+
+        # Construct mock handler responses for each file
+        mock_handler_response = UploadFileResponse(success=message,
+                                                   checksum=checksum,
+                                                   version_id=version_id,
+                                                   file_already_existed=updated)
+        side_effect.append(mock_handler_response)
+
+        # Add expected bulk upload result for each file
         expected_result[filename] = {"filename": filename,
                                      "positions": [fi],
-                                     "outcomes": [{'status_code': 201, 'detail': 'saved'}],
+                                     "outcomes": [{'status_code': status_code,
+                                                   'detail': detail,
+                                                   'version_id': version_id}],
                                      "checksum": checksum
                                      }
     mock_handler.side_effect = side_effect
@@ -92,6 +112,7 @@ def test_bulk_upload_with_multiple_files(mock_handler, file_count, test_client):
     # Make request
     response = test_client.put("/bulk_upload", files=files)
 
+    # "headline" status code always 200 but individual file outcomes have 201 here
     assert response.status_code == 200
     assert response.json() == expected_result
     assert len(response.json()) == file_count
@@ -105,33 +126,49 @@ def test_bulk_upload_with_both_repeated_and_different_filenames(mock_handler, te
              make_file_tuple("ufile3.txt", b"file3"),
              make_file_tuple("rfile1.txt", b"file4"),
              make_file_tuple("ufile4.txt", b"file5"),
-             make_file_tuple("rfile1.txt", b"file6")
+             make_file_tuple("rfile1.txt", b"file6")  # repeated filename
              ]
     # Mock handler side effect
-    handle1 = {"success": "File saved successfully in test_bucket with key ufile1.txt",
-               "checksum": "fakechecksum1"}
-    handle2 = {"success": "File saved successfully in test_bucket with key ufile2.txt",
-               "checksum": "fakechecksum2"}
-    handle3 = {"success": "File saved successfully in test_bucket with key ufile3.txt",
-               "checksum": "fakechecksum3"}
-    handle4 = {"success": "File saved successfully in test_bucket with key rfile1.txt",
-               "checksum": "fakechecksum4"}
-    handle5 = {"success": "File saved successfully in test_bucket with key ufile4.txt",
-               "checksum": "fakechecksum5"}
-    handle6 = {"success": "File updated successfully in test_bucket with key rfile1.txt",
-               "checksum": "fakechecksum6"}
-    mock_handler.side_effect = [(handle1, False), (handle2, False), (handle3, False),
-                                (handle4, False), (handle5, False), (handle6, True)]
-    # Expected result
-    saved_outcome = {"status_code": 201, "detail": "saved"}
-    updated_outcome = {"status_code": 200, "detail": "updated"}
+    handle1 = UploadFileResponse(success="File saved successfully in test_bucket with key ufile1.txt",
+                                 checksum="fakechecksum1",
+                                 version_id="1",
+                                 file_already_existed=False)
+    handle2 = UploadFileResponse(success="File saved successfully in test_bucket with key ufile2.txt",
+                                 checksum="fakechecksum2",
+                                 version_id="2",
+                                 file_already_existed=False)
+    handle3 = UploadFileResponse(success="File saved successfully in test_bucket with key ufile3.txt",
+                                 checksum="fakechecksum3",
+                                 version_id="3",
+                                 file_already_existed=False)
+    handle4 = UploadFileResponse(success="File saved successfully in test_bucket with key rfile1.txt",
+                                 checksum="fakechecksum4",
+                                 version_id="4",
+                                 file_already_existed=False)
+    handle5 = UploadFileResponse(success="File saved successfully in test_bucket with key ufile4.txt",
+                                 checksum="fakechecksum5",
+                                 version_id="5",
+                                 file_already_existed=False)
+    handle6 = UploadFileResponse(success="File updated successfully in test_bucket with key rfile1.txt",
+                                 checksum="fakechecksum6",
+                                 version_id="6",
+                                 file_already_existed=True)
+    mock_handler.side_effect = [handle1, handle2, handle3, handle4, handle5, handle6]
+
+    # Expected result - repeated file, rfile1.txt, only has checksum from its final load (fakechecksum6)
     expected_result = {}
-    expected_result["ufile1.txt"] = make_file_result("ufile1.txt", [0], [saved_outcome], "fakechecksum1")
-    expected_result["ufile2.txt"] = make_file_result("ufile2.txt", [1], [saved_outcome], "fakechecksum2")
-    expected_result["ufile3.txt"] = make_file_result("ufile3.txt", [2], [saved_outcome], "fakechecksum3")
-    expected_result["rfile1.txt"] = make_file_result("rfile1.txt", [3, 5], [saved_outcome, updated_outcome],
+    expected_result["ufile1.txt"] = make_file_result(
+        "ufile1.txt", [0], [{"status_code": 201, "detail": "saved", "version_id": "1"}], "fakechecksum1")
+    expected_result["ufile2.txt"] = make_file_result(
+        "ufile2.txt", [1], [{"status_code": 201, "detail": "saved", "version_id": "2"}], "fakechecksum2")
+    expected_result["ufile3.txt"] = make_file_result(
+        "ufile3.txt", [2], [{"status_code": 201, "detail": "saved", "version_id": "3"}], "fakechecksum3")
+    expected_result["rfile1.txt"] = make_file_result("rfile1.txt", [3, 5],
+                                                     [{"status_code": 201, "detail": "saved", "version_id": "4"},
+                                                     {"status_code": 200, "detail": "updated", "version_id": "6"}],
                                                      "fakechecksum6")
-    expected_result["ufile4.txt"] = make_file_result("ufile4.txt", [4], [saved_outcome], "fakechecksum5")
+    expected_result["ufile4.txt"] = make_file_result(
+        "ufile4.txt", [4], [{"status_code": 201, "detail": "saved", "version_id": "5"}], "fakechecksum5")
 
     # Make request
     response = test_client.put("/bulk_upload", files=files)
@@ -151,11 +188,7 @@ only used to specify optional folder value.
 
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_with_no_body_processed_successfully(mock_handler, test_client):
-    mock_handler.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt",
-         "checksum": "fakechecksum123"},
-        False
-        )
+    mock_handler.return_value = good_save_response
 
     files = [("files", ("test_file.txt", BytesIO(b"Test content"), "text/plain"))]
     response = test_client.put("/bulk_upload", files=files)
@@ -163,19 +196,17 @@ def test_bulk_upload_with_no_body_processed_successfully(mock_handler, test_clie
     assert response.status_code == 200
     assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
                                                  'positions': [0],
-                                                 'outcomes': [{'status_code': 201, 'detail': 'saved'}],
-                                                 'checksum': 'fakechecksum123'}}
+                                                 'outcomes': [{'status_code': 201,
+                                                               'detail': 'saved',
+                                                               'version_id': "1000000"}],
+                                                 'checksum': 'ABC123'}}
 
 
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_with_body_folder_value_processed_successfully(mock_handler, test_client):
     # Due to mocked return value we can't see if specified folder has been used from response
     # but can assert if folder included in FileUpload object passed to  mock handler.
-    mock_handler.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt",
-         "checksum": "fakechecksum123"},
-        False
-        )
+    mock_handler.return_value = good_save_response
 
     data = {"body": '{"folder": "test_folder"}'}
 
@@ -185,8 +216,10 @@ def test_bulk_upload_with_body_folder_value_processed_successfully(mock_handler,
     assert response.status_code == 200
     assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
                                                  'positions': [0],
-                                                 'outcomes': [{'status_code': 201, 'detail': 'saved'}],
-                                                 'checksum': 'fakechecksum123'}}
+                                                 'outcomes': [{'status_code': 201,
+                                                               'detail': 'saved',
+                                                               'version_id': "1000000"}],
+                                                 'checksum': 'ABC123'}}
     # Check that the folder specified in request body has been forwarded to file handler in FileUpload object
     # Note will likley need updating if FileUpload model has new attributes
     assert "FileUpload(folder='test_folder')" in str(mock_handler.call_args)
@@ -195,11 +228,7 @@ def test_bulk_upload_with_body_folder_value_processed_successfully(mock_handler,
 # Body has syntactically correct json but data is irrelevant - success result
 @patch("src.routers.bulk_upload.handle_file_upload_logic")
 def test_bulk_upload_with_body_with_irrelevant_body_content_processed_successfully(mock_handler, test_client):
-    mock_handler.return_value = (
-        {"success": "File saved successfully in test_bucket with key test_file.txt",
-         "checksum": "fakechecksum123"},
-        False
-        )
+    mock_handler.return_value = good_save_response
     # Details below are not relevant as they do not correspond with FileUpload model
     data = {"body": '{"bucketName": "test_bucket", "speed": "extra fast"}'}
 
@@ -209,8 +238,10 @@ def test_bulk_upload_with_body_with_irrelevant_body_content_processed_successful
     assert response.status_code == 200
     assert response.json() == {'test_file.txt': {'filename': 'test_file.txt',
                                                  'positions': [0],
-                                                 'outcomes': [{'status_code': 201, 'detail': 'saved'}],
-                                                 'checksum': 'fakechecksum123'}}
+                                                 'outcomes': [{'status_code': 201,
+                                                               'detail': 'saved',
+                                                               'version_id': "1000000"}],
+                                                 'checksum': 'ABC123'}}
 
 
 # Body contains invalid json - fail result
@@ -252,17 +283,20 @@ def test_bulk_upload_gives_expected_errors_when_invalid_files_present(mock_handl
              make_file_tuple(".............", b"file3"),  # Bad file
              make_file_tuple("goodfile2.txt", b"file4")]  # Good file
     # Mock handler side effect
-    handle1 = {"success": "File saved successfully in test_bucket with key goodfile1.txt",
-               "checksum": "fakechecksum1"}
+    handle1 = UploadFileResponse(success="File saved successfully in test_bucket with key goodfile1.txt",
+                                 checksum="fakechecksum1", version_id="1000000", file_already_existed=False)
     handle2 = HTTPException(status_code=400, detail="Virus Found")
     handle3 = HTTPException(status_code=415, detail="File extension not allowed")
-    handle4 = {"success": "File saved successfully in test_bucket with key goodfile2.txt",
-               "checksum": "fakechecksum2"}
-    mock_handler.side_effect = [(handle1, False), handle2, handle3, (handle4, False)]
+    handle4 = UploadFileResponse(success="File saved successfully in test_bucket with key goodfile2.txt",
+                                 checksum="fakechecksum2", version_id="2000000", file_already_existed=False)
+    mock_handler.side_effect = [handle1, handle2, handle3, handle4]
+
     # Expected Result
     expected_result = {}
     expected_result["goodfile1.txt"] = make_file_result("goodfile1.txt", [0],
-                                                        [{"status_code": 201, "detail": "saved"}],
+                                                        [{"status_code": 201,
+                                                          "detail": "saved",
+                                                          "version_id": "1000000"}],
                                                         "fakechecksum1")
     expected_result["virusfile.txt"] = make_file_result("virusfile.txt", [1],
                                                         [{'status_code': 400, 'detail': 'Virus Found'}],
@@ -272,7 +306,9 @@ def test_bulk_upload_gives_expected_errors_when_invalid_files_present(mock_handl
                                                           'detail': 'File extension not allowed'}],
                                                         None)
     expected_result["goodfile2.txt"] = make_file_result("goodfile2.txt", [3],
-                                                        [{"status_code": 201, "detail": "saved"}],
+                                                        [{"status_code": 201,
+                                                          "detail": "saved",
+                                                          "version_id": "2000000"}],
                                                         "fakechecksum2")
 
     response = test_client.put("/bulk_upload", files=files)

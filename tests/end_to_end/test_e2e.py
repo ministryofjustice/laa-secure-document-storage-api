@@ -191,6 +191,7 @@ def test_put_new_file_once():
     assert details["success"].startswith("File saved successfully")
     assert details["success"].endswith(f"with key {new_filename}")
     assert details["checksum"] == "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
+    assert details["version_id"] not in ("", None)
 
 
 @pytest.mark.e2e
@@ -227,6 +228,9 @@ def test_put_new_file_twice_gives_expected_code_and_message():
 
     assert response1.status_code == 201 and str(response1.text).startswith('{"success":"File saved successfully')
     assert response2.status_code == 200 and str(response2.text).startswith('{"success":"File updated successfully')
+    # Check each file has different version ID
+    assert response1.json().get("version_id") != response2.json().get("version_id")
+
     # Note other CREATE/UPDATE audit table checks are in test_e2e_file_and_folder.py
     if audit_table_client.mocking_enabled is False:
         audit_item1 = audit_table_client.get_audit_row_e2e(response1, 0)
@@ -336,6 +340,8 @@ def test_post_new_file_once_is_successful():
     assert details["success"].startswith("File saved successfully")
     assert details["success"].endswith(f"with key {new_filename}")
     assert details["checksum"] == "718546961bb3d07169b89bc75c8775b605239bc7189ea0fb92eefc233228804a"
+    version_id = details["version_id"]
+    assert isinstance(version_id, str) and len(version_id) > 0
 
 
 @pytest.mark.e2e
@@ -364,8 +370,11 @@ def test_post_new_file_second_time_fails():
 
     assert response1.status_code == 201
     assert str(response1.text).startswith('{"success":"File saved successfully')
+    assert "version_id" in response1.json()
     assert response2.status_code == 409
     assert str(response2.text).startswith(f'{{"detail":"File {new_filename} already exists and cannot be overwritten')
+    # No version ID when file not saved
+    assert "version_id" not in response2.json()
 
 
 @pytest.mark.e2e
@@ -376,6 +385,7 @@ def test_post_file_with_virus_is_blocked():
                            files=upload_virus_file)
     assert response.status_code == 400
     assert response.json()["detail"] == "Virus Found"
+    assert "version_id" not in response.json()
 
 
 @pytest.mark.e2e
@@ -386,6 +396,7 @@ def test_post_file_with_disallowed_file_type_is_blocked():
                            files=upload_disallowed_file)
     assert response.status_code == 415
     assert response.json()["detail"] == [[415, "File mimetype not allowed"]]
+    assert "version_id" not in response.json()
 
 
 @pytest.mark.e2e
@@ -416,6 +427,7 @@ def test_post_file_without_file_fails_as_expected():
     response = client.post(f"{HOST_URL}/save_file", headers=token_getter.get_headers())
     assert response.status_code == 400
     assert response.json()["detail"] == "File is required"
+    assert "version_id" not in response.json()
 
 
 # Virus Check Tests
@@ -427,6 +439,7 @@ def test_virus_check_detects_virus():
     response = client.put(f"{HOST_URL}/virus_check_file", headers=token_getter.get_headers(), files=upload_virus_file)
     assert response.status_code == 400
     assert response.json()["detail"] == "Virus Found"
+    assert "version_id" not in response.json()
 
 
 @pytest.mark.e2e
@@ -435,6 +448,7 @@ def test_virus_check_passes_clean_file():
     response = client.put(f"{HOST_URL}/virus_check_file", headers=token_getter.get_headers(), files=upload_file)
     assert response.status_code == 200
     assert response.json()["success"] == "No virus found"
+    assert "version_id" not in response.json()
 
 
 # Scan for Malicious Content Tests - with real files loaded from filing system (authentic!)
