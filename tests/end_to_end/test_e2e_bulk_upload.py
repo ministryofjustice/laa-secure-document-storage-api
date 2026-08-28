@@ -47,7 +47,7 @@ def setup_and_teardown_test_files():
 def reset_version_id_in_response(response: dict, replacement: str = "") -> dict:
     """
     When file is successfully saved, the response contains the file's version ID but
-    we can't predict or fix this value. This function replace's its value to make
+    we can't predict or fix this value. This function replaces its value to make
     it easier to compare the response with an expected result.
     """
     for item in response.values():
