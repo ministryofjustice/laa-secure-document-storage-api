@@ -1,0 +1,13 @@
+# Allow any user to access the automated documentation
+p, *, /api/v1/docs, GET
+p, *, /api/v1/docs/*, GET
+p, *, /api/v1/openapi.json, GET
+
+# Allow any user to access the health checks
+p, *, /api/v1/, GET
+p, *, /api/v1/health, GET
+p, *, /api/v1/ping, GET
+p, *, /api/v1/status, GET
+
+# Allow any user to access config
+p, *, /api/v1/available_validators, GET
