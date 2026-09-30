@@ -34,6 +34,14 @@ jobs:
       run: |
         cp .env.sample .env
 
+    - name: Show me the default dir - $GITHUB_WORKSPACE
+      run: |
+        echo $GITHUB_WORKSPACE
+
+    - name: Make dir for config files
+      run: |
+        mkdir ../laa-secure-document-storage-configs
+
     - name: Checkout configs repo
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
