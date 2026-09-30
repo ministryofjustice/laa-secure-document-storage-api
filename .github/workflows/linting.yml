@@ -34,26 +34,20 @@ jobs:
       run: |
         cp .env.sample .env
 
-    - name: Show me the default dir - $GITHUB_WORKSPACE
-      run: |
-        echo $GITHUB_WORKSPACE
-
-    - name: Make dir for config files
-      run: |
-        mkdir ../laa-secure-document-storage-configs
-
     - name: Checkout configs repo
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: 'false'
         token: '${{ steps.octo_sts.outputs.token }}'
         repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
-        path: '../laa-secure-document-storage-configs/'
+        # Note path must be within the $GITHUB_WORKSPACE directory, otherwise get error
+        path: './configs'
         ref: 'main'
+        sparse-checkout: 'clientconfigs'
 
     - name: Check configs
       run: |
-        ls ../laa-secure-document-storage-configs/
+        ls './configs'
 
     - name: Lint with flake8
       run: |
