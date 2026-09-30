@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  id-token: write # Needed for "Obtain STS Token" step to work
   contents: read
 
 jobs:
