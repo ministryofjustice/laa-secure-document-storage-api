@@ -34,6 +34,19 @@ jobs:
       run: |
         cp .env.sample .env
 
+    - name: Checkout configs repo
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: 'false'
+        token: '${{ steps.octo_sts.outputs.token }}'
+        repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
+        path: '../laa-secure-document-storage-configs/'
+        ref: 'main'
+
+    - name: Check configs
+      run: |
+        ls ../laa-secure-document-storage-configs/
+
     - name: Lint with flake8
       run: |
         pipenv run python -m flake8 . -v
