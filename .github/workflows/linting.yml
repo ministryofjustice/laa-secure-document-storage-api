@@ -52,7 +52,7 @@ jobs:
         # Note path must be within the $GITHUB_WORKSPACE directory, otherwise get error
         path: './clientconfigs'
         ref: 'main'
-        sparse-checkout: 'configs'
+        # sparse-checkout: 'configs'
 
     - name: Check configs
       run: |
@@ -64,5 +64,4 @@ jobs:
 
     - name: Unit test with pytest
       run: |
-        echo "casbin model path: $CASBIN_MODEL"
         pipenv run pytest --ignore tests/end_to_end -v -m "not e2e"
