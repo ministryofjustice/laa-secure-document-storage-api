@@ -65,7 +65,7 @@ jobs:
     - name: Check configs
       run: |
         echo from direct str
-        ls ./configs
+        ls '${{ env.CONFIGS }}'
 
     - name: Lint with flake8
       run: |
@@ -73,4 +73,5 @@ jobs:
 
     - name: Unit test with pytest
       run: |
+        echo "casbin model path: $CASBIN_MODEL"
         pipenv run pytest --ignore tests/end_to_end -v -m "not e2e"
