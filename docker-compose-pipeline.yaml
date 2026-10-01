@@ -1,0 +1,45 @@
+# Intended for use in github workflow that has checked-out
+# client configs repo to its ./configs dir, which
+# gets mapped here to /app/configs/ in the container
+services:
+  sds-api:
+    build: .
+    volumes:
+      - .:/app
+      - ./configs:/app/configs
+    ports:
+      - '8000:8000'
+    environment:
+      - DYNAMODB_ENDPOINT_URL=http://localstack:4566
+      - AWS_REGION=eu-west-1
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AUDIT_TABLE:AUDIT_SDS
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - ENV=local
+      - BUCKET_NAME=sds-local
+      - TENANT_ID=$TENANT_ID
+      - AUDIENCE=$AUDIENCE_ID
+      - CLAMD_HOST=laa-clamav
+      - CONFIG_DIR='/app/configs/clientconfigs'
+      - CASBIN_POLICY='/app/configs/generalconfigs/casbin_policy_open_routes.csv:/app/configs/clientconfigs'
+      - CASBIN_MODEL='/app/configs/generalconfigs/casbin_model_acl_with_authenticated.conf'
+      - CONFIG_SOURCES=file
+  localstack:
+    image: localstack/localstack:4.4
+    ports:
+      - '4566:4566' # LocalStack endpoint
+      - '4510-4559:4510-4559' # external services port range
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./localstack-script.sh:/etc/localstack/init/ready.d/script.sh
+      - '/var/run/docker.sock:/var/run/docker.sock'
+  laa-clamav:
+    image: ghcr.io/ministryofjustice/clamav-docker/laa-clamav:latest
+    ports:
+      - "3310:3310"
+    volumes:
+      - ./tests/testFiles:/test_files
+    environment:
+      - FRESHCLAM_CHECKS=24
