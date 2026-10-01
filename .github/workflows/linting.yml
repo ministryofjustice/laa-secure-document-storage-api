@@ -1,13 +1,5 @@
 name: Linting and Unit Test
 
-env:
-  # Was going to call below CONFIGS_DIR but could be confused with existing CONFIG_DIR
-  CONFIGS: './configs'
-  CASBIN_POLICY: '$CONFIGS/generalconfigs/casbin_policy_open_routes.csv:$CONFIGS/clientconfigs'
-  CASBIN_MODEL: '$CONFIGS/generalconfigs/casbin_model_acl_with_authenticated.conf'
-  # Below likely not needed for unit tests but included for completenes
-  CONFIG_DIR: '$CONFIGS/clientconfigs'
-
 on:
   push:
     branches: [ "main" ]
@@ -41,9 +33,9 @@ jobs:
 
     - name: Set .env file
       run: |
-        cp .env.sample .env
+        cp .env.pipeline .env
 
-    # Token needed to checkout client configs
+    # Token needed to checkout client configs repo
     - name: Obtain Octo STS Token
       uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
       id: octo_sts
@@ -58,7 +50,7 @@ jobs:
         token: '${{ steps.octo_sts.outputs.token }}'
         repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
         # Note path must be within the $GITHUB_WORKSPACE directory, otherwise get error
-        path: '${{ env.CONFIGS }}' # Need to access env vars in this cumbersome way
+        path: './clientconfigs'
         ref: 'main'
         sparse-checkout: 'configs'
 
