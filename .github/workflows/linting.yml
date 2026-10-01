@@ -58,7 +58,7 @@ jobs:
         token: '${{ steps.octo_sts.outputs.token }}'
         repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
         # Note path must be within the $GITHUB_WORKSPACE directory, otherwise get error
-        path: ./configs
+        path: '${{ env.CONFIGS }}' # Need to access env vars in this cumbersome way
         ref: 'main'
         sparse-checkout: 'configs'
 
