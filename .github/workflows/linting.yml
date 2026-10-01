@@ -64,7 +64,12 @@ jobs:
 
     - name: Check configs
       run: |
+        echo from env var
         ls $CONFIGS
+        echo from direct str
+        ls ./configs
+        echo do we have tree?
+        tree
 
     - name: Lint with flake8
       run: |
