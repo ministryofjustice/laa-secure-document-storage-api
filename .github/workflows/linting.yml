@@ -52,7 +52,6 @@ jobs:
         # Note path must be within the $GITHUB_WORKSPACE directory, otherwise get error
         path: './configs'
         ref: 'main'
-        # sparse-checkout: 'configs'
 
     - name: Check configs
       run: |
