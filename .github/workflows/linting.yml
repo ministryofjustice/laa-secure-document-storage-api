@@ -56,8 +56,7 @@ jobs:
 
     - name: Check configs
       run: |
-        echo from direct str
-        ls '${{ env.CONFIGS }}'
+        ls './clientconfigs'
 
     - name: Lint with flake8
       run: |
