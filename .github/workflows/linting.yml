@@ -58,10 +58,9 @@ jobs:
         token: '${{ steps.octo_sts.outputs.token }}'
         repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
         # Note path must be within the $GITHUB_WORKSPACE directory, otherwise get error
-        # path: $CONFIGS
-        path './configs'
+        path: $CONFIGS
         ref: 'main'
-        # sparse-checkout: 'clientconfigs'
+        sparse-checkout: 'clientconfigs'
 
     - name: Check configs
       run: |
