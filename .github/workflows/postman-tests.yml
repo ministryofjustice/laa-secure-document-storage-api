@@ -23,7 +23,7 @@ jobs:
 
       - name: Set .env file
         run: |
-          cp .env.sample .env
+          cp .env.pipeline .env
 
       - name: Obtain Octo STS Token
         uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
@@ -38,13 +38,12 @@ jobs:
           persist-credentials: 'false'
           token: '${{ steps.octo_sts.outputs.token }}'
           repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
-          path: './clientconfigs'
+          path: './configs'
           ref: 'main'
-          sparse-checkout: 'clientconfigs'
 
       - name: Check configs
         run: |
-          ls ./clientconfigs/
+          ls ./configs/
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -75,7 +74,7 @@ jobs:
         run: |
           export AWS_ACCESS_KEY_ID=test
           export AWS_ACCESS_KEY=test
-          docker compose -f docker-compose.yaml -f docker-compose.postman.yaml up --build -d
+          docker compose -f docker-compose-pipeline.yaml up --build -d
         env:
           TENANT_ID: ${{ secrets.TENANT_ID }}
           AUDIENCE_ID: ${{ secrets.AUDIENCE_ID }}
