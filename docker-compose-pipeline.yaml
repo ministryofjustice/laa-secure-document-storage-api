@@ -22,7 +22,8 @@ services:
       - AUDIENCE=$AUDIENCE_ID
       - CLAMD_HOST=laa-clamav
       - CASBIN_POLICY='/app/configs/generalconfigs/casbin_policy_open_routes.csv:/app/configs/clientconfigs'
-      - CASBIN_MODEL='/app/configs/generalconfigs/casbin_model_acl_with_authenticated.conf'
+      # Do not put ' quotes around value below, as they will become part of the path
+      - CASBIN_MODEL=/app/configs/generalconfigs/casbin_model_acl_with_authenticated.conf
       - CONFIG_DIR='/app/configs/clientconfigs'
       - CONFIG_SOURCES=file
   localstack:
