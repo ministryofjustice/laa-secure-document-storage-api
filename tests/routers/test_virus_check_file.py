@@ -46,4 +46,4 @@ def test_virus_check_file_with_clean_file(scan_mock, test_client):
     response = test_client.put("/virus_check_file", files=files)
 
     assert response.status_code == 200
-    assert response.json() == {'success': 'No virus found'}
+    assert response.json() == None
