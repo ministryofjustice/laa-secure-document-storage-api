@@ -1,6 +1,6 @@
 # Intended for use in github workflow that has checked-out
 # client configs repo to its ./configs dir, which
-# gets mapped here to /app/configs/ in the container
+# gets mapped to /app/configs/ in the container
 services:
   sds-api:
     build: .
@@ -21,9 +21,9 @@ services:
       - TENANT_ID=$TENANT_ID
       - AUDIENCE=$AUDIENCE_ID
       - CLAMD_HOST=laa-clamav
-      - CONFIG_DIR='/app/configs/clientconfigs'
       - CASBIN_POLICY='/app/configs/generalconfigs/casbin_policy_open_routes.csv:/app/configs/clientconfigs'
       - CASBIN_MODEL='/app/configs/generalconfigs/casbin_model_acl_with_authenticated.conf'
+      - CONFIG_DIR='/app/configs/clientconfigs'
       - CONFIG_SOURCES=file
   localstack:
     image: localstack/localstack:4.4
