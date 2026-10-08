@@ -30,6 +30,7 @@ from src.routers.available_validators import router as available_validators
 from src.routers.bulk_upload import router as bulk_upload
 from src.routers.scan_for_suspicious_content import router as scan_for_suspicious_content
 from src.routers.file_details import router as get_file_details
+from src.routers.file_search import router as file_search
 
 
 def add_correlation(
@@ -102,3 +103,4 @@ app.include_router(root)
 
 app.include_router(available_validators)
 app.include_router(get_file_details)
+app.include_router(file_search)
