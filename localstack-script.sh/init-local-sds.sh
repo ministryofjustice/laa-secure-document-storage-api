@@ -8,6 +8,13 @@ awslocal s3api create-bucket --bucket sds-local --create-bucket-configuration Lo
 awslocal s3api put-bucket-versioning --bucket sds-local --versioning-configuration Status=Enabled
 awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/$FILE_TO_UPLOAD
 awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/CRM14/$FILE_TO_UPLOAD
+awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/TEST_FOLDER1/FILE1.md
+awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/TEST_FOLDER1/FILE2.md
+awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/TEST_FOLDER2/TEST_FILE1.md
+awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/TEST_FOLDER2/TEST_FILE2.md
+awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/TEST_FOLDER2/TEST_FILE3.md
+awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/TEST_FOLDER2/TEST_FILE4.md
+awslocal s3 cp $FILE_TO_UPLOAD s3://sds-local/TEST_FOLDER2/TEST_FILE5.md
 
 # Initialise audit table - with per-event format
 awslocal --region eu-west-1 dynamodb create-table --table-name $AUDIT_TABLE_NAME \

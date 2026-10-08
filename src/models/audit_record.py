@@ -25,6 +25,7 @@ class AuditRecord(BaseModel):
     filename_position: int
     service_id: str
     file_id: str
+    search_terms: str = ""
     created_on: str = Field(default_factory=lambda: datetime.now().isoformat())
     operation_type: Annotated[str, AfterValidator(is_known_operation_type)]
     error_details: str = ""

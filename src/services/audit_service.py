@@ -67,6 +67,7 @@ def add_record(request: Request,
                service_id: str,
                file_id: str | None,
                operation_type: OperationType | None,
+               search_terms: str = "",
                error_status: tuple = ()) -> AuditRecord:
     "Add record to audit table, with automatic FAILED status setting"
     error_text = ""
@@ -82,6 +83,7 @@ def add_record(request: Request,
                                service_id=service_id,
                                file_id=str(file_id),  # str() as file_key can be None if missing
                                operation_type=operation_type,
+                               search_terms=search_terms,
                                error_details=error_text)
     put_item(audit_record)
     # Return value added so audit_record can be conveniently examined in unit tests

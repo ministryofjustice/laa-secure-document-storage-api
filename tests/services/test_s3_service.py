@@ -278,3 +278,112 @@ def test_save_returns_expected_message_when_version_id_not_returned_by_aws():
 
     assert success is True
     assert returned_version_id == "Versioning not enabled"
+
+def test_list_object_search_success(s3_service, mocker):
+    mock_list_objects = mocker.patch.object(
+        s3_service.s3_client,
+        "list_objects_v2",
+        return_value={
+            "Contents": [
+                {"Key": "folder/file1.txt"},
+                {"Key": "folder/file2.txt"},
+            ],
+            "NextContinuationToken": "next-token"
+        }
+    )
+
+    result = s3_service.list_object_search(
+        folder="folder/",
+        max_keys=100,
+        continuation_token=None
+    )
+
+    assert result == {
+        "files": [
+            "folder/file1.txt",
+            "folder/file2.txt",
+        ],
+        "continuation_token": "next-token",
+    }
+
+    mock_list_objects.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Prefix="folder/",
+        MaxKeys=100,
+    )
+
+def test_list_object_search_with_continuation_token(s3_service, mocker):
+    mock_list_objects = mocker.patch.object(
+        s3_service.s3_client,
+        "list_objects_v2",
+        return_value={
+            "Contents": [
+                {"Key": "folder/file3.txt"},
+            ],
+            "NextContinuationToken": "page-2"
+        }
+    )
+
+    result = s3_service.list_object_search(
+        folder="folder/",
+        max_keys=50,
+        continuation_token="page-1"
+    )
+
+    assert result == {
+        "files": ["folder/file3.txt"],
+        "continuation_token": "page-2",
+    }
+
+    mock_list_objects.assert_called_once_with(
+        Bucket=s3_service.client_config.bucket_name,
+        Prefix="folder/",
+        MaxKeys=50,
+        ContinuationToken="page-1",
+    )
+
+
+def test_list_object_search_empty_results(s3_service, mocker):
+    mocker.patch.object(
+        s3_service.s3_client,
+        "list_objects_v2",
+        return_value={}
+    )
+
+    result = s3_service.list_object_search(
+        folder="folder/",
+        max_keys=100,
+        continuation_token=None
+    )
+
+    assert result == {
+        "files": [],
+        "continuation_token": None,
+    }
+
+
+def test_list_object_search_client_error(s3_service, mocker):
+    mocker.patch.object(
+        s3_service.s3_client,
+        "list_objects_v2",
+        side_effect=ClientError(
+            error_response={
+                "Error": {
+                    "Code": "AccessDenied",
+                    "Message": "Access denied"
+                }
+            },
+            operation_name="ListObjectsV2"
+        )
+    )
+
+    with pytest.raises(RuntimeError) as exc_info:
+        s3_service.list_object_search(
+            folder="folder/",
+            max_keys=100,
+            continuation_token=None
+        )
+
+    assert "Failure in list_object_search" in str(exc_info.value)
+    assert "AccessDenied" in str(exc_info.value)
+

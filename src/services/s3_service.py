@@ -130,9 +130,12 @@ class S3Service:
             }
 
             if continuation_token:
-                params["ContinuationToken"] = continuation_token    
+                params["ContinuationToken"] = continuation_token
 
             response = self.s3_client.list_objects_v2(**params)
+
+            logger.info(f"Files returned {response}")
+            
             files = [
                 obj["Key"]
                 for obj in response.get("Contents", [])
@@ -144,7 +147,7 @@ class S3Service:
             }
 
         except ClientError as e:
-            raise RuntimeError("Failure in list_object_search")
+            raise RuntimeError(f"Failure in list_object_search : {e}")
 
     def delete_object_version(self, filename: str, version_id: str):
         try:
@@ -220,9 +223,11 @@ def list_file_versions(client: str | ClientConfig, file_name: str):
     s3_service = S3Service.get_instance(client)
     return s3_service.list_object_versions(file_name)
 
+
 def list_file_search(client: str | ClientConfig, folder: str, max_keys: int, continuation_token: str):
     s3_service = S3Service.get_instance(client)
     return s3_service.list_object_search(folder, max_keys, continuation_token)
+
 
 def delete_file_version(client: str | ClientConfig, file_name: str, version_id: str):
     s3_service = S3Service.get_instance(client)
