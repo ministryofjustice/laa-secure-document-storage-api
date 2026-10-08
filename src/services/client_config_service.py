@@ -185,7 +185,7 @@ class ClientConfigServiceStatusReporter(StatusReporter):
         checks = ServiceObservations(label='configuration')
         present, populated = checks.add_checks('present', 'populated')
         try:
-            config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')
+            config_dir = os.getenv('CONFIG_DIR', '/app/configs')
             if os.path.isdir(config_dir):
                 present.category = Category.success
                 # Check we actually have some json files
