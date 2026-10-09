@@ -34,17 +34,11 @@ async def virus_check_file(
 
     virus_scan_status_code, virus_scan_message = await run_virus_check(file)
     if virus_scan_status_code != 200:
+        logger.info(f"File {file.filename} has failed AV scan")
         raise HTTPException(
             status_code=virus_scan_status_code,
             detail=virus_scan_message
         )
-
-    if virus_scan_status_code == 400:
-        logger.info(f"File {file.filename} has failed AV scan")
-
-    elif virus_scan_status_code == 500:
-        logger.info(f"File {file.filename} has failed AV scan")
-
     else:
         return JSONResponse(
         status_code=200, content={
