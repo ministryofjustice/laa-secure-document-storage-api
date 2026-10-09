@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: ['main']
+  workflow_dispatch:
+
+jobs:
+  deploy_dev:
+    environment: dev
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read  # This is required for actions/checkout
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Obtain Octo STS Token
+      uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
+      id: octo_sts
+      with:
+        scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
+        identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
+
+    - name: Checkout client configs
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: 'false'
+        token: '${{ steps.octo_sts.outputs.token }}'
+        repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
+        path: './clientconfigs'
+        ref: 'main'
+        sparse-checkout: 'clientconfigs'
+
+    - name: Check configs
+      run: |
+        ls ./clientconfigs/
+
+    - name: Build Docker Image
+      run: |
+        docker build -t laa-sds-api .
+
+    - name: Assume AWS Role
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+      with:
+        role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
+        aws-region: ${{ vars.DEV_ECR_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr-dev
+      uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
+
+    - name: Store ECR endpoint as output
+      id: ecr-url-output
+      run: echo "::set-output name=ecr_url::${{ steps.login-ecr-dev.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}"
+
+    - name: Push to ECR
+      id: ecr
+      env:
+        ECR_URL: ${{ steps.ecr-url-output.outputs.ecr_url }}
+      run: |
+        docker tag laa-sds-api $ECR_URL:${{ github.sha }}
+        docker tag laa-sds-api $ECR_URL:dev.latest
+        docker push $ECR_URL:${{ github.sha }}
+        docker push $ECR_URL:dev.latest
+
+    - name: Deploy DEV
+      uses: ./.github/actions/deploy
+      with:
+        ecr-url: ${{ steps.ecr-url-output.outputs.ecr_url }}
+        kube-cert: ${{ secrets.DEV_KUBE_CERT }}
+        kube-token: ${{ secrets.DEV_KUBE_TOKEN }}
+        kube-cluster: ${{ secrets.DEV_KUBE_CLUSTER }}
+        kube-namespace: ${{ secrets.DEV_KUBE_NAMESPACE }}
+        irsa-sa-environment: 'development'
+        tenant_id: ${{secrets.DEV_TENANT_ID}}
+        audience: ${{secrets.DEV_AUDIENCE}}
+        sentry_dsn: ${{secrets.DEV_SENTRY_DSN}}
+        casbin_policy: ${{vars.CASBIN_POLICY}}
+        casbin_model: ${{vars.CASBIN_MODEL}}
+
