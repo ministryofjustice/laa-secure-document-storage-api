@@ -19,3 +19,6 @@ Two lines with
 
 neet to be changed to 
 ```config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')```
+
+### Another thing needed for old config to work
+In our orginal config file setup, our Cloud Platform environments rely on GitHub environment variables, set manually via GitHub front-end, for `CASBIN_POLICY` and `CASBIN_MODEL`. These need to be in place for the old type of config setup to work. These have NOT been deleted as part of PR #504 changes, so should still exist to enable to old process to still work. These can be viewed in GitHub via the `Settings` tab, then `Environments` in the side bar.
