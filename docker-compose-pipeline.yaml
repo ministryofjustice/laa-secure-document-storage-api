@@ -1,9 +1,12 @@
+# Intended for use in github workflow that has checked-out
+# client configs repo to its ./configs dir, which
+# gets mapped to /app/configs/ in the container
 services:
   sds-api:
     build: .
     volumes:
       - .:/app
-      - ../laa-secure-document-storage-configs:/app/configs
+      - ./configs:/app/configs
     ports:
       - '8000:8000'
     environment:

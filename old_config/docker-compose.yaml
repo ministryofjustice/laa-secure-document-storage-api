@@ -3,7 +3,8 @@ services:
     build: .
     volumes:
       - .:/app
-      - ../laa-secure-document-storage-configs:/app/configs
+      - ./authz:/authz
+      - ../sds-api-configs/clientconfigs:/app/clientconfigs
     ports:
       - '8000:8000'
     environment:
@@ -18,10 +19,9 @@ services:
       - TENANT_ID=$TENANT_ID
       - AUDIENCE=$AUDIENCE_ID
       - CLAMD_HOST=laa-clamav
-      - CASBIN_POLICY='/app/configs/generalconfigs/casbin_policy_open_routes.csv:/app/configs/clientconfigs'
-      # Do not put ' quotes around CASBIN_MODEL and CONFIG_DIR paths below, as they will become part of the paths
-      - CASBIN_MODEL=/app/configs/generalconfigs/casbin_model_acl_with_authenticated.conf
-      - CONFIG_DIR=/app/configs/clientconfigs
+      - CASBIN_POLICY='/authz/casbin_policy_open_routes.csv:/app/clientconfigs'
+      - CASBIN_MODEL=/authz/casbin_model_acl_with_authenticated.conf
+      - CONFIG_DIR=/app/clientconfigs
       - CONFIG_SOURCES=file
   localstack:
     image: localstack/localstack:4.4
