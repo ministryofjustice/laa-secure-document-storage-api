@@ -41,20 +41,13 @@ async def virus_check_file(
 
     if virus_scan_status_code == 400:
         logger.info(f"File {file.filename} has failed AV scan")
-        return JSONResponse(
-            status_code=400, content={
-                "fail": "Virus Found"
-            }
-        )
+
     elif virus_scan_status_code == 500:
         logger.info(f"File {file.filename} has failed AV scan")
-        return JSONResponse(
-            status_code=500, content={
-                "fail": "Virus scan gave non-standard result"
-            }
-        )
+
     else:
-        logger.info(f"File {file.filename} has passed AV scan")
         return JSONResponse(
-            status_code=200, content=None
+        status_code=200, content={
+            "success": "No virus found"
+        }
         )
