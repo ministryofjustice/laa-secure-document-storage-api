@@ -25,7 +25,7 @@ casbin = "==1.43.0"
 fastapi-authz = "==1.0.0"
 h11 = ">=0.16.0"
 requests = "==2.34.2"
-idna = "==3.18"
+idna = "==3.19"
 pyjwt = {version = "*", extras = ["crypto"]}
 python-dateutil = "*"
 certifi = "*"
