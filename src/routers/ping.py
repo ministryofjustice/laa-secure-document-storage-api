@@ -4,7 +4,7 @@ router = APIRouter()
 
 
 @router.get("/ping")
-async def health():
+async def ping():
     """
     Reachability test, always return 200 OK with JSON {'ping': 'pong'}
     """
