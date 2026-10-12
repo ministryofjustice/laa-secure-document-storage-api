@@ -135,7 +135,7 @@ class S3Service:
             response = self.s3_client.list_objects_v2(**params)
 
             logger.info(f"Files returned {response}")
-            
+
             files = [
                 obj["Key"]
                 for obj in response.get("Contents", [])

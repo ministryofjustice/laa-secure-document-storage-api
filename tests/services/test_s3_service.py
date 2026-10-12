@@ -279,7 +279,9 @@ def test_save_returns_expected_message_when_version_id_not_returned_by_aws():
     assert success is True
     assert returned_version_id == "Versioning not enabled"
 
+
 def test_list_object_search_success(s3_service, mocker):
+
     mock_list_objects = mocker.patch.object(
         s3_service.s3_client,
         "list_objects_v2",
@@ -312,7 +314,9 @@ def test_list_object_search_success(s3_service, mocker):
         MaxKeys=100,
     )
 
+
 def test_list_object_search_with_continuation_token(s3_service, mocker):
+
     mock_list_objects = mocker.patch.object(
         s3_service.s3_client,
         "list_objects_v2",
@@ -386,4 +390,3 @@ def test_list_object_search_client_error(s3_service, mocker):
 
     assert "Failure in list_object_search" in str(exc_info.value)
     assert "AccessDenied" in str(exc_info.value)
-

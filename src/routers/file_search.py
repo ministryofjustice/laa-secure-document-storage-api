@@ -27,7 +27,7 @@ async def file_search(
     error_status = ()
 
     if max_keys > 1000:
-        error_status = (400, "File key is missing")
+        error_status = (400, "Maximum files to be retrieved must not be greater than 1000")
 
     if not error_status:
         try:
