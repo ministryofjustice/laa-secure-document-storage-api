@@ -5,7 +5,7 @@ from fastapi.params import Query
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
 
-from src.services.s3_service import list_file_search
+from src.services.s3_service import find_files
 from src.services import audit_service
 from src.utils.operation_types import OperationType
 from typing import Optional
@@ -23,6 +23,14 @@ async def file_search(
     continuation_token: str = '',
     client_config: ClientConfig = Depends(client_config_middleware),
 ):
+    """
+    Search for files. A folder may optionally be provided. The maxium number of files returned is 1000 unless a
+    maximum keys parameter is provided which must not be greater than 1000
+
+    A list of files is returned. If there are more files than the maximum number specified then a continuation
+    token will also be returned
+
+    """
 
     error_status = ()
 
@@ -31,8 +39,7 @@ async def file_search(
 
     if not error_status:
         try:
-            logger.info("calling search file operation")
-            file_list = list_file_search(client_config, folder, max_keys, continuation_token)
+            file_list = find_files(client_config, folder, max_keys, continuation_token)
 
         except Exception as e:
             error_message = f"Unexpected error during file search: {e.__class__.__name__} - {str(e)}"
@@ -42,9 +49,9 @@ async def file_search(
     audit_service.add_record(request=request,
                              filename_position=0,
                              service_id=client_config.azure_display_name,
-                             file_id=0,
-                             search_terms=f"{folder or ''} {max_keys}",
-                             operation_type=OperationType.INFO,
+                             file_id='',
+                             search_terms=f"Folder: {folder} Maximum keys: {max_keys}",
+                             operation_type=OperationType.SEARCH,
                              error_status=error_status)
 
     if error_status:

@@ -11,14 +11,14 @@ def test_file_search_success(test_client, audit_service_mock):
     }
 
     with patch(
-        "src.routers.file_search.list_file_search",
+        "src.routers.file_search.find_files",
         return_value=expected_result,
     ):
         response = test_client.get(
             "/file_search",
             params={
                 "folder": "folder/",
-                "max_keys": 100,
+                "max_keys": 2,
             },
         )
 
@@ -37,14 +37,14 @@ def test_file_search_success_with_continuation_token(
     }
 
     with patch(
-        "src.routers.file_search.list_file_search",
+        "src.routers.file_search.find_files",
         return_value=expected_result,
     ):
         response = test_client.get(
             "/file_search",
             params={
                 "folder": "folder/",
-                "max_keys": 50,
+                "max_keys": 1,
                 "continuation_token": "page-1",
             },
         )
@@ -64,7 +64,7 @@ def test_file_search_without_folder(
     }
 
     with patch(
-        "src.routers.file_search.list_file_search",
+        "src.routers.file_search.find_files",
         return_value=expected_result,
     ) as mock_search:
         response = test_client.get("/file_search")
@@ -99,7 +99,7 @@ def test_file_search_returns_500_when_service_raises_exception(
     audit_service_mock,
 ):
     with patch(
-        "src.routers.file_search.list_file_search",
+        "src.routers.file_search.find_files",
         side_effect=RuntimeError("S3 failure"),
     ):
         response = test_client.get(

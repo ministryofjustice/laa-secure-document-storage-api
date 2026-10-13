@@ -121,33 +121,32 @@ class S3Service:
         except ClientError as e:
             raise RuntimeError(f"Failed to list versions for {file_key}: {e}")
 
-    def list_object_search(self, folder, max_keys, continuation_token):
-        try:
-            params = {
+    def object_search(self, folder, max_keys, continuation_token):
+
+        params = {
                 "Bucket": self.client_config.bucket_name,
                 "Prefix": folder,
                 "MaxKeys": max_keys,
-            }
+        }
 
-            if continuation_token:
-                params["ContinuationToken"] = continuation_token
-
+        if continuation_token:
+            params["ContinuationToken"] = continuation_token
+        try:
             response = self.s3_client.list_objects_v2(**params)
 
-            logger.info(f"Files returned {response}")
+        except ClientError as e:
+            logger.info(f"Failure in object_search : {e}")
+            raise RuntimeError(f"Failure in object_search : {e}")
 
-            files = [
-                obj["Key"]
-                for obj in response.get("Contents", [])
-            ]
+        files = [
+            obj["Key"]
+            for obj in response.get("Contents", [])
+        ]
 
-            return {
+        return {
                 "files": files,
                 "continuation_token": response.get("NextContinuationToken"),
-            }
-
-        except ClientError as e:
-            raise RuntimeError(f"Failure in list_object_search : {e}")
+        }
 
     def delete_object_version(self, filename: str, version_id: str):
         try:
@@ -224,9 +223,9 @@ def list_file_versions(client: str | ClientConfig, file_name: str):
     return s3_service.list_object_versions(file_name)
 
 
-def list_file_search(client: str | ClientConfig, folder: str, max_keys: int, continuation_token: str):
+def find_files(client: str | ClientConfig, folder: str, max_keys: int, continuation_token: str):
     s3_service = S3Service.get_instance(client)
-    return s3_service.list_object_search(folder, max_keys, continuation_token)
+    return s3_service.object_search(folder, max_keys, continuation_token)
 
 
 def delete_file_version(client: str | ClientConfig, file_name: str, version_id: str):

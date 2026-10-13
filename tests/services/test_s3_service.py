@@ -280,7 +280,7 @@ def test_save_returns_expected_message_when_version_id_not_returned_by_aws():
     assert returned_version_id == "Versioning not enabled"
 
 
-def test_list_object_search_success(s3_service, mocker):
+def test_object_search_success(s3_service, mocker):
 
     mock_list_objects = mocker.patch.object(
         s3_service.s3_client,
@@ -294,7 +294,7 @@ def test_list_object_search_success(s3_service, mocker):
         }
     )
 
-    result = s3_service.list_object_search(
+    result = s3_service.object_search(
         folder="folder/",
         max_keys=100,
         continuation_token=None
@@ -315,7 +315,7 @@ def test_list_object_search_success(s3_service, mocker):
     )
 
 
-def test_list_object_search_with_continuation_token(s3_service, mocker):
+def test_object_search_with_continuation_token(s3_service, mocker):
 
     mock_list_objects = mocker.patch.object(
         s3_service.s3_client,
@@ -328,7 +328,7 @@ def test_list_object_search_with_continuation_token(s3_service, mocker):
         }
     )
 
-    result = s3_service.list_object_search(
+    result = s3_service.object_search(
         folder="folder/",
         max_keys=50,
         continuation_token="page-1"
@@ -347,14 +347,15 @@ def test_list_object_search_with_continuation_token(s3_service, mocker):
     )
 
 
-def test_list_object_search_empty_results(s3_service, mocker):
+def test_object_search_empty_results(s3_service, mocker):
     mocker.patch.object(
         s3_service.s3_client,
         "list_objects_v2",
+        # Other information is returned but reduced to a minimum for output
         return_value={}
     )
 
-    result = s3_service.list_object_search(
+    result = s3_service.object_search(
         folder="folder/",
         max_keys=100,
         continuation_token=None
@@ -366,7 +367,7 @@ def test_list_object_search_empty_results(s3_service, mocker):
     }
 
 
-def test_list_object_search_client_error(s3_service, mocker):
+def test_object_search_client_error(s3_service, mocker):
     mocker.patch.object(
         s3_service.s3_client,
         "list_objects_v2",
@@ -382,11 +383,11 @@ def test_list_object_search_client_error(s3_service, mocker):
     )
 
     with pytest.raises(RuntimeError) as exc_info:
-        s3_service.list_object_search(
+        s3_service.object_search(
             folder="folder/",
             max_keys=100,
             continuation_token=None
         )
 
-    assert "Failure in list_object_search" in str(exc_info.value)
+    assert "Failure in object_search" in str(exc_info.value)
     assert "AccessDenied" in str(exc_info.value)
