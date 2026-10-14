@@ -330,7 +330,7 @@ def test_object_search_with_continuation_token(s3_service, mocker):
 
     result = s3_service.object_search(
         folder="folder/",
-        max_keys=50,
+        max_keys=1,
         continuation_token="page-1"
     )
 
@@ -342,7 +342,7 @@ def test_object_search_with_continuation_token(s3_service, mocker):
     mock_list_objects.assert_called_once_with(
         Bucket=s3_service.client_config.bucket_name,
         Prefix="folder/",
-        MaxKeys=50,
+        MaxKeys=1,
         ContinuationToken="page-1",
     )
 

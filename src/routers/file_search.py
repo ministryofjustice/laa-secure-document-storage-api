@@ -19,7 +19,7 @@ logger = structlog.get_logger()
 async def file_search(
     request: Request,
     folder: Optional[str] = Query(None),
-    max_keys: int = 1000,
+    max_items: int = 1000,
     continuation_token: str = '',
     client_config: ClientConfig = Depends(client_config_middleware),
 ):
@@ -34,23 +34,23 @@ async def file_search(
 
     error_status = ()
 
-    if max_keys > 1000:
+    if max_items > 1000:
         error_status = (400, "Maximum files to be retrieved must not be greater than 1000")
 
     if not error_status:
         try:
-            file_list = find_files(client_config, folder, max_keys, continuation_token)
+            file_list = find_files(client_config, folder, max_items, continuation_token)
 
         except Exception as e:
-            error_message = f"Unexpected error during file search: {e.__class__.__name__} - {str(e)}"
-            error_status = (500, error_message)
-            logger.exception(error_status)
+            error_message = f"Unexpected error during file search: {e.__class__.__name__} - {e}"
+            logger.info(error_message)
+            error_status = (500, "Unexpected error during file search")
 
     audit_service.add_record(request=request,
                              filename_position=0,
                              service_id=client_config.azure_display_name,
                              file_id='',
-                             search_terms=f"Folder: {folder} Maximum keys: {max_keys}",
+                             search_terms=f"Folder: {folder} Maximum items: {max_items}",
                              operation_type=OperationType.SEARCH,
                              error_status=error_status)
 

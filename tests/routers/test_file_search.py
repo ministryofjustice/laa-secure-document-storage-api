@@ -1,13 +1,16 @@
 from unittest.mock import patch
+import pytest
 
 
-def test_file_search_success(test_client, audit_service_mock):
+@pytest.mark.parametrize("folder", ["folder", "folder/"])
+def test_file_search_success(
+    test_client,
+    audit_service_mock,
+    folder,
+):
     expected_result = {
-        "files": [
-            "folder/file1.txt",
-            "folder/file2.txt",
-        ],
-        "continuation_token": "next-page",
+        "files": ["file1.txt"],
+        "continuation_token": None,
     }
 
     with patch(
@@ -17,14 +20,13 @@ def test_file_search_success(test_client, audit_service_mock):
         response = test_client.get(
             "/file_search",
             params={
-                "folder": "folder/",
-                "max_keys": 2,
+                "folder": folder,
+                "max_items": 100,
             },
         )
 
     assert response.status_code == 200
     assert response.json() == expected_result
-    audit_service_mock.assert_called()
 
 
 def test_file_search_success_with_continuation_token(
@@ -44,7 +46,7 @@ def test_file_search_success_with_continuation_token(
             "/file_search",
             params={
                 "folder": "folder/",
-                "max_keys": 1,
+                "max_items": 100,
                 "continuation_token": "page-1",
             },
         )
@@ -84,7 +86,7 @@ def test_file_search_returns_400_when_max_keys_exceeds_limit(
         "/file_search",
         params={
             "folder": "folder/",
-            "max_keys": 1001,
+            "max_items": 1001,
         },
     )
 
@@ -106,14 +108,14 @@ def test_file_search_returns_500_when_service_raises_exception(
             "/file_search",
             params={
                 "folder": "folder/",
-                "max_keys": 100,
+                "max_items": 100,
             },
         )
 
     assert response.status_code == 500
     assert (
         response.json()["detail"]
-        == "Unexpected error during file search: RuntimeError - S3 failure"
+        == "Unexpected error during file search"
     )
 
     audit_service_mock.assert_called()

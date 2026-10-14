@@ -341,6 +341,7 @@ def test_file_search_returns_files_in_folder():
     filenames = body["files"]
     assert file1 in filenames
     assert file2 in filenames
+    assert len(filenames) == 2
 
 
 @pytest.mark.e2e
@@ -353,7 +354,7 @@ def test_file_search_returns_continuation_token_when_truncated():
     response = client.get(
         f"{HOST_URL}/file_search",
         headers=headers,
-        params={"folder": folder, "max_keys": 2})
+        params={"folder": folder, "max_items": 2})
     body = response.json()
     assert response.status_code == 200
     assert len(body["files"]) == 2
@@ -369,7 +370,7 @@ def test_file_search_second_page_returns_remaining_files():
     first_response = client.get(
         f"{HOST_URL}/file_search",
         headers=headers,
-        params={"folder": folder, "max_keys": 2})
+        params={"folder": folder, "max_items": 2})
     token = first_response.json()["continuation_token"]
 
     second_response = client.get(f"{HOST_URL}/file_search",
@@ -377,3 +378,34 @@ def test_file_search_second_page_returns_remaining_files():
                                  params={"folder": folder, "max_keys": 2, "continuation_token": token})
     assert second_response.status_code == 200
     assert len(second_response.json()["files"]) > 0
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    "search_suffix,expected_found",
+    [
+        ("R", True),
+        ("READ", True),
+        ("README", True),
+        ("S", False),
+    ],
+)
+def test_file_search_uses_prefix_matching(
+    search_suffix,
+    expected_found,
+):
+    headers = token_getter.get_headers()
+
+    folder = make_unique_name("prefix_test")
+    filename = f"{folder}/README.md"
+
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(filename))
+
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+        params={"folder": f"{folder}/{search_suffix}", "max_items": 100, })
+
+    assert response.status_code == 200
+    files = response.json()["files"]
+    assert (filename in files) is expected_found
