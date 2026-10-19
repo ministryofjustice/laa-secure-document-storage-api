@@ -91,7 +91,7 @@ def test_file_search_returns_400_when_max_keys_exceeds_limit(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Maximum files to be retrieved must not be greater than 1000"
+    assert response.json()["detail"] == "Maximum files to be retrieved must be between 1 and 1000"
 
     audit_service_mock.assert_called()
 

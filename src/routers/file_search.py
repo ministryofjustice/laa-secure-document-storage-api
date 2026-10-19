@@ -1,6 +1,5 @@
 import structlog
 from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.params import Query
 
 from src.middleware.client_config_middleware import client_config_middleware
 from src.models.client_config import ClientConfig
@@ -8,8 +7,6 @@ from src.models.client_config import ClientConfig
 from src.services.s3_service import find_files
 from src.services import audit_service
 from src.utils.operation_types import OperationType
-from typing import Optional
-
 
 router = APIRouter()
 logger = structlog.get_logger()
@@ -18,7 +15,7 @@ logger = structlog.get_logger()
 @router.get('/file_search')
 async def file_search(
     request: Request,
-    folder: Optional[str] = Query(None),
+    folder: str = '',
     max_items: int = 1000,
     continuation_token: str = '',
     client_config: ClientConfig = Depends(client_config_middleware),
@@ -32,7 +29,7 @@ async def file_search(
     just an empty list.
 
     The maxium number of files returned is 1000 at most but a smaller number can be specified by setting
-    an optional max_items value.
+    an optional max_items value which must be 1 or more.
 
     A list of files is returned. If there are more files than the maximum number specified then a continuation
     token will also be returned
@@ -41,8 +38,8 @@ async def file_search(
 
     error_status = ()
 
-    if max_items > 1000:
-        error_status = (400, "Maximum files to be retrieved must not be greater than 1000")
+    if max_items < 1 or max_items > 1000:
+        error_status = (400, "Maximum files to be retrieved must be between 1 and 1000")
 
     if not error_status:
         try:

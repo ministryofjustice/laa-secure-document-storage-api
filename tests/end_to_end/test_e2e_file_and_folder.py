@@ -375,9 +375,9 @@ def test_file_search_second_page_returns_remaining_files():
 
     second_response = client.get(f"{HOST_URL}/file_search",
                                  headers=headers,
-                                 params={"folder": folder, "max_items ": 2, "continuation_token": token})
+                                 params={"folder": folder, "max_items": 2, "continuation_token": token})
     assert second_response.status_code == 200
-    assert len(second_response.json()["files"]) == 3
+    assert len(second_response.json()["files"]) == 2
 
 
 @pytest.mark.e2e
@@ -456,7 +456,7 @@ def test_file_search_returns_error_when_max_items_exceeds_limit():
         params={"folder": "test", "max_items": 1001})
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Maximum files to be retrieved must not be greater than 1000"
+    assert response.json()["detail"] == "Maximum files to be retrieved must be between 1 and 1000"
 
 
 @pytest.mark.e2e
@@ -485,3 +485,27 @@ def test_file_search_handles_folder_parameter_formats(folder_value, expected_fou
     assert response.status_code == 200
     files = response.json()["files"]
     assert (filename in files) is expected_found
+
+
+@pytest.mark.e2e
+def test_file_search_without_folder_returns_all_files():
+    headers = token_getter.get_headers()
+
+    folder1 = make_unique_name("folder1")
+    folder2 = make_unique_name("folder2")
+
+    file1 = f"{folder1}/file1.txt"
+    file2 = f"{folder2}/file2.txt"
+
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(file1))
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(file2))
+
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    files = response.json()["files"]
+    assert file1 in files
+    assert file2 in files
