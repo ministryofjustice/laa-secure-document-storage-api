@@ -283,6 +283,7 @@ def test_save_returns_expected_message_when_version_id_not_returned_by_aws():
 def test_object_search_success(s3_service, mocker):
 
     mock_list_objects = mocker.patch.object(
+        # The call to s3_service.s3_client returns more details but we are only foucused on key details to save space
         s3_service.s3_client,
         "list_objects_v2",
         return_value={

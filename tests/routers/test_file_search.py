@@ -46,7 +46,7 @@ def test_file_search_success_with_continuation_token(
             "/file_search",
             params={
                 "folder": "folder/",
-                "max_items": 100,
+                "max_items": 1,
                 "continuation_token": "page-1",
             },
         )
