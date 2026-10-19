@@ -24,13 +24,15 @@ async def file_search(
     client_config: ClientConfig = Depends(client_config_middleware),
 ):
     """
-    Search for files. 
-    
+    Search for files.
+
     A folder may optionally be provided. The folder can be formatted myfolder or myfolder/ but not /myfolder/
     The search is recursive, so if folder is specified any sub-folders will be automatically in scope.
-    There is no check that the specified folder exists. If non-existent folder supplied then result is just an empty list.
+    There is no check that the specified folder exists. If non-existent folder supplied then result is
+    just an empty list.
 
-    The maxium number of files returned is 1000 at most but a smaller number can be specified by setting an optional max_items value.
+    The maxium number of files returned is 1000 at most but a smaller number can be specified by setting
+    an optional max_items value.
 
     A list of files is returned. If there are more files than the maximum number specified then a continuation
     token will also be returned

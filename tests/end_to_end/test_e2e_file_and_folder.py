@@ -485,4 +485,3 @@ def test_file_search_handles_folder_parameter_formats(folder_value, expected_fou
     assert response.status_code == 200
     files = response.json()["files"]
     assert (filename in files) is expected_found
-    
