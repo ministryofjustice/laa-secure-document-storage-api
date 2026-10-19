@@ -128,7 +128,7 @@ class ClientConfigService:
         :return: ClientConfig instance if found and loaded, else None
         """
         loaded_config = None
-        config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')
+        config_dir = os.getenv('CONFIG_DIR', '/app/configs')
         try:
             # Config files are JSON files named after the requesting application (client) id.
             # Use a regular expression glob to find all files in any subdirectory of config_dir which are named
@@ -185,7 +185,7 @@ class ClientConfigServiceStatusReporter(StatusReporter):
         checks = ServiceObservations(label='configuration')
         present, populated = checks.add_checks('present', 'populated')
         try:
-            config_dir = os.getenv('CONFIG_DIR', '/app/clientconfigs')
+            config_dir = os.getenv('CONFIG_DIR', '/app/configs')
             if os.path.isdir(config_dir):
                 present.category = Category.success
                 # Check we actually have some json files

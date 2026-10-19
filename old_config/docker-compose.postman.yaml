@@ -1,0 +1,4 @@
+services:
+  sds-api:
+    volumes:
+      - ./clientconfigs:/app/clientconfigs

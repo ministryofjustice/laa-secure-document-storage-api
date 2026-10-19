@@ -59,7 +59,11 @@ documentation for [generating client configs](docs/client_configurations.md). Fo
 follow the
 [SDS integration guide](https://dsdmoj.atlassian.net/wiki/spaces/SDS/pages/5390237878/LAA+SDS+Integration+Documentation).
 
-For SDS developers, another team member will provide access to local development client credentials and config. They
+For SDS developers, another team member will provide access to local development client credentials and config. There are two things that are required:
+- Your local `.env` file has `CLIENT_ID` and `CLIENT_SECRET` with the right values for the environment
+- The client configs repo has been checked-out to a folder that's consistent with the paths specified for `CONFIG_DIR`, `CASBIN_POLICY` and `CASBIN_MODEL` in your local `.env` file.
+
+They
 will need to be placed in the configured directory. The default path is in a directory at the same level as the repo
 directory and called `sds-client-configs`
 

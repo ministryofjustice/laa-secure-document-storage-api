@@ -1,0 +1,101 @@
+name: Postman Tests
+
+on:
+  push:
+    branches:
+      - main  # Run on main branch push
+  pull_request:
+    branches:
+      - main  # Run on pull requests to main branch
+  workflow_dispatch: # Manually trigger the workflow
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read  # This is required for actions/checkout
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set .env file
+        run: |
+          cp .env.sample .env
+
+      - name: Obtain Octo STS Token
+        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
+        id: octo_sts
+        with:
+          scope: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'              # Reference to repository you want to consume
+          identity: ministryofjustice-laa-secure-document-storage-api # Same as the filename in the private repo
+
+      - name: Checkout client configs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: 'false'
+          token: '${{ steps.octo_sts.outputs.token }}'
+          repository: '${{ vars.CLIENT_CONFIGS_REPOSITORY }}'
+          path: './clientconfigs'
+          ref: 'main'
+          sparse-checkout: 'clientconfigs'
+
+      - name: Check configs
+        run: |
+          ls ./clientconfigs/
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '18'
+
+      - name: Install AWS Local
+        run: pip install awscli-local
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Install LocalStack CLI
+        run: pip install localstack
+
+      - name: Setup AWS Credentials Directory
+        run: mkdir -p ~/.aws
+
+      - name: aws configure command
+        run: |
+          aws configure set aws_access_key_id test
+          aws configure set aws_secret_access_key test
+
+      - name: run ls command
+        run: cat ~/.aws/credentials
+
+      - name: Setup Containers
+        run: |
+          export AWS_ACCESS_KEY_ID=test
+          export AWS_ACCESS_KEY=test
+          docker compose -f docker-compose.yaml -f docker-compose.postman.yaml up --build -d
+        env:
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          AUDIENCE_ID: ${{ secrets.AUDIENCE_ID }}
+
+      - name: Wait 60 seconds for ClamAV
+        run: sleep 60
+
+      - name: Run Postman Tests
+        run: |
+          cd ./Postman
+          newman run ./SecureDocStoreAPI.postman_collection.json --environment ./SDSPipeline.postman_environment.json --env-var SDSClientSecret=$CLIENT_SECRET
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+
+      - name: SDS API logs
+        if: always()
+        run: |
+          docker container ls --format "{{.Names}}" | while read -r container
+          do
+            echo "Fetching logs for $container"
+            docker logs "$container"
+          done

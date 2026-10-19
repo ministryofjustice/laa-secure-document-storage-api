@@ -73,3 +73,6 @@ clientconfigs
 
 # Block .env
 .env
+
+# Block pre-commit hook
+.pre-commit-config.yaml
