@@ -1,6 +1,6 @@
 # old_config Files
 
-This folder holds config files that were used before PR #504 applied. These files rely on having "general config" files in `/Authz` directory ratther than in the client config repo.
+This folder holds config files that were used before PR #504 applied. These files rely on having "general config" files in `/authz` directory ratther than in the client config repo.
 
 These files have been preserved in case the PR #504 changes need to be reversed. 
 
