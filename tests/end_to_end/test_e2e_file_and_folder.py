@@ -447,16 +447,18 @@ def test_file_search_returns_files_in_nested_folders():
 
 
 @pytest.mark.e2e
-def test_file_search_returns_error_when_max_items_exceeds_limit():
+@pytest.mark.parametrize("max_items", [-1, 0, 1001])
+def test_file_search_returns_error_when_max_items_invalid(max_items):
     headers = token_getter.get_headers()
 
     response = client.get(
         f"{HOST_URL}/file_search",
         headers=headers,
-        params={"folder": "test", "max_items": 1001})
+        params={"folder": "test", "max_items": max_items},
+    )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Maximum files to be retrieved must be between 1 and 1000"
+    assert (response.json()["detail"] == "Maximum files to be retrieved must be between 1 and 1000")
 
 
 @pytest.mark.e2e
