@@ -8,3 +8,4 @@ class OperationType(Enum):
     READ = 'READ'
     INFO = 'INFO'
     FAILED = 'FAILED'
+    SEARCH = 'SEARCH'

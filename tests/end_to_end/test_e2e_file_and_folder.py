@@ -321,3 +321,193 @@ def test_get_file_details_returns_expected_details():
     assert version_history[0]["VersionId"] != version_history[1]["VersionId"]  # Both versions have different VersionID
     assert version_history[0]["IsLatest"] is True  # First version returned is the "latest"
     assert version_history[1]["IsLatest"] is False  # Second version returned is not the "latest"
+
+
+@pytest.mark.e2e
+def test_file_search_returns_files_in_folder():
+    headers = token_getter.get_headers()
+    folder = make_unique_name("search_folder")
+    file1 = f"{folder}/file1.txt"
+    file2 = f"{folder}/file2.txt"
+    # Upload files
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(file1))
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(file2))
+    # Search folder
+    response = client.get(f"{HOST_URL}/file_search",
+                          headers=headers,
+                          params={"folder": folder})
+    body = response.json()
+    assert response.status_code == 200
+    filenames = body["files"]
+    assert file1 in filenames
+    assert file2 in filenames
+    assert len(filenames) == 2
+
+
+@pytest.mark.e2e
+def test_file_search_returns_continuation_token_when_truncated():
+    headers = token_getter.get_headers()
+    folder = make_unique_name("pagination_test")
+    # Create enough files to force pagination
+    for i in range(5):
+        _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(f"{folder}/file_{i}.txt"))
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+        params={"folder": folder, "max_items": 2})
+    body = response.json()
+    assert response.status_code == 200
+    assert len(body["files"]) == 2
+    assert body["continuation_token"] is not None
+
+
+@pytest.mark.e2e
+def test_file_search_second_page_returns_remaining_files():
+    headers = token_getter.get_headers()
+    folder = make_unique_name("continuation_test")
+    for i in range(5):
+        _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(f"{folder}/file_{i}.txt"))
+    first_response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+        params={"folder": folder, "max_items": 2})
+    token = first_response.json()["continuation_token"]
+
+    second_response = client.get(f"{HOST_URL}/file_search",
+                                 headers=headers,
+                                 params={"folder": folder, "max_items": 2, "continuation_token": token})
+    assert second_response.status_code == 200
+    assert len(second_response.json()["files"]) == 2
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    "search_suffix,expected_found",
+    [
+        ("R", True),
+        ("READ", True),
+        ("README", True),
+        ("S", False),
+        ("", True)
+    ],
+)
+def test_file_search_uses_prefix_matching(
+    search_suffix,
+    expected_found,
+):
+    headers = token_getter.get_headers()
+
+    folder = make_unique_name("prefix_test")
+    filename = f"{folder}/README.md"
+
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(filename))
+
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+        params={"folder": f"{folder}/{search_suffix}", "max_items": 100, })
+
+    assert response.status_code == 200
+    files = response.json()["files"]
+    assert (filename in files) is expected_found
+
+
+@pytest.mark.e2e
+def test_file_search_returns_files_in_nested_folders():
+    headers = token_getter.get_headers()
+
+    folder = make_unique_name("nested_folder_test")
+    file1 = f"{folder}/file1.txt"
+    file2 = f"{folder}/file2.txt"
+    nested_file1 = f"{folder}/child/file3.txt"
+    nested_file2 = f"{folder}/child/file4.txt"
+
+    # Upload files
+    for filename in (file1, file2, nested_file1, nested_file2):
+        _ = post_a_file(
+            url=HOST_URL,
+            headers=headers,
+            file_data=test_md_file.get_data(filename),
+        )
+
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+        params={"folder": folder})
+
+    body = response.json()
+    files = body["files"]
+
+    assert response.status_code == 200
+    assert file1 in files
+    assert file2 in files
+    assert nested_file1 in files
+    assert nested_file2 in files
+    assert len(files) == 4
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize("max_items", [-1, 0, 1001])
+def test_file_search_returns_error_when_max_items_invalid(max_items):
+    headers = token_getter.get_headers()
+
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+        params={"folder": "test", "max_items": max_items},
+    )
+
+    assert response.status_code == 400
+    assert (response.json()["detail"] == "Maximum files to be retrieved must be between 1 and 1000")
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    "folder_value,expected_found",
+    [
+        ("{folder}", True),
+        ("{folder}/", True),
+        ("{folder}/abc", True),
+        ("{folder}/xyz", False),
+    ],
+)
+def test_file_search_handles_folder_parameter_formats(folder_value, expected_found):
+    headers = token_getter.get_headers()
+
+    folder = make_unique_name("folder_param_test")
+    filename = f"{folder}/abc/test_file.txt"
+
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(filename))
+
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+        params={"folder": folder_value.format(folder=folder), "max_items": 100})
+
+    assert response.status_code == 200
+    files = response.json()["files"]
+    assert (filename in files) is expected_found
+
+
+@pytest.mark.e2e
+def test_file_search_without_folder_returns_all_files():
+    headers = token_getter.get_headers()
+
+    folder1 = make_unique_name("folder1")
+    folder2 = make_unique_name("folder2")
+
+    file1 = f"{folder1}/file1.txt"
+    file2 = f"{folder2}/file2.txt"
+
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(file1))
+    _ = post_a_file(url=HOST_URL, headers=headers, file_data=test_md_file.get_data(file2))
+
+    response = client.get(
+        f"{HOST_URL}/file_search",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    files = response.json()["files"]
+    assert file1 in files
+    assert file2 in files
