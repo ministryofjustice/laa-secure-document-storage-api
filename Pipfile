@@ -31,7 +31,7 @@ python-dateutil = "*"
 certifi = "*"
 
 [dev-packages]
-flake8 = "==7.3.0"
+flake8 = "==7.4.1"
 pytest = "==9.1.1"
 sniffio = "*"
 pytest-asyncio = "==1.4.0"
