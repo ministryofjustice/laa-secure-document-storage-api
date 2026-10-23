@@ -44,6 +44,11 @@ def add_correlation(
 api_version = '0.9.0'
 sentry_dsn = os.environ.get('SENTRY_DSN')
 
+sentry_data_collection = {
+    "user_info": False,
+    "gen_ai": {"inputs": False, "outputs": False},
+}
+
 if sentry_dsn:
     sentry_sdk.init(
         dsn=sentry_dsn,
@@ -58,7 +63,8 @@ if sentry_dsn:
                 transaction_style="endpoint",
                 failed_request_status_codes=[range(500, 599)],
             ),
-        ]
+        ],
+        data_collection=sentry_data_collection
     )
 
 app = FastAPI(
