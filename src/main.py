@@ -63,8 +63,7 @@ if sentry_dsn:
                 transaction_style="endpoint",
                 failed_request_status_codes=[range(500, 599)],
             ),
-        ],
-        data_collection=sentry_data_collection
+        ]
     )
 
 app = FastAPI(
