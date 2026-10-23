@@ -17,6 +17,8 @@ logger = structlog.get_logger()
 async def virus_check_file(
             request: Request,
             file: Optional[UploadFile] = UploadFile(None),
+            error_code: int | None = None,
+            error_message: str = "",
             client_config: ClientConfig = Depends(client_config_middleware),
         ):
     """
@@ -25,6 +27,10 @@ async def virus_check_file(
     * 400 If known viruses were detected
     * 500 Virus scan gave non-standard result
     """
+
+    if error_code:
+        raise HTTPException(status_code=error_code, detail=error_message)
+
     header_status_code, header_message = run_header_validators(request.headers)
     if header_status_code != 200:
         raise HTTPException(
